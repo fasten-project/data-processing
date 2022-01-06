@@ -1,0 +1,102 @@
+/*
+ * Copyright 2021 Delft University of Technology
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package eu.f4sten.server.utils;
+
+import static java.lang.String.valueOf;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
+
+import java.security.InvalidParameterException;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.f4sten.server.core.Asserts;
+import eu.f4sten.server.core.utils.HostName;
+
+public class KafkaConnector {
+
+	private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
+
+	private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
+
+	private final HostName myHostName;
+	private final String kafkaUrl;
+	private final String plugin;
+
+	private final Set<String> instanceIds = new HashSet<>();
+
+	public KafkaConnector(HostName myHostName, String kafkaUrl, String plugin) {
+		this.myHostName = myHostName;
+		this.kafkaUrl = kafkaUrl;
+		this.plugin = plugin;
+	}
+
+	public KafkaConsumer<String, String> getConsumerConnection(String instanceId) {
+		Asserts.that(instanceId == null || !instanceId.isEmpty(), "instance id must be null or non-empty");
+
+		Properties p = new Properties();
+		p.setProperty(BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
+		p.setProperty(GROUP_ID_CONFIG, plugin);
+		p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
+		p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+		p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+//		p.setProperty(CLIENT_ID_CONFIG, getClientId());
+		p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
+//		p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
+//		p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
+//		p.setProperty(HEARTBEAT_INTERVAL_MS_CONFIG, valueOf(5 * 1000)); // 5s
+//		p.setProperty(SESSION_TIMEOUT_MS_CONFIG, valueOf(sessionTimeoutMS));
+//		p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, valueOf(pollIntervalMS));
+
+		if (instanceId != null) {
+			if (instanceIds.contains(instanceId)) {
+				throw new InvalidParameterException("instance id already exists " + instanceId);
+			}
+			instanceIds.add(instanceId);
+			LOG.info("Enabling static membership (instance id: {})", instanceId);
+			p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
+		}
+
+		return new KafkaConsumer<>(p);
+	}
+
+	public KafkaProducer<String, String> getProducerConnection() {
+
+		Properties p = new Properties();
+		p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
+//		p.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
+		p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		p.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, MAX_REQUEST_SIZE);
+
+		return new KafkaProducer<>(p);
+	}
+}
