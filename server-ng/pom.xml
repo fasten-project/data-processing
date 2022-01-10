@@ -12,6 +12,13 @@
 
 
 	<dependencies>
+		<!-- Ensure logging via slf4j-simple -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.32</version>
+		</dependency>
+		
 		<!-- FASTEN plugins -->
 		<dependency>
 			<groupId>eu.fasten-project</groupId>
@@ -35,11 +42,6 @@
 		</dependency>
 
 		<!-- actual dependencies -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.32</version>
-		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
