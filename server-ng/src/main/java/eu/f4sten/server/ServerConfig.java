@@ -36,11 +36,13 @@ import eu.f4sten.server.core.utils.HostName;
 import eu.f4sten.server.core.utils.IoUtils;
 import eu.f4sten.server.core.utils.JsonUtils;
 import eu.f4sten.server.core.utils.Kafka;
+import eu.f4sten.server.core.utils.PostgresConnector;
 import eu.f4sten.server.utils.HostNameImpl;
 import eu.f4sten.server.utils.IoUtilsImpl;
 import eu.f4sten.server.utils.JsonUtilsImpl;
 import eu.f4sten.server.utils.KafkaConnector;
 import eu.f4sten.server.utils.KafkaImpl;
+import eu.f4sten.server.utils.PostgresConnectorImpl;
 
 public class ServerConfig implements IInjectorConfig {
 
@@ -75,6 +77,16 @@ public class ServerConfig implements IInjectorConfig {
 						"instance id must be null or non-empty");
 
 		return new KafkaConnector(hostName, args.kafkaUrl, args.plugin);
+	}
+
+	@Provides
+	public PostgresConnector bindPostgresConnector() {
+		assertFor(args) //
+				.notNull(a -> a.dbUrl, "db url") //
+				.notNull(a -> a.dbUser, "db user") //
+				.that(a -> !a.dbUrl.contains("@"), "providing user via db url is not supported");
+
+		return new PostgresConnectorImpl(args.dbUrl, args.dbUser, true);
 	}
 
 	@Provides

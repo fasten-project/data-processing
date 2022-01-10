@@ -31,7 +31,10 @@ public class Args {
 	public File baseDir;
 
 	@Parameter(names = "--db.url", arity = 1, description = "JDBC url for the database")
-	public String urlDb;
+	public String dbUrl;
+
+	@Parameter(names = "--db.user", arity = 1, description = "user for the database connection")
+	public String dbUser;
 
 	@Parameter(names = "--kafka.url", arity = 1, description = "address for the Kafka Server")
 	public String kafkaUrl;
