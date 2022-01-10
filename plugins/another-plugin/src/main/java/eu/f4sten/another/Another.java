@@ -66,7 +66,7 @@ public class Another implements Plugin {
 				continue;
 			}
 			var t = new TestData(name, 3);
-			kafka.publish(t, args.kafkaOut, Lane.NORMAL);
+			kafka.publish(t, args.kafkaOut, Lane.PRIORITY);
 		}
 	}
 
