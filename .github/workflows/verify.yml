@@ -1,4 +1,4 @@
-name: package
+name: Verify
 
 # no trigger on tags
 on:
@@ -21,6 +21,6 @@ jobs:
           server-id: github # Value of distributionManagement/repository/id
           settings-path: ${{ github.workspace }} # location of settings.xml
       
-      - run: mvn -B -ntp clean package -s $GITHUB_WORKSPACE/settings.xml
+      - run: mvn -B -ntp clean verify -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}
