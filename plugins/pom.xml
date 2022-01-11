@@ -12,7 +12,7 @@
 	
 	<modules>
 		<module>another-plugin</module>
-		<module>pom-analyzer2</module>
+		<module>pom-analyzer</module>
 		<module>callable-indexer</module>
 	</modules>
 

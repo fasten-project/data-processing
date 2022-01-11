@@ -8,7 +8,7 @@
 		<artifactId>plugins</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>pom-analyzer2</artifactId>
+	<artifactId>pom-analyzer</artifactId>
 
 	<dependencies>
 		<dependency>
