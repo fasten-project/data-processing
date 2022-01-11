@@ -9,4 +9,12 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>another-plugin</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>eu.fasten</groupId>
+			<artifactId>core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 </project>
