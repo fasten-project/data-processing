@@ -84,7 +84,8 @@ public class ServerConfig implements IInjectorConfig {
 		assertFor(args) //
 				.notNull(a -> a.dbUrl, "db url") //
 				.notNull(a -> a.dbUser, "db user") //
-				.that(a -> !a.dbUrl.contains("@"), "providing user via db url is not supported");
+				.that(a -> !a.dbUrl.contains("@"), "providing user via db url is not supported") //
+				.that(a -> a.dbUrl.startsWith("jdbc:postgresql://"), "db url does not start with 'jdbc:postgresql://'");
 
 		return new PostgresConnectorImpl(args.dbUrl, args.dbUser, true);
 	}
