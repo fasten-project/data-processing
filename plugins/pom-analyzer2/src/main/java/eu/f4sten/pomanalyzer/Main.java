@@ -15,49 +15,159 @@
  */
 package eu.f4sten.pomanalyzer;
 
-import javax.inject.Inject;
+import eu.fasten.core.data.Constants;
+import eu.fasten.core.dbconnectors.PostgresConnector;
+import eu.fasten.core.plugins.KafkaPlugin.ProcessingLane;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.sql.SQLException;
+import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import picocli.CommandLine;
 
-import eu.f4sten.another.data.TestData;
-import eu.f4sten.server.core.AssertArgs;
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.utils.Kafka;
-import eu.f4sten.server.core.utils.Lane;
+@CommandLine.Command(name = "POMAnalyzer")
+public class Main implements Runnable {
 
-public class Main implements Plugin {
+    @CommandLine.Option(names = {"-f", "--file"},
+            paramLabel = "JSON_FILE",
+            description = "Path to JSON file which contains the Maven coordinate")
+    String jsonFile;
 
-	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    @CommandLine.Option(names = {"-cf", "--coordinates-file"},
+            paramLabel = "COORD_FILE",
+            description = "Path to file which contains the Maven coordinates "
+                    + "in form of groupId:artifactId:version")
+    String coordinatesFile;
 
-	private final MyArgs args;
-	private final Kafka kafka;
+    @CommandLine.Option(names = {"-s", "--skip"},
+            description = "Skip first line of the coordinates file")
+    boolean skipFirstLine;
 
-	@Inject
-	public Main(MyArgs args, Kafka kafka) {
-		this.args = args;
-		this.kafka = kafka;
-	}
+    @CommandLine.Option(names = {"-a", "--artifactId"},
+            paramLabel = "ARTIFACT",
+            description = "artifactId of the Maven coordinate")
+    String artifact;
 
-	@Override
-	public void run() {
-		AssertArgs.assertFor(args) //
-				.notNull(a -> a.kafkaIn, "input topic") //
-				.notNull(a -> a.kafkaOut, "output topic");
+    @CommandLine.Option(names = {"-g", "--groupId"},
+            paramLabel = "GROUP",
+            description = "groupId of the Maven coordinate")
+    String group;
 
-		kafka.subscribe(args.kafkaIn, TestData.class, this::process);
-		while (true) {
-			kafka.poll();
-		}
-	}
+    @CommandLine.Option(names = {"-v", "--version"},
+            paramLabel = "VERSION",
+            description = "version of the Maven coordinate")
+    String version;
 
-	private void process(TestData td, Lane l) {
+    @CommandLine.Option(names = {"-t", "--timestamp"},
+            paramLabel = "TS",
+            description = "Timestamp when the artifact was released")
+    String timestamp;
 
-		LOG.info("Found data on lane {}: {}", l, td);
+    @CommandLine.Option(names = {"-d", "--database"},
+            paramLabel = "DB_URL",
+            description = "Database URL for connection",
+            defaultValue = "jdbc:postgresql:postgres")
+    String dbUrl;
 
-		var output = new Output(td.name);
-		output.prev = td;
+    @CommandLine.Option(names = {"-u", "--user"},
+            paramLabel = "DB_USER",
+            description = "Database user name",
+            defaultValue = "postgres")
+    String dbUser;
 
-		kafka.publish(output, args.kafkaOut, l);
+	private POMAnalyzerPlugin.POMAnalyzer pomAnalyzer;
+
+    public static void main(String[] args) {
+        final int exitCode = new CommandLine(new Main()).execute(args);
+        System.exit(exitCode);
+    }
+
+    @Override
+    public void run() {
+        pomAnalyzer = new POMAnalyzerPlugin.POMAnalyzer();
+        setDatabaseConnection();
+        
+        // TODO why do we have so many different ways of invoking the plugin?
+        
+        if (artifact != null && group != null && version != null) {
+            var mvnCoordinate = new JSONObject();
+            mvnCoordinate.put("artifactId", artifact);
+            mvnCoordinate.put("groupId", group);
+            mvnCoordinate.put("version", version);
+            mvnCoordinate.put("date", timestamp);
+            var record = new JSONObject();
+            record.put("payload", mvnCoordinate);
+            pomAnalyzer.consume(record.toString());
+            pomAnalyzer.produce().ifPresent(System.out::println);
+            if (pomAnalyzer.getPluginError() != null) {
+                System.err.println(pomAnalyzer.getPluginError().getMessage());
+            }
+        } else if (jsonFile != null) {
+            FileReader reader;
+            try {
+                reader = new FileReader(jsonFile);
+            } catch (FileNotFoundException e) {
+                System.err.println("Could not find the JSON file at " + jsonFile);
+                return;
+            }
+            var record = new JSONObject(new JSONTokener(reader));
+            pomAnalyzer.consume(record.toString());
+            pomAnalyzer.produce().ifPresent(System.out::println);
+            if (pomAnalyzer.getPluginError() != null) {
+                System.err.println(pomAnalyzer.getPluginError().getMessage());
+            }
+        } else if (coordinatesFile != null) {
+            Scanner input;
+            try {
+                input = new Scanner(new File(coordinatesFile));
+            } catch (FileNotFoundException e) {
+                System.err.println(e.getMessage());
+                return;
+            }
+            if (skipFirstLine && input.hasNextLine()) {
+                input.nextLine();
+            }
+            var count = 0F;
+            var result = 0F;
+            while (input.hasNextLine()) {
+                count += 1F;
+                var line = input.nextLine();
+                var mvnCoordinate = new JSONObject();
+                var coordinate = line.split(Constants.mvnCoordinateSeparator);
+                mvnCoordinate.put("artifactId", coordinate[1]);
+                mvnCoordinate.put("groupId", coordinate[0]);
+                mvnCoordinate.put("version", coordinate[2]);
+                var record = new JSONObject();
+                record.put("payload", mvnCoordinate);
+                pomAnalyzer.consume(record.toString(), ProcessingLane.NORMAL);
+                pomAnalyzer.produce().ifPresent(System.out::println);
+                if (pomAnalyzer.getPluginError() != null) {
+                    System.err.println(pomAnalyzer.getPluginError().getMessage());
+                } else {
+                    result += 1F;
+                }
+            }
+            System.out.println("--------------------------------------------------");
+            System.out.println("Success rate: " + result / count);
+            System.out.println("--------------------------------------------------");
+        } else {
+            System.err.println("You need to specify Maven coordinate either by providing its "
+                    + "artifactId ('-a'), groupId ('-g') and version ('-v') or by providing path "
+                    + "to JSON file that contains that Maven coordinate as payload.");
+        }
+    }
+
+	private void setDatabaseConnection() {
+		try {
+            pomAnalyzer.setDBConnection(new HashMap<>(Map.of(Constants.mvnForge,
+                    PostgresConnector.getDSLContext(dbUrl, dbUser, true))));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 	}
 }
