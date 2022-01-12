@@ -22,9 +22,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -106,9 +110,12 @@ public class ServerConfig implements IInjectorConfig {
 	public ObjectMapper bindObjectMapper(Set<Module> modules) {
 		LOG.info("Instantiating ObjectMapper from {} modules: {}", modules.size(), modules);
 
-		var om = new ObjectMapper();
-		om.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		om.registerModules(modules);
-		return om;
+		return JsonMapper.builder() //
+				.disable(MapperFeature.AUTO_DETECT_GETTERS) // do not create json fields for getters
+				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) //
+//				.enable(SerializationFeature.INDENT_OUTPUT) // pretty printing
+				.build() //
+				.setVisibility(PropertyAccessor.ALL, Visibility.ANY) //
+				.registerModules(modules);
 	}
 }
