@@ -10,7 +10,7 @@
 
 	<modules>
 		<module>server-core</module>
-		<module>server-ng</module>
+		<module>server</module>
 		<module>plugins</module>
 	</modules>
 
