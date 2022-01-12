@@ -22,13 +22,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -36,6 +31,7 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
 import eu.f4sten.server.core.IInjectorConfig;
+import eu.f4sten.server.core.json.ObjectMapperBuilder;
 import eu.f4sten.server.core.utils.HostName;
 import eu.f4sten.server.core.utils.IoUtils;
 import eu.f4sten.server.core.utils.JsonUtils;
@@ -110,12 +106,7 @@ public class ServerConfig implements IInjectorConfig {
 	public ObjectMapper bindObjectMapper(Set<Module> modules) {
 		LOG.info("Instantiating ObjectMapper from {} modules: {}", modules.size(), modules);
 
-		return JsonMapper.builder() //
-				.disable(MapperFeature.AUTO_DETECT_GETTERS) // do not create json fields for getters
-				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) //
-//				.enable(SerializationFeature.INDENT_OUTPUT) // pretty printing
-				.build() //
-				.setVisibility(PropertyAccessor.ALL, Visibility.ANY) //
+		return new ObjectMapperBuilder().build() //
 				.registerModules(modules);
 	}
 }

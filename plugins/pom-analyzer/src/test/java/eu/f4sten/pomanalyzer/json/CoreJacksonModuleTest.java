@@ -24,14 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
+import eu.f4sten.server.core.json.ObjectMapperBuilder;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
 import eu.fasten.core.maven.data.VersionConstraint;
@@ -42,12 +39,12 @@ public class CoreJacksonModuleTest {
 
 	@BeforeEach
 	public void setup() {
-		om = JsonMapper.builder() //
-				.disable(MapperFeature.AUTO_DETECT_GETTERS) //
-				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) //
-				.build()//
-				.setVisibility(PropertyAccessor.ALL, Visibility.ANY) //
-				.registerModule(new CoreJacksonModule());
+		om = new ObjectMapperBuilder() {
+			@Override
+			protected ObjectMapper addMapperOptions(ObjectMapper om) {
+				return om.enable(SerializationFeature.INDENT_OUTPUT);
+			}
+		}.build().registerModule(new CoreJacksonModule());
 	}
 
 	@Test

@@ -18,6 +18,7 @@ package eu.f4sten.server.utils;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.f4sten.server.core.utils.JsonUtils;
@@ -44,6 +45,15 @@ public class JsonUtilsImpl implements JsonUtils {
 	public <T> T fromJson(String json, Class<T> type) {
 		try {
 			return om.readValue(json, type);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public <T> T fromJson(String json, TypeReference<T> typeRef) {
+		try {
+			return om.readValue(json, typeRef);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
