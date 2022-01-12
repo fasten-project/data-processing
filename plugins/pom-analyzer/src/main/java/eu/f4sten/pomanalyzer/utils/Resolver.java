@@ -100,7 +100,8 @@ public class Resolver {
 		var res = new HashSet<String[]>();
 		try {
 			MavenResolvedArtifactImpl.artifactRepositories = res;
-			Maven.resolver() //
+			Maven.configureResolver() //
+					.withClassPathResolution(false) //
 					.loadPomFromFile(f) //
 					.importCompileAndRuntimeDependencies() //
 					.resolve() //
