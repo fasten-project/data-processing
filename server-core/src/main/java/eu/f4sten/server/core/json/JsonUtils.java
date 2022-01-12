@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.core.utils;
+package eu.f4sten.server.core.json;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 

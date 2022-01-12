@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.f4sten.another.data.TestData;
 import eu.f4sten.server.core.Plugin;
+import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.server.core.kafka.Lane;
 import eu.f4sten.server.core.utils.IoUtils;
-import eu.f4sten.server.core.utils.Kafka;
-import eu.f4sten.server.core.utils.Lane;
 
 public class Another implements Plugin {
 	

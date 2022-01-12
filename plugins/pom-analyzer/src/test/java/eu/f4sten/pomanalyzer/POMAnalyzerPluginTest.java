@@ -30,7 +30,7 @@ import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.f4sten.server.core.utils.Kafka;
+import eu.f4sten.server.core.kafka.Kafka;
 
 public class POMAnalyzerPluginTest {
 

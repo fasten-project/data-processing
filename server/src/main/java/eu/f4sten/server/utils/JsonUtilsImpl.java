@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import eu.f4sten.server.core.utils.JsonUtils;
+import eu.f4sten.server.core.json.JsonUtils;
 
 public class JsonUtilsImpl implements JsonUtils {
 

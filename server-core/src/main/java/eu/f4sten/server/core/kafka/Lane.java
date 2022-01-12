@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.core.utils;
+package eu.f4sten.server.core.kafka;
 
 public enum Lane {
-	NORMAL, PRIORITY
+	NORMAL("out"), PRIORITY("priority.out"), ERROR("err");
+
+	public String extension;
+
+	Lane(String extension) {
+		this.extension = extension;
+	}
 }

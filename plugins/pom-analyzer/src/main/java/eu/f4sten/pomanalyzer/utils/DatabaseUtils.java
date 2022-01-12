@@ -25,7 +25,7 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.server.core.utils.JsonUtils;
+import eu.f4sten.server.core.json.JsonUtils;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 

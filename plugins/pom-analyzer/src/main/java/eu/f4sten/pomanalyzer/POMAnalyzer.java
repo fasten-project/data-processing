@@ -31,8 +31,8 @@ import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.f4sten.server.core.AssertArgs;
 import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.utils.Kafka;
-import eu.f4sten.server.core.utils.Lane;
+import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.server.core.kafka.Lane;
 import eu.fasten.core.maven.utils.MavenUtilities;
 import eu.fasten.core.utils.Asserts;
 

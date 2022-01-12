@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.core;
+package eu.f4sten.server.core.kafka;
 
-public class DefaultKafkaTopics {
+public class DefaultTopics {
 	public static final String INGEST = "??";
 	public static final String ANOTHER = "test";
-	public static final String POM_ANALYZER = "pom-analyzer";
+	public static final String POM_ANALYZER = "fasten.POMAnalyzer";
 }

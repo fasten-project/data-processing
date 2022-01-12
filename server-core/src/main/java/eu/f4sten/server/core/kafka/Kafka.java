@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.core.utils;
+package eu.f4sten.server.core.kafka;
 
 import java.util.function.BiConsumer;
 
@@ -22,6 +22,6 @@ public interface Kafka {
 	<T> void subscribe(String topic, Class<T> messageType, BiConsumer<T, Lane> consumer);
 
 	<T> void publish(T obj, String topic, Lane lane);
-	
+
 	void poll();
 }

@@ -17,13 +17,13 @@ package eu.f4sten.pomanalyzer;
 
 import com.beust.jcommander.Parameter;
 
-import eu.f4sten.server.core.DefaultKafkaTopics;
+import eu.f4sten.server.core.kafka.DefaultTopics;
 
 public class MyArgs {
 
 	@Parameter(names = "--pomanalyzer.kafkaIn", arity = 1)
-	public String kafkaIn = DefaultKafkaTopics.INGEST;
+	public String kafkaIn = DefaultTopics.INGEST;
 
 	@Parameter(names = "--pomanalyzer.kafkaOut", arity = 1)
-	public String kafkaOut = DefaultKafkaTopics.POM_ANALYZER;
+	public String kafkaOut = DefaultTopics.POM_ANALYZER;
 }

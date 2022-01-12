@@ -25,7 +25,7 @@ import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.f4sten.server.core.IInjectorConfig;
 import eu.f4sten.server.core.InjectorConfig;
-import eu.f4sten.server.core.utils.JsonUtils;
+import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.utils.PostgresConnector;
 
 @InjectorConfig

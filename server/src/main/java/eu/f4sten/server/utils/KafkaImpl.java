@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.f4sten.server.Args;
 import eu.f4sten.server.core.Asserts;
-import eu.f4sten.server.core.utils.JsonUtils;
-import eu.f4sten.server.core.utils.Kafka;
-import eu.f4sten.server.core.utils.Lane;
+import eu.f4sten.server.core.json.JsonUtils;
+import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaImpl implements Kafka {
 

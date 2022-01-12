@@ -31,11 +31,11 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
 import eu.f4sten.server.core.IInjectorConfig;
+import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.ObjectMapperBuilder;
+import eu.f4sten.server.core.kafka.Kafka;
 import eu.f4sten.server.core.utils.HostName;
 import eu.f4sten.server.core.utils.IoUtils;
-import eu.f4sten.server.core.utils.JsonUtils;
-import eu.f4sten.server.core.utils.Kafka;
 import eu.f4sten.server.core.utils.PostgresConnector;
 import eu.f4sten.server.utils.HostNameImpl;
 import eu.f4sten.server.utils.IoUtilsImpl;

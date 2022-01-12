@@ -21,8 +21,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 
+import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.utils.IoUtils;
-import eu.f4sten.server.core.utils.JsonUtils;
 
 public class IoUtilsImpl implements IoUtils {
 

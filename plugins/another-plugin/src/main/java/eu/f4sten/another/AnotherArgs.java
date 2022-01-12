@@ -17,10 +17,10 @@ package eu.f4sten.another;
 
 import com.beust.jcommander.Parameter;
 
-import eu.f4sten.server.core.DefaultKafkaTopics;
+import eu.f4sten.server.core.kafka.DefaultTopics;
 
 public class AnotherArgs {
 
 	@Parameter(names = "--another.kafkaOut", arity = 1)
-	public String kafkaOut = DefaultKafkaTopics.ANOTHER;
+	public String kafkaOut = DefaultTopics.ANOTHER;
 }
