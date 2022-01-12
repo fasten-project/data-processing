@@ -51,8 +51,7 @@ public class ResolverTest {
 	@BeforeEach
 	public void setup() {
 		db = new HashSet<>();
-		sut = new Resolver();
-		sut.setExistenceCheck(dep -> db.contains(dep));
+		sut = new Resolver(dep -> db.contains(dep));
 	}
 
 	@Test

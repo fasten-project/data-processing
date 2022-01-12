@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.core;
+package eu.f4sten.pomanalyzer;
 
-public class DefaultKafkaTopics {
-	public static final String INGEST = "??";
-	public static final String ANOTHER = "test";
-	public static final String POM_ANALYZER = "pom-analyzer";
+import com.beust.jcommander.Parameter;
+
+import eu.f4sten.server.core.DefaultKafkaTopics;
+
+public class MyArgs {
+
+	@Parameter(names = "--pomanalyzer.kafkaIn", arity = 1)
+	public String kafkaIn = DefaultKafkaTopics.INGEST;
+
+	@Parameter(names = "--pomanalyzer.kafkaOut", arity = 1)
+	public String kafkaOut = DefaultKafkaTopics.POM_ANALYZER;
 }

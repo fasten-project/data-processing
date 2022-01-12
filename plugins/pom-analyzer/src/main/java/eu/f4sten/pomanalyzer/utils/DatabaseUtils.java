@@ -16,7 +16,6 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
-import static eu.fasten.core.utils.Asserts.assertNotNull;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -24,21 +23,22 @@ import java.util.Date;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.f4sten.server.core.utils.JsonUtils;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 
 public class DatabaseUtils {
 
-	private DSLContext context;
+	private final DSLContext context;
+	private final JsonUtils jsonUtils;
 
 	private boolean processedRecord;
 
-	public void setDslContext(DSLContext context) {
+	public DatabaseUtils(DSLContext context, JsonUtils jsonUtils) {
 		this.context = context;
+		this.jsonUtils = jsonUtils;
 	}
 
 	protected MetadataDao getDao(DSLContext ctx) {
@@ -66,7 +66,7 @@ public class DatabaseUtils {
 		String product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
 		final var packageId = dao.insertPackage(product, Constants.mvnForge, r.projectName, r.repoUrl, null);
 
-		var pvMeta = toJson(r);
+		var pvMeta = jsonUtils.toJson(r);
 
 		var isMavenCentral = MAVEN_CENTRAL_REPO.equals(r.artifactRepository);
 		long artifactRepoId = isMavenCentral ? -1L : dao.insertArtifactRepository(r.artifactRepository);
@@ -78,24 +78,25 @@ public class DatabaseUtils {
 		for (var dep : r.dependencies) {
 			var depProduct = dep.groupId + Constants.mvnCoordinateSeparator + dep.artifactId;
 			final var depId = dao.insertPackage(depProduct, Constants.mvnForge);
-			dao.insertDependency(packageVersionId, depId, dep.getVersionConstraints(), null, null, null, dep.toJSON());
+			var json = jsonUtils.toJson(dep);
+			dao.insertDependency(packageVersionId, depId, dep.getVersionConstraints(), null, null, null, json);
 		}
 	}
 
-	public void ingestPackage(PomAnalysisResult result) {
-		var dao = new MetadataDao(context);
+	public void markAsIngestedPackage(PomAnalysisResult result) {
 		var packageName = result.groupId + ":" + result.artifactId;
 		var time = new Timestamp(new Date().getTime());
+		var dao = getDao(context);
 		dao.insertIngestedArtifact(packageName, result.version, time);
 	}
 
 	public boolean hasPackageBeenIngested(String gapv) {
 		// gid:aid:packaging:version
-		
+
 		String[] parts = gapv.split(":");
 		var depProduct = parts[0] + ":" + parts[1];
-		
-		var dao = new MetadataDao(context);
+
+		var dao = getDao(context);
 		return dao.isArtifactIngested(depProduct, parts[3]);
 	}
 
@@ -111,40 +112,5 @@ public class DatabaseUtils {
 			}
 			return new Timestamp(timestamp);
 		}
-	}
-
-	public static JSONObject toJson(PomAnalysisResult d) {
-		var json = new JSONObject();
-
-		assertNotNull(d.forge);
-		assertNotNull(d.artifactRepository);
-		assertNotNull(d.groupId);
-		assertNotNull(d.artifactId);
-		assertNotNull(d.version);
-		assertNotNull(d.packagingType);
-		assertNotNull(d.dependencies);
-		assertNotNull(d.dependencyManagement);
-		// TODO add remaining asserts
-
-		json.put("forge", d.forge);
-		json.put("artifactRepository", d.artifactRepository);
-
-		json.put("groupId", d.groupId);
-		json.put("artifactId", d.artifactId);
-		json.put("version", d.version);
-		json.put("packagingType", d.packagingType);
-
-		json.put("parentCoordinate", (d.parentCoordinate != null) ? d.parentCoordinate : "");
-
-		json.put("dependencies", new JSONArray(d.dependencies).toString());
-		json.put("dependencyManagement", new JSONArray(d.dependencyManagement).toString());
-
-		json.put("date", d.releaseDate);
-		json.put("repoUrl", (d.repoUrl != null) ? d.repoUrl : "");
-		json.put("commitTag", (d.commitTag != null) ? d.commitTag : "");
-		json.put("sourcesUrl", (d.sourcesUrl != null) ? d.sourcesUrl : "");
-		json.put("projectName", (d.projectName != null) ? d.projectName : "");
-
-		return json;
 	}
 }

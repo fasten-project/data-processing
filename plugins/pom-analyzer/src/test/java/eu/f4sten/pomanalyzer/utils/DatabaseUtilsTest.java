@@ -39,6 +39,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.f4sten.server.core.utils.JsonUtils;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.maven.data.Dependency;
@@ -47,13 +48,15 @@ import eu.fasten.core.maven.utils.MavenUtilities;
 public class DatabaseUtilsTest {
 
 	private MetadataDao dao;
+	private JsonUtils json;
 	private DSLContext dslContext;
 	private DatabaseUtils sut;
 
 	@BeforeEach
 	public void setup() {
-		dao = mock(MetadataDao.class, "MetadataDaoMock");
-		dslContext = mock(DSLContext.class, "DSLContextMock");
+		dao = mock(MetadataDao.class);
+		json = mock(JsonUtils.class);
+		dslContext = mock(DSLContext.class);
 		doAnswer(new Answer<Void>() {
 			public Void answer(InvocationOnMock i) throws Throwable {
 				var arg0 = (TransactionalRunnable) i.getArgument(0);
@@ -62,12 +65,11 @@ public class DatabaseUtilsTest {
 			};
 		}).when(dslContext).transaction(any(TransactionalRunnable.class));
 
-		sut = new DatabaseUtils() {
+		sut = new DatabaseUtils(dslContext, json) {
 			protected MetadataDao getDao(DSLContext ctx) {
 				return dao;
 			};
 		};
-		sut.setDslContext(dslContext);
 	}
 
 	@Test
@@ -105,32 +107,39 @@ public class DatabaseUtilsTest {
 	@Test
 	public void storePackageVersion() {
 		var result = getSomeResult();
+		when(json.toJson(eq(result))).thenReturn("<some json>");
+
 		when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
 		when(dao.insertArtifactRepository(anyString())).thenReturn(234L);
 		sut.save(result);
 
-		var captor = ArgumentCaptor.forClass(JSONObject.class);
+		var captor = ArgumentCaptor.forClass(String.class);
 
 		verify(dao).insertPackageVersion(eq(123L), eq(Constants.opalGenerator), eq(result.version), eq(234L), eq(null),
 				eq(new Timestamp(result.releaseDate)), captor.capture());
 
 		var actualJson = captor.getValue();
-		var expectedJson = DatabaseUtils.toJson(result);
+		var expectedJson = "<some json>";
 		assertEquals(expectedJson.toString(), actualJson.toString());
 	}
 
 	@Test
 	public void storeDependency() {
 		var result = getSomeResult();
+		
+		when(json.toJson(eq(result))).thenReturn("<some json>");
+		when(json.toJson(eq(result.dependencies.iterator().next()))).thenReturn("<some dep json>");
+		
+		
 
 		when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
 		when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),
-				any(JSONObject.class))).thenReturn(234L);
+				any(String.class))).thenReturn(234L);
 
 		sut.save(result);
 
 		var arrCaptor = ArgumentCaptor.forClass(String[].class);
-		var jsonCaptor = ArgumentCaptor.forClass(JSONObject.class);
+		var jsonCaptor = ArgumentCaptor.forClass(String.class);
 
 		verify(dao).insertPackage("dg1:da1", Constants.mvnForge);
 		verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null),
@@ -141,7 +150,7 @@ public class DatabaseUtilsTest {
 		assertEquals("dv1", actual[0]);
 
 		var actualJson = jsonCaptor.getValue();
-		var expectedJson = result.dependencies.iterator().next().toJSON();
+		var expectedJson = "<some dep json>";
 		assertEquals(expectedJson.toString(), actualJson.toString());
 	}
 

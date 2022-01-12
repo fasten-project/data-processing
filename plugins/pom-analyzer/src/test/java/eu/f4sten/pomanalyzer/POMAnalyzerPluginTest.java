@@ -15,13 +15,10 @@
  */
 package eu.f4sten.pomanalyzer;
 
-import static eu.fasten.core.plugins.KafkaPlugin.ProcessingLane.NORMAL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.util.Collections;
 
 import org.apache.maven.model.Model;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +30,7 @@ import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
+import eu.f4sten.server.core.utils.Kafka;
 
 public class POMAnalyzerPluginTest {
 
@@ -41,8 +39,10 @@ public class POMAnalyzerPluginTest {
 	private PomExtractor extractor;
 	private DatabaseUtils db;
 	private Resolver resolver;
+	private Kafka kafka;
+	private MyArgs args;
 
-	private POMAnalyzerPlugin.POMAnalyzer sut;
+	private POMAnalyzer sut;
 
 	@BeforeEach
 	public void setup() {
@@ -51,9 +51,10 @@ public class POMAnalyzerPluginTest {
 		extractor = mock(PomExtractor.class);
 		db = mock(DatabaseUtils.class);
 		resolver = mock(Resolver.class);
+		kafka = mock(Kafka.class);
+		args = new MyArgs();
 
-		sut = new POMAnalyzerPlugin.POMAnalyzer(repo, modelBuilder, extractor, db, resolver);
-		sut.setTopics(Collections.singletonList("fasten.mvn.pkg"));
+		sut = new POMAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args);
 
 		when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
 		when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
@@ -61,7 +62,8 @@ public class POMAnalyzerPluginTest {
 
 	@Test
 	public void asd() {
-		sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}", NORMAL);
+		// sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}",
+		// NORMAL);
 	}
 
 	// TODO extend test suite, right now this is only a stub for easy debugging

@@ -41,14 +41,18 @@ public class Resolver {
 	// to avoid unnecessary downloads on every build. Make sure to re-enable the
 	// tests and run them locally for every change in this class.
 
-	// default implementation assumes nothing is skipped
-	private Predicate<String> funShouldSkip = s -> false;
+	private Predicate<String> funShouldSkip;
+
+	public Resolver() {
+		// by default, nothing gets skipped
+		this(s -> false);
+	}
 
 	/**
-	 * Registers a Predicate that can prevent the processing of coordinates.
-	 * Coordinates are provided in the form gid:aid:packaging:version
+	 * @param funShouldSkip Registers a Predicate that can prevent the processing of
+	 *                      a coordinate in the form gid:aid:packaging:version
 	 */
-	public void setExistenceCheck(Predicate<String> funShouldSkip) {
+	public Resolver(Predicate<String> funShouldSkip) {
 		this.funShouldSkip = funShouldSkip;
 	}
 
