@@ -30,6 +30,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import eu.f4sten.server.ServerArgs;
 import eu.f4sten.server.core.Asserts;
 import eu.f4sten.server.core.json.JsonUtils;
@@ -71,6 +73,11 @@ public class KafkaImpl implements Kafka {
 
 	@Override
 	public <T> void subscribe(String topic, Class<T> messageType, BiConsumer<T, Lane> callback) {
+		subscribe(topic, new TypeReference<T>() {}, callback);
+	}
+
+	@Override
+	public <T> void subscribe(String topic, TypeReference<T> messageType, BiConsumer<T, Lane> callback) {
 		for (var lane : Lane.values()) {
 			getCallbacks(topic, lane).add(new Callback<T>(messageType, callback));
 		}
@@ -141,10 +148,10 @@ public class KafkaImpl implements Kafka {
 
 	private class Callback<T> {
 
-		private final Class<T> messageType;
+		private final TypeReference<T> messageType;
 		private final BiConsumer<T, Lane> callback;
 
-		private Callback(Class<T> messageType, BiConsumer<T, Lane> callback) {
+		private Callback(TypeReference<T> messageType, BiConsumer<T, Lane> callback) {
 			this.messageType = messageType;
 			this.callback = callback;
 		}

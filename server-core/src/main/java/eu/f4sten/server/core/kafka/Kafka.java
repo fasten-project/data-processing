@@ -17,9 +17,13 @@ package eu.f4sten.server.core.kafka;
 
 import java.util.function.BiConsumer;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 public interface Kafka {
 
 	<T> void subscribe(String topic, Class<T> messageType, BiConsumer<T, Lane> consumer);
+
+	<T> void subscribe(String topic, TypeReference<T> messageType, BiConsumer<T, Lane> consumer);
 
 	<T> void publish(T obj, String topic, Lane lane);
 
