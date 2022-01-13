@@ -18,11 +18,8 @@ package eu.f4sten.another;
 import static eu.f4sten.server.core.AssertArgs.assertFor;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
@@ -36,16 +33,16 @@ import eu.f4sten.server.core.kafka.Lane;
 import eu.f4sten.server.core.utils.IoUtils;
 
 public class Another implements Plugin {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(Another.class);
 
 	private final Kafka kafka;
-	private final AnotherArgs args;
+	private final MyArgs args;
 
 	private IoUtils io;
 
 	@Inject
-	public Another(Kafka kafka, AnotherArgs args, IoUtils io) {
+	public Another(Kafka kafka, MyArgs args, IoUtils io) {
 		this.kafka = kafka;
 		this.args = args;
 		this.io = io;

@@ -27,17 +27,19 @@ import eu.f4sten.server.core.InjectorConfig;
 
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {
+	
+	private MyArgs args;
 
-	private AnotherArgs args;
-
-	public MyInjectorConfig(AnotherArgs args) {
+	public MyInjectorConfig(MyArgs args) {
 		this.args = args;
 	}
 
 	@Override
 	public void configure(Binder binder) {
-		binder.bind(AnotherArgs.class).toInstance(args);
+		binder.bind(MyArgs.class).toInstance(args);
 	}
+
+	
 
 	@ProvidesIntoSet
 	public Module provideJacksonModule() {

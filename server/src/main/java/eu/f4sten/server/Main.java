@@ -42,7 +42,7 @@ public class Main {
 
 	public static void main(String[] rawArgs) {
 		setLogLevel(LogLevel.OFF);
-		var args = parse(rawArgs, new Args());
+		var args = parse(rawArgs, new ServerArgs());
 		new Main().run(rawArgs, args);
 	}
 
@@ -75,7 +75,7 @@ public class Main {
 		return parsedArgs;
 	}
 
-	public void run(String[] rawArgs, Args args) {
+	public void run(String[] rawArgs, ServerArgs args) {
 		// setup logging
 		setLogLevel(args.logLevel);
 		log = LoggerFactory.getLogger(Main.class);
@@ -97,7 +97,7 @@ public class Main {
 		System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, level.value);
 	}
 
-	private static List<Module> loadModules(String[] rawArgs, Args args) {
+	private static List<Module> loadModules(String[] rawArgs, ServerArgs args) {
 		var modules = new LinkedList<Module>();
 		modules.add(new ServerConfig(args));
 

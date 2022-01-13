@@ -48,17 +48,17 @@ public class ServerConfig implements IInjectorConfig {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);
 
-	private Args args;
+	private ServerArgs args;
 
-	public ServerConfig(Args args) {
+	public ServerConfig(ServerArgs args) {
 		this.args = args;
 	}
 
 	@Override
 	public void configure(Binder binder) {
-		binder.bind(Args.class).toInstance(args);
 		binder.bind(HostName.class).to(HostNameImpl.class);
 		binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
+		binder.bind(ServerArgs.class).toInstance(args);
 	}
 
 	@Provides
@@ -98,7 +98,7 @@ public class ServerConfig implements IInjectorConfig {
 
 	@ProvidesIntoSet
 	public Module bindJacksonModule() {
-		return new JacksonModule();
+		return new MyCustomSerializations();
 	}
 
 	@Provides

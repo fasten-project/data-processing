@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server;
+package eu.f4sten.another;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.beust.jcommander.Parameter;
 
-public class JacksonModule extends SimpleModule {
+import eu.f4sten.server.core.kafka.DefaultTopics;
 
-	private static final long serialVersionUID = 2994705777924168145L;
-	
-	public JacksonModule() {
-		super();
-	}
-	
+public class MyArgs {
+
+	@Parameter(names = "--myplugin.kafkaOut", arity = 1)
+	public String kafkaOut = DefaultTopics.ANOTHER;
 }

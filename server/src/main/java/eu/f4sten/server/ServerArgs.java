@@ -19,22 +19,22 @@ import java.io.File;
 
 import com.beust.jcommander.Parameter;
 
-public class Args {
+public class ServerArgs {
 
-	@Parameter(names = {"--plugin", "-P"}, arity = 1, required = true, description = "fully-qualified class name of the plugin to be started")
+	@Parameter(names = "--plugin", arity = 1, required = true, description = "fully-qualified class name of the plugin to be started")
 	public String plugin;
-
-	@Parameter(names = "--logLevel", arity = 1, description = "Desired log level")
-	public LogLevel logLevel = LogLevel.INFO;
-
-	@Parameter(names = "--baseDir", arity = 1, description = "Base folder for all file-based operations")
-	public File baseDir;
 
 	@Parameter(names = "--db.url", arity = 1, description = "JDBC url for the database")
 	public String dbUrl;
 
 	@Parameter(names = "--db.user", arity = 1, description = "user for the database connection")
 	public String dbUser;
+
+	@Parameter(names = "--logLevel", arity = 1, description = "Desired log level")
+	public LogLevel logLevel = LogLevel.INFO;
+
+	@Parameter(names = "--baseDir", arity = 1, description = "Base folder for all file-based operations")
+	public File baseDir;
 
 	@Parameter(names = "--kafka.url", arity = 1, description = "address for the Kafka Server")
 	public String kafkaUrl;

@@ -30,7 +30,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.server.Args;
+import eu.f4sten.server.ServerArgs;
 import eu.f4sten.server.core.Asserts;
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.kafka.Kafka;
@@ -54,14 +54,14 @@ public class KafkaImpl implements Kafka {
 	private boolean hadMessages = true;
 
 	@Inject
-	public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector, Args args) {
+	public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector, ServerArgs args) {
 		this.jsonUtils = jsonUtils;
 		connNorm = connector.getConsumerConnection(getFullInstanceId(args, Lane.NORMAL));
 		connPrio = connector.getConsumerConnection(getFullInstanceId(args, Lane.PRIORITY));
 		producer = connector.getProducerConnection();
 	}
 
-	private static String getFullInstanceId(Args args, Lane lane) {
+	private static String getFullInstanceId(ServerArgs args, Lane lane) {
 		if (args.instanceId == null) {
 			return null;
 		}
