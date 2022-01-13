@@ -18,9 +18,12 @@ package eu.f4sten.pomanalyzer;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.ProvidesIntoSet;
 
+import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.f4sten.server.core.IInjectorConfig;
@@ -52,5 +55,10 @@ public class MyInjectorConfig implements IInjectorConfig {
 	@Provides
 	public Resolver bindResolver(DatabaseUtils dbUtils) {
 		return new Resolver(dbUtils::hasPackageBeenIngested);
+	}
+
+	@ProvidesIntoSet
+	public Module bindJacksonModule() {
+		return new CoreJacksonModule();
 	}
 }
