@@ -55,7 +55,7 @@ public class VersionTest {
 
 	@Test
 	public void trimsWhitespace() {
-		overrideVersion(" \n ... \n ");
+		overrideVersion(" \t ... \t ");
 
 		var actual = new VersionImpl().get();
 		var expected = "...";

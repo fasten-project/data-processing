@@ -13,36 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.utils;
+package eu.f4sten.another;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import javax.inject.Inject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
+import eu.f4sten.server.core.Plugin;
 import eu.f4sten.server.core.utils.Version;
 
-public class VersionImpl implements Version {
+public class JustVersion implements Plugin {
 
-	private static final String NA = "n/a";
+	private Version version;
+
+	@Inject
+	public JustVersion(Version version) {
+		this.version = version;
+	}
 
 	@Override
-	public String get() {
-		try (InputStream is = VersionImpl.class.getClassLoader().getResourceAsStream("version.txt")) {
-
-			if (is == null) {
-				return NA;
-			}
-
-			try (InputStreamReader isr = new InputStreamReader(is, UTF_8);
-					BufferedReader br = new BufferedReader(isr)) {
-				return br.readLine().trim();
-			}
-
-		} catch (IOException e) {
-			return NA;
-		}
+	public void run() {
+		System.out.println(version.get());
 	}
 }
