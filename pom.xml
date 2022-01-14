@@ -37,7 +37,9 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <sourceDirectories>${project.basedir}</sourceDirectories>
+                    <includes>src/main/**/*.java,src/test/**/*.java,**/*.xml</includes>
+                    <excludes>**/target/**</excludes>
                 </configuration>
                 <executions>
                     <execution>

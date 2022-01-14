@@ -14,6 +14,11 @@
         <property name="message" value="Line has trailing whitespace." />
     </module>
 
+    <module name="RegexpMultiline">
+        <property name="format" value="(?m)\n\n\n" />
+        <property name="message" value="File has (at least) two consecutive empty lines." />
+    </module>
+
     <module name="TreeWalker">
 
         <!-- imports -->
