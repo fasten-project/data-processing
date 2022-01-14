@@ -17,6 +17,8 @@ package eu.f4sten.server.core;
 
 public class Asserts {
 
+	// TODO merge with fasten.core Asserts
+
 	public static void assertNotNullOrEmpty(String s) {
 		if (s == null || s.isEmpty()) {
 			throw new IllegalStateException("string is null or empty");

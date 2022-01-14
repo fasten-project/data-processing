@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.utils;
+package eu.f4sten.server.kafka;
 
 import java.time.Duration;
 import java.util.HashMap;

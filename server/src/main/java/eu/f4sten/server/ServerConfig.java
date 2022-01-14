@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -38,11 +39,11 @@ import eu.f4sten.server.core.utils.HostName;
 import eu.f4sten.server.core.utils.IoUtils;
 import eu.f4sten.server.core.utils.PostgresConnector;
 import eu.f4sten.server.core.utils.Version;
+import eu.f4sten.server.json.JsonUtilsImpl;
+import eu.f4sten.server.kafka.KafkaConnector;
+import eu.f4sten.server.kafka.KafkaImpl;
 import eu.f4sten.server.utils.HostNameImpl;
 import eu.f4sten.server.utils.IoUtilsImpl;
-import eu.f4sten.server.utils.JsonUtilsImpl;
-import eu.f4sten.server.utils.KafkaConnector;
-import eu.f4sten.server.utils.KafkaImpl;
 import eu.f4sten.server.utils.PostgresConnectorImpl;
 import eu.f4sten.server.utils.VersionImpl;
 
@@ -101,7 +102,7 @@ public class ServerConfig implements IInjectorConfig {
 
 	@ProvidesIntoSet
 	public Module bindJacksonModule() {
-		return new MyCustomSerializations();
+		return new SimpleModule();
 	}
 
 	@Provides

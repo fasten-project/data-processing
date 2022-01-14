@@ -18,7 +18,7 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.32</version>
 		</dependency>
-		
+
 		<!-- FASTEN plugins -->
 		<dependency>
 			<groupId>eu.fasten-project</groupId>
@@ -48,11 +48,6 @@
 			<version>0.10.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka-clients</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
 			<version>2.13.1</version>
@@ -72,12 +67,12 @@
 			<artifactId>postgresql</artifactId>
 			<version>42.3.1</version>
 		</dependency>
-
-
-
-
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>3.0.0</version>
+		</dependency>
 	</dependencies>
-
 
 	<build>
 		<plugins>

@@ -87,10 +87,7 @@ public class Main {
 
 		// find corresponding plugin class
 		Class<Plugin> c = findPluginClass(args.plugin);
-		Plugin p = injector.getInstance(c);
-
-		// wrap execution in runner
-		injector.getInstance(Runner.class).run(p::run);
+		injector.getInstance(c).run();
 	}
 
 	private static void setLogLevel(LogLevel level) {

@@ -16,7 +16,9 @@
 package eu.f4sten.server.core.kafka;
 
 public enum Lane {
-	NORMAL("out"), PRIORITY("priority.out"), ERROR("err");
+	NORMAL("out"),
+	PRIORITY("priority.out"),
+	ERROR("err");
 
 	public String extension;
 
