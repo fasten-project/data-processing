@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -43,14 +42,14 @@ public class MessageModuleTest {
 				return om.enable(SerializationFeature.INDENT_OUTPUT);
 			}
 		}.build();
+		// message does not need a special serializer
 	}
 
 	@Test
 	public void messagesCanBeDeSerialized() throws JsonProcessingException {
 		var in = someMessage();
 		String json = om.writeValueAsString(in);
-		var out = om.readValue(json, new TypeReference<Message<String, String>>() {
-		});
+		var out = om.readValue(json, new TRef<Message<String, String>>() {});
 		assertEquals(in, out);
 	}
 
@@ -58,8 +57,7 @@ public class MessageModuleTest {
 	public void serializationDoesNotCrashWhenNotAllInfoIsConsumed() throws JsonProcessingException {
 		var in = someMessage();
 		String json = om.writeValueAsString(in);
-		var out = om.readValue(json, new TypeReference<Message<Void, String>>() {
-		});
+		var out = om.readValue(json, new TRef<Message<Void, String>>() {});
 		assertNull(out.input);
 		assertEquals(in.payload, out.payload);
 	}

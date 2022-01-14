@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.server.utils;
+package eu.f4sten.server.json;
 
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.f4sten.server.core.json.JsonUtils;
+import eu.f4sten.server.core.json.TRef;
 
 public class JsonUtilsImpl implements JsonUtils {
 
@@ -51,7 +51,7 @@ public class JsonUtilsImpl implements JsonUtils {
 	}
 
 	@Override
-	public <T> T fromJson(String json, TypeReference<T> typeRef) {
+	public <T> T fromJson(String json, TRef<T> typeRef) {
 		try {
 			return om.readValue(json, typeRef);
 		} catch (JsonProcessingException e) {

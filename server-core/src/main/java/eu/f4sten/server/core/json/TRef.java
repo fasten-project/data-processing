@@ -15,11 +15,8 @@
  */
 package eu.f4sten.server.core.json;
 
-public interface JsonUtils {
+import com.fasterxml.jackson.core.type.TypeReference;
 
-	public <T> String toJson(T obj);
-
-	public <T> T fromJson(String json, Class<T> type);
-
-	public <T> T fromJson(String json, TRef<T> typeRef);
+public abstract class TRef<T> extends TypeReference<T> {
+	// renaming class to make code shorter
 }

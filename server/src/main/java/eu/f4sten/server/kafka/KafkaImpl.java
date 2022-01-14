@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import javax.inject.Inject;
 
@@ -30,11 +31,10 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import eu.f4sten.server.ServerArgs;
 import eu.f4sten.server.core.Asserts;
 import eu.f4sten.server.core.json.JsonUtils;
+import eu.f4sten.server.core.json.TRef;
 import eu.f4sten.server.core.kafka.Kafka;
 import eu.f4sten.server.core.kafka.Lane;
 
@@ -42,6 +42,7 @@ public class KafkaImpl implements Kafka {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KafkaImpl.class);
 	private static final Duration POLL_TIMEOUT_PRIO = Duration.ofSeconds(10);
+	private static final Object NONE = new Object();
 
 	private final JsonUtils jsonUtils;
 
@@ -49,8 +50,11 @@ public class KafkaImpl implements Kafka {
 	private final KafkaConsumer<String, String> connPrio;
 	private final KafkaProducer<String, String> producer;
 
+	// keep track of subscriptions to allow incremental calls
 	private final Set<String> subsNorm = new HashSet<>();
 	private final Set<String> subsPrio = new HashSet<>();
+
+	private final Map<String, String> baseTopics = new HashMap<>();
 	private final Map<String, Set<Callback<?>>> callbacks = new HashMap<>();
 
 	private boolean hadMessages = true;
@@ -72,14 +76,26 @@ public class KafkaImpl implements Kafka {
 	}
 
 	@Override
-	public <T> void subscribe(String topic, Class<T> messageType, BiConsumer<T, Lane> callback) {
-		subscribe(topic, new TypeReference<T>() {}, callback);
+	public <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback) {
+		subscribe(topic, new TRef<T>() {}, callback);
 	}
 
 	@Override
-	public <T> void subscribe(String topic, TypeReference<T> messageType, BiConsumer<T, Lane> callback) {
+	public <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback,
+			BiFunction<T, Throwable, ?> errors) {
+		subscribe(topic, new TRef<T>() {}, callback, errors);
+	}
+
+	@Override
+	public <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback) {
+		subscribe(topic, new TRef<T>() {}, callback, (x, y) -> NONE);
+	}
+
+	@Override
+	public <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback,
+			BiFunction<T, Throwable, ?> errors) {
 		for (var lane : Lane.values()) {
-			getCallbacks(topic, lane).add(new Callback<T>(messageType, callback));
+			getCallbacks(topic, lane).add(new Callback<T>(typeRef, callback, errors));
 		}
 		subsNorm.add(combine(topic, Lane.NORMAL));
 		connNorm.subscribe(subsNorm);
@@ -87,14 +103,16 @@ public class KafkaImpl implements Kafka {
 		connPrio.subscribe(subsPrio);
 	}
 
-	private Set<Callback<?>> getCallbacks(String topic, Lane lane) {
-		var key = combine(topic, lane);
+	private Set<Callback<?>> getCallbacks(String baseTopic, Lane lane) {
+		var combinedTopic = combine(baseTopic, lane);
+		baseTopics.put(combinedTopic, baseTopic);
+
 		Set<Callback<?>> vals;
-		if (!callbacks.containsKey(key)) {
+		if (!callbacks.containsKey(combinedTopic)) {
 			vals = new HashSet<Callback<?>>();
-			callbacks.put(key, vals);
+			callbacks.put(combinedTopic, vals);
 		} else {
-			vals = callbacks.get(key);
+			vals = callbacks.get(combinedTopic);
 		}
 		return vals;
 	}
@@ -127,7 +145,7 @@ public class KafkaImpl implements Kafka {
 			var json = r.value();
 			Set<Callback<?>> cbs = callbacks.get(r.topic());
 			for (var cb : cbs) {
-				cb.exec(json, lane);
+				cb.exec(r.topic(), json, lane);
 			}
 		}
 		con.commitSync();
@@ -135,7 +153,7 @@ public class KafkaImpl implements Kafka {
 	}
 
 	private static String combine(String topic, Lane lane) {
-		return topic + "." + lane;
+		return topic + "." + lane.extension;
 	}
 
 	private static void sendHeartBeat(KafkaConsumer<?, ?> c) {
@@ -148,17 +166,29 @@ public class KafkaImpl implements Kafka {
 
 	private class Callback<T> {
 
-		private final TypeReference<T> messageType;
+		private final TRef<T> messageType;
 		private final BiConsumer<T, Lane> callback;
+		private final BiFunction<T, Throwable, ?> errors;
 
-		private Callback(TypeReference<T> messageType, BiConsumer<T, Lane> callback) {
+		private Callback(TRef<T> messageType, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors) {
 			this.messageType = messageType;
 			this.callback = callback;
+			this.errors = errors;
 		}
 
-		private void exec(String json, Lane lane) {
-			T obj = jsonUtils.fromJson(json, messageType);
-			callback.accept(obj, lane);
+		private void exec(String combinedTopic, String json, Lane lane) {
+			T obj = null;
+			try {
+				obj = jsonUtils.fromJson(json, messageType);
+				callback.accept(obj, lane);
+			} catch (Throwable t) {
+				var errTopic = combine(baseTopics.get(combinedTopic), Lane.ERROR);
+				var err = errors.apply(obj, t);
+				// check instance equality!
+				if (err != NONE) {
+					publish(err, errTopic, Lane.ERROR);
+				}
+			}
 		}
 	}
 }

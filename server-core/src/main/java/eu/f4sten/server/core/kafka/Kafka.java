@@ -16,14 +16,19 @@
 package eu.f4sten.server.core.kafka;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import eu.f4sten.server.core.json.TRef;
 
 public interface Kafka {
 
-	<T> void subscribe(String topic, Class<T> messageType, BiConsumer<T, Lane> consumer);
+	<T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback);
 
-	<T> void subscribe(String topic, TypeReference<T> messageType, BiConsumer<T, Lane> consumer);
+	<T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
+
+	<T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback);
+
+	<T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
 
 	<T> void publish(T obj, String topic, Lane lane);
 
