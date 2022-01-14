@@ -22,13 +22,11 @@ import eu.f4sten.server.core.json.JsonUtils;
 
 public class CallableIndexer implements Plugin {
 
-	@Inject
-	public CallableIndexer(JsonUtils ju) {
-	}
+    @Inject
+    public CallableIndexer(JsonUtils ju) {}
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
 
-	}
-
+    }
 }

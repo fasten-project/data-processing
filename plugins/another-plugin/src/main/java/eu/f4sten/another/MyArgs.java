@@ -21,6 +21,6 @@ import eu.f4sten.server.core.kafka.DefaultTopics;
 
 public class MyArgs {
 
-	@Parameter(names = "--myplugin.kafkaOut", arity = 1)
-	public String kafkaOut = DefaultTopics.ANOTHER;
+    @Parameter(names = "--myplugin.kafkaOut", arity = 1)
+    public String kafkaOut = DefaultTopics.ANOTHER;
 }

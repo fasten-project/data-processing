@@ -26,42 +26,42 @@ import eu.f4sten.server.core.utils.IoUtils;
 
 public class IoUtilsImpl implements IoUtils {
 
-	private File baseDir;
-	private JsonUtils jsonUtils;
+    private File baseDir;
+    private JsonUtils jsonUtils;
 
-	public IoUtilsImpl(File baseDir, JsonUtils jsonUtils) {
-		this.baseDir = baseDir;
-		this.jsonUtils = jsonUtils;
-	}
+    public IoUtilsImpl(File baseDir, JsonUtils jsonUtils) {
+        this.baseDir = baseDir;
+        this.jsonUtils = jsonUtils;
+    }
 
-	@Override
-	public File getTempFolder() {
-		String defaultBaseDir = System.getProperty("java.io.tmpdir");
-		return new File(defaultBaseDir);
-	}
+    @Override
+    public File getTempFolder() {
+        String defaultBaseDir = System.getProperty("java.io.tmpdir");
+        return new File(defaultBaseDir);
+    }
 
-	@Override
-	public File getBaseFolder() {
-		return baseDir;
-	}
+    @Override
+    public File getBaseFolder() {
+        return baseDir;
+    }
 
-	@Override
-	public <T> void writeToFile(T t, File file) {
-		try {
-			String json = jsonUtils.toJson(t);
-			FileUtils.write(file, json, StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public <T> void writeToFile(T t, File file) {
+        try {
+            String json = jsonUtils.toJson(t);
+            FileUtils.write(file, json, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public <T> T readFromFile(File file, Class<T> typeOfContent) {
-		try {
-			String json = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-			return jsonUtils.fromJson(json, typeOfContent);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public <T> T readFromFile(File file, Class<T> typeOfContent) {
+        try {
+            String json = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+            return jsonUtils.fromJson(json, typeOfContent);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

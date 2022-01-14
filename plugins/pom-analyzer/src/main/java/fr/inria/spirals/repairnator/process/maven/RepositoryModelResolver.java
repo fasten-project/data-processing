@@ -127,7 +127,7 @@ public class RepositoryModelResolver implements ModelResolver {
         }
     }
 
-	@Override
+    @Override
     public ModelSource resolveModel(String groupId, String artifactId, String versionId)
             throws UnresolvableModelException {
         File pom = getLocalFile(groupId, artifactId, versionId);
@@ -169,8 +169,8 @@ public class RepositoryModelResolver implements ModelResolver {
         return new RepositoryModelResolver(this.localRepository);
     }
 
-	@Override
-	public ModelSource resolveModel(Dependency d) throws UnresolvableModelException {
-		return resolveModel(d.getGroupId(), d.getArtifactId(), d.getVersion());
-	}
+    @Override
+    public ModelSource resolveModel(Dependency d) throws UnresolvableModelException {
+        return resolveModel(d.getGroupId(), d.getArtifactId(), d.getVersion());
+    }
 }

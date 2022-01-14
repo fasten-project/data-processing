@@ -25,37 +25,37 @@ import eu.f4sten.server.core.json.TRef;
 
 public class JsonUtilsImpl implements JsonUtils {
 
-	private ObjectMapper om;
+    private ObjectMapper om;
 
-	@Inject
-	public JsonUtilsImpl(ObjectMapper om) {
-		this.om = om;
-	}
+    @Inject
+    public JsonUtilsImpl(ObjectMapper om) {
+        this.om = om;
+    }
 
-	@Override
-	public <T> String toJson(T obj) {
-		try {
-			return om.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public <T> String toJson(T obj) {
+        try {
+            return om.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public <T> T fromJson(String json, Class<T> type) {
-		try {
-			return om.readValue(json, type);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public <T> T fromJson(String json, Class<T> type) {
+        try {
+            return om.readValue(json, type);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public <T> T fromJson(String json, TRef<T> typeRef) {
-		try {
-			return om.readValue(json, typeRef);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public <T> T fromJson(String json, TRef<T> typeRef) {
+        try {
+            return om.readValue(json, typeRef);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

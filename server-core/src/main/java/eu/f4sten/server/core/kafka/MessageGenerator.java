@@ -17,9 +17,9 @@ package eu.f4sten.server.core.kafka;
 
 public interface MessageGenerator {
 
-	<Output> Message<?, Output> getStd(Output output);
+    <Output> Message<?, Output> getStd(Output output);
 
-	<Input, Output> Message<Input, Output> getStd(Input input, Output output);
+    <Input, Output> Message<Input, Output> getStd(Input input, Output output);
 
-	<Input> Message<Input, ?> getErr(Input input, Throwable t);
+    <Input> Message<Input, ?> getErr(Input input, Throwable t);
 }

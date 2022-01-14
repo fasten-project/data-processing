@@ -22,12 +22,12 @@ import eu.f4sten.server.core.utils.HostName;
 
 public class HostNameImpl implements HostName {
 
-	@Override
-	public String get() {
-		try {
-			return InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public String get() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -17,6 +17,6 @@ package eu.f4sten.server.core.utils;
 
 public interface Version {
 
-	String get();
+    String get();
 
 }

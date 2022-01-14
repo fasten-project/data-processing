@@ -27,25 +27,23 @@ import eu.f4sten.server.core.InjectorConfig;
 
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {
-	
-	private MyArgs args;
 
-	public MyInjectorConfig(MyArgs args) {
-		this.args = args;
-	}
+    private MyArgs args;
 
-	@Override
-	public void configure(Binder binder) {
-		binder.bind(MyArgs.class).toInstance(args);
-	}
+    public MyInjectorConfig(MyArgs args) {
+        this.args = args;
+    }
 
-	
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(MyArgs.class).toInstance(args);
+    }
 
-	@ProvidesIntoSet
-	public Module provideJacksonModule() {
-		var m = new SimpleModule();
-		m.addSerializer(TestData.class, new TestDataJson.TestDataSerializer());
-		m.addDeserializer(TestData.class, new TestDataJson.TestDataDeserializer());
-		return m;
-	}
+    @ProvidesIntoSet
+    public Module provideJacksonModule() {
+        var m = new SimpleModule();
+        m.addSerializer(TestData.class, new TestDataJson.TestDataSerializer());
+        m.addDeserializer(TestData.class, new TestDataJson.TestDataDeserializer());
+        return m;
+    }
 }

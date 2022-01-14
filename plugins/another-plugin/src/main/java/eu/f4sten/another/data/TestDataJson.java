@@ -27,23 +27,23 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 public class TestDataJson {
 
-	public static class TestDataDeserializer extends JsonDeserializer<TestData> {
+    public static class TestDataDeserializer extends JsonDeserializer<TestData> {
 
-		@Override
-		public TestData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-			var parts = p.getValueAsString().split(":");
-			TestData t = new TestData();
-			t.name = parts[0];
-			t.age = Integer.valueOf(parts[1]);
-			return t;
-		}
-	}
+        @Override
+        public TestData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+            var parts = p.getValueAsString().split(":");
+            TestData t = new TestData();
+            t.name = parts[0];
+            t.age = Integer.valueOf(parts[1]);
+            return t;
+        }
+    }
 
-	public static class TestDataSerializer extends JsonSerializer<TestData> {
+    public static class TestDataSerializer extends JsonSerializer<TestData> {
 
-		@Override
-		public void serialize(TestData value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-			gen.writeString(value.name + ":" + value.age);
-		}
-	}
+        @Override
+        public void serialize(TestData value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(value.name + ":" + value.age);
+        }
+    }
 }

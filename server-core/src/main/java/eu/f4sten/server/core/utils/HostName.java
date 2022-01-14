@@ -17,5 +17,5 @@ package eu.f4sten.server.core.utils;
 
 public interface HostName {
 
-	public String get();
+    String get();
 }

@@ -29,39 +29,39 @@ import eu.fasten.core.maven.data.Dependency;
 
 public class PomAnalysisResult {
 
-	public String forge = Constants.mvnForge;
+    public String forge = Constants.mvnForge;
 
-	public String artifactId = null;
-	public String groupId = null;
-	public String packagingType = null;
-	public String version = null;
+    public String artifactId = null;
+    public String groupId = null;
+    public String packagingType = null;
+    public String version = null;
 
-	// g:a:packaging:version
-	public String parentCoordinate = null;
+    // g:a:packaging:version
+    public String parentCoordinate = null;
 
-	public long releaseDate = -1L;
-	public String projectName = null;
+    public long releaseDate = -1L;
+    public String projectName = null;
 
-	public final Set<Dependency> dependencies = new HashSet<>();
-	public final Set<Dependency> dependencyManagement = new HashSet<>();
+    public final Set<Dependency> dependencies = new HashSet<>();
+    public final Set<Dependency> dependencyManagement = new HashSet<>();
 
-	public String repoUrl = null;
-	public String commitTag = null;
-	public String sourcesUrl = null;
-	public String artifactRepository = null;
+    public String repoUrl = null;
+    public String commitTag = null;
+    public String sourcesUrl = null;
+    public String artifactRepository = null;
 
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
 
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+    }
 }

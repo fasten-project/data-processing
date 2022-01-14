@@ -34,31 +34,31 @@ import eu.f4sten.server.core.utils.PostgresConnector;
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {
 
-	private MyArgs args;
+    private MyArgs args;
 
-	public MyInjectorConfig(MyArgs args) {
-		this.args = args;
-	}
+    public MyInjectorConfig(MyArgs args) {
+        this.args = args;
+    }
 
-	@Override
-	public void configure(Binder binder) {
-		binder.bind(MyArgs.class).toInstance(args);
-	}
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(MyArgs.class).toInstance(args);
+    }
 
-	@Provides
-	public DatabaseUtils bindDatabaseUtils(PostgresConnector pc, JsonUtils json) {
-		var c = pc.getNewConnection();
-		var dslContext = DSL.using(c, SQLDialect.POSTGRES);
-		return new DatabaseUtils(dslContext, json);
-	}
+    @Provides
+    public DatabaseUtils bindDatabaseUtils(PostgresConnector pc, JsonUtils json) {
+        var c = pc.getNewConnection();
+        var dslContext = DSL.using(c, SQLDialect.POSTGRES);
+        return new DatabaseUtils(dslContext, json);
+    }
 
-	@Provides
-	public Resolver bindResolver(DatabaseUtils dbUtils) {
-		return new Resolver(dbUtils::hasPackageBeenIngested);
-	}
+    @Provides
+    public Resolver bindResolver(DatabaseUtils dbUtils) {
+        return new Resolver(dbUtils::hasPackageBeenIngested);
+    }
 
-	@ProvidesIntoSet
-	public Module bindJacksonModule() {
-		return new CoreJacksonModule();
-	}
+    @ProvidesIntoSet
+    public Module bindJacksonModule() {
+        return new CoreJacksonModule();
+    }
 }

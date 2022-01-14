@@ -27,58 +27,58 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Message<Input, Payload> {
 
-	// TODO get rid of all @JsonProperty as soon as all plugins use Jackson
+    // TODO get rid of all @JsonProperty as soon as all plugins use Jackson
 
-	@JsonProperty("created_at")
-	public Date createdAt = new Date();
-	@JsonProperty("consumed_at")
-	public Date consumedAt = new Date();
-	@JsonProperty("plugin_name")
-	public String plugin;
-	@JsonProperty("plugin_version")
-	public String version;
-	public String host;
-	@JsonProperty("err")
-	public Error error;
+    @JsonProperty("created_at")
+    public Date createdAt = new Date();
+    @JsonProperty("consumed_at")
+    public Date consumedAt = new Date();
+    @JsonProperty("plugin_name")
+    public String plugin;
+    @JsonProperty("plugin_version")
+    public String version;
+    public String host;
+    @JsonProperty("err")
+    public Error error;
 
-	public Input input;
-	public Payload payload;
+    public Input input;
+    public Payload payload;
 
-	public static class Error {
-		@JsonProperty("error")
-		public String type;
-		@JsonProperty("msg")
-		public String message;
-		public String stacktrace;
+    public static class Error {
+        @JsonProperty("error")
+        public String type;
+        @JsonProperty("msg")
+        public String message;
+        public String stacktrace;
 
-		@Override
-		public boolean equals(Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj);
-		}
+        @Override
+        public boolean equals(Object obj) {
+            return EqualsBuilder.reflectionEquals(this, obj);
+        }
 
-		@Override
-		public int hashCode() {
-			return HashCodeBuilder.reflectionHashCode(this);
-		}
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
 
-		@Override
-		public String toString() {
-			return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-		}
-	}
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+        }
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
 
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+    }
 }

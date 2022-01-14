@@ -22,15 +22,15 @@ import eu.f4sten.server.core.json.TRef;
 
 public interface Kafka {
 
-	<T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback);
+    <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback);
 
-	<T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
+    <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
 
-	<T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback);
+    <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback);
 
-	<T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
+    <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);
 
-	<T> void publish(T obj, String topic, Lane lane);
+    <T> void publish(T obj, String topic, Lane lane);
 
-	void poll();
+    void poll();
 }

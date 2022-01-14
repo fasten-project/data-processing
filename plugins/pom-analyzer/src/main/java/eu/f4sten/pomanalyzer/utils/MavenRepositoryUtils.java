@@ -41,93 +41,93 @@ import eu.fasten.core.utils.Asserts;
 
 public class MavenRepositoryUtils {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MavenRepositoryUtils.class);
-	private static final String[] ALLOWED_CLASSIFIERS = new String[] { null, "sources" };
+    private static final Logger LOG = LoggerFactory.getLogger(MavenRepositoryUtils.class);
+    private static final String[] ALLOWED_CLASSIFIERS = new String[] { null, "sources" };
 
-	public File downloadPomToTemp(ResolutionResult artifact) {
-		assertNotNull(artifact);
-		try {
-			var source = new URL(artifact.getPomUrl());
-			File target = createTempFile("pom-analyzer.", ".pom");
-			copyURLToFile(source, target);
-			return target;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public File downloadPomToTemp(ResolutionResult artifact) {
+        assertNotNull(artifact);
+        try {
+            var source = new URL(artifact.getPomUrl());
+            File target = createTempFile("pom-analyzer.", ".pom");
+            copyURLToFile(source, target);
+            return target;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	/**
-	 * returns url of sources jar if it exists, null otherwise
-	 */
-	public String getSourceUrlIfExisting(PomAnalysisResult r) {
+    /**
+     * returns url of sources jar if it exists, null otherwise
+     */
+    public String getSourceUrlIfExisting(PomAnalysisResult r) {
 
-		var url = getUrl(r, "sources");
+        var url = getUrl(r, "sources");
 
-		int status = sendGetRequest(url);
-		if (status == 200) {
-			return url;
-		} else {
-			return null;
-		}
-	}
+        int status = sendGetRequest(url);
+        if (status == 200) {
+            return url;
+        } else {
+            return null;
+        }
+    }
 
-	public long getReleaseDate(PomAnalysisResult r) {
-		try {
-			var url = new URL(getUrl(r, null));
-			var con = url.openConnection();
-			var lastModified = con.getHeaderField("Last-Modified");
-			if (lastModified == null) {
-				LOG.error("cannot infer release date, 'Last-Modified' header missing in response for '{}'", url);
-				return -1;
-			}
-			var releaseDate = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH).parse(lastModified);
-			return releaseDate.getTime();
+    public long getReleaseDate(PomAnalysisResult r) {
+        try {
+            var url = new URL(getUrl(r, null));
+            var con = url.openConnection();
+            var lastModified = con.getHeaderField("Last-Modified");
+            if (lastModified == null) {
+                LOG.error("cannot infer release date, 'Last-Modified' header missing in response for '{}'", url);
+                return -1;
+            }
+            var releaseDate = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH).parse(lastModified);
+            return releaseDate.getTime();
 
-		} catch (IOException | ParseException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static String getUrl(PomAnalysisResult r, String classifier) {
-		if (isNullEmptyOrUnset(r.artifactRepository) || isNullEmptyOrUnset(r.groupId)
-				|| isNullEmptyOrUnset(r.artifactId) || isNullEmptyOrUnset(r.packagingType)
-				|| isNullEmptyOrUnset(r.version)) {
-			throw new IllegalArgumentException("cannot build sources URL with missing package information");
-		}
-		Asserts.assertContains(ALLOWED_CLASSIFIERS, classifier);
-		var classifierStr = classifier != null ? "-" + classifier : "";
-		var url = r.artifactRepository + "/" + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/"
-				+ r.artifactId + "-" + r.version + classifierStr + "." + r.packagingType;
-		return url;
-	}
+    private static String getUrl(PomAnalysisResult r, String classifier) {
+        if (isNullEmptyOrUnset(r.artifactRepository) || isNullEmptyOrUnset(r.groupId)
+                || isNullEmptyOrUnset(r.artifactId) || isNullEmptyOrUnset(r.packagingType)
+                || isNullEmptyOrUnset(r.version)) {
+            throw new IllegalArgumentException("cannot build sources URL with missing package information");
+        }
+        Asserts.assertContains(ALLOWED_CLASSIFIERS, classifier);
+        var classifierStr = classifier != null ? "-" + classifier : "";
+        var url = r.artifactRepository + "/" + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/"
+                + r.artifactId + "-" + r.version + classifierStr + "." + r.packagingType;
+        return url;
+    }
 
-	private static int sendGetRequest(String url) {
-		try {
-			var httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
-			var request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
-			// TODO use "discarding"?
-			var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			return response.statusCode();
-		} catch (IOException | InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private static int sendGetRequest(String url) {
+        try {
+            var httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
+            var request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
+            // TODO use "discarding"?
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.statusCode();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static boolean isNullEmptyOrUnset(String s) {
-		return s == null || s.isEmpty() || "?".equals(s);
-	}
+    private static boolean isNullEmptyOrUnset(String s) {
+        return s == null || s.isEmpty() || "?".equals(s);
+    }
 
-	public static File getPathOfLocalRepository() {
-		// By default, this is set to ~/.m2/repository/, but that can be re-configured
-		// or even provided as a parameter. As such, we are reusing an existing library
-		// to find the right folder.
-		Settings settings = new SettingsManager() {
-			@Override
-			public Settings getSettings() {
-				return super.getSettings();
-			}
-		}.getSettings();
-		String localRepository = settings.getLocalRepository();
-		return new File(localRepository);
-	}
+    public static File getPathOfLocalRepository() {
+        // By default, this is set to ~/.m2/repository/, but that can be re-configured
+        // or even provided as a parameter. As such, we are reusing an existing library
+        // to find the right folder.
+        Settings settings = new SettingsManager() {
+            @Override
+            public Settings getSettings() {
+                return super.getSettings();
+            }
+        }.getSettings();
+        String localRepository = settings.getLocalRepository();
+        return new File(localRepository);
+    }
 }

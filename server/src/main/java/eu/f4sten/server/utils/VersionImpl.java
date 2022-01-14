@@ -26,23 +26,23 @@ import eu.f4sten.server.core.utils.Version;
 
 public class VersionImpl implements Version {
 
-	private static final String NA = "n/a";
+    private static final String NA = "n/a";
 
-	@Override
-	public String get() {
-		try (InputStream is = VersionImpl.class.getClassLoader().getResourceAsStream("version.txt")) {
+    @Override
+    public String get() {
+        try (InputStream is = VersionImpl.class.getClassLoader().getResourceAsStream("version.txt")) {
 
-			if (is == null) {
-				return NA;
-			}
+            if (is == null) {
+                return NA;
+            }
 
-			try (InputStreamReader isr = new InputStreamReader(is, UTF_8);
-					BufferedReader br = new BufferedReader(isr)) {
-				return br.readLine().trim();
-			}
+            try (InputStreamReader isr = new InputStreamReader(is, UTF_8);
+                    BufferedReader br = new BufferedReader(isr)) {
+                return br.readLine().trim();
+            }
 
-		} catch (IOException e) {
-			return NA;
-		}
-	}
+        } catch (IOException e) {
+            return NA;
+        }
+    }
 }

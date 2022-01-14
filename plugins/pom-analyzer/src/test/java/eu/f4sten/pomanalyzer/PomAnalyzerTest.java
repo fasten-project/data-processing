@@ -35,40 +35,40 @@ import eu.f4sten.server.core.kafka.MessageGenerator;
 
 public class PomAnalyzerTest {
 
-	private MavenRepositoryUtils repo;
-	private EffectiveModelBuilder modelBuilder;
-	private PomExtractor extractor;
-	private DatabaseUtils db;
-	private Resolver resolver;
-	private Kafka kafka;
-	private MyArgs args;
-	private MessageGenerator msgs;
+    private MavenRepositoryUtils repo;
+    private EffectiveModelBuilder modelBuilder;
+    private PomExtractor extractor;
+    private DatabaseUtils db;
+    private Resolver resolver;
+    private Kafka kafka;
+    private MyArgs args;
+    private MessageGenerator msgs;
 
-	private PomAnalyzer sut;
+    private PomAnalyzer sut;
 
-	@BeforeEach
-	public void setup() {
-		repo = mock(MavenRepositoryUtils.class);
-		modelBuilder = mock(EffectiveModelBuilder.class);
-		extractor = mock(PomExtractor.class);
-		db = mock(DatabaseUtils.class);
-		resolver = mock(Resolver.class);
-		kafka = mock(Kafka.class);
-		args = new MyArgs();
-		msgs = mock(MessageGenerator.class);
+    @BeforeEach
+    public void setup() {
+        repo = mock(MavenRepositoryUtils.class);
+        modelBuilder = mock(EffectiveModelBuilder.class);
+        extractor = mock(PomExtractor.class);
+        db = mock(DatabaseUtils.class);
+        resolver = mock(Resolver.class);
+        kafka = mock(Kafka.class);
+        args = new MyArgs();
+        msgs = mock(MessageGenerator.class);
 
-		sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs);
+        sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs);
 
-		when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
-		when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
-	}
+        when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
+        when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
+    }
 
-	@Test
-	public void asd() {
-		sut.hashCode();
-		// sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}",
-		// NORMAL);
-	}
+    @Test
+    public void asd() {
+        sut.hashCode();
+        // sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}",
+        // NORMAL);
+    }
 
-	// TODO extend test suite, right now this is only a stub for easy debugging
+    // TODO extend test suite, right now this is only a stub for easy debugging
 }

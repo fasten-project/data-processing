@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 
 public class DefaultTopicsTest {
 
-	@Test
-	public void defaultValues() {
-		assertEquals("fasten.mvn.releases", DefaultTopics.INGEST);
-		assertEquals("fasten.POMAnalyzer", DefaultTopics.POM_ANALYZER);
-	}
+    @Test
+    public void defaultValues() {
+        assertEquals("fasten.mvn.releases", DefaultTopics.INGEST);
+        assertEquals("fasten.POMAnalyzer", DefaultTopics.POM_ANALYZER);
+    }
 }

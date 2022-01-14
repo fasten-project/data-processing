@@ -16,7 +16,7 @@
 package eu.f4sten.server.core.kafka;
 
 public class DefaultTopics {
-	public static final String INGEST = "fasten.mvn.releases";
-	public static final String ANOTHER = "test";
-	public static final String POM_ANALYZER = "fasten.POMAnalyzer";
+    public static final String INGEST = "fasten.mvn.releases";
+    public static final String ANOTHER = "test";
+    public static final String POM_ANALYZER = "fasten.POMAnalyzer";
 }

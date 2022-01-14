@@ -24,81 +24,81 @@ import org.junit.jupiter.api.Test;
 
 public class MavenIdTest {
 
-	@Test
-	public void defaultValues() {
-		var sut = new MavenId();
-		assertNull(sut.groupId);
-		assertNull(sut.artifactId);
-		assertNull(sut.version);
-		assertNull(sut.artifactRepository);
-	}
+    @Test
+    public void defaultValues() {
+        var sut = new MavenId();
+        assertNull(sut.groupId);
+        assertNull(sut.artifactId);
+        assertNull(sut.version);
+        assertNull(sut.artifactRepository);
+    }
 
-	@Test
-	public void equalityDefault() {
-		var a = new MavenId();
-		var b = new MavenId();
-		assertEquals(a, b);
-		assertEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityDefault() {
+        var a = new MavenId();
+        var b = new MavenId();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void equalityNonDefault() {
-		var a = someId();
-		var b = someId();
-		assertEquals(a, b);
-		assertEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityNonDefault() {
+        var a = someId();
+        var b = someId();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void equalityDiffGroup() {
-		var a = new MavenId();
-		var b = new MavenId();
-		b.groupId = "x";
-		assertNotEquals(a, b);
-		assertNotEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityDiffGroup() {
+        var a = new MavenId();
+        var b = new MavenId();
+        b.groupId = "x";
+        assertNotEquals(a, b);
+        assertNotEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void equalityDiffArtifact() {
-		var a = new MavenId();
-		var b = new MavenId();
-		b.artifactId = "x";
-		assertNotEquals(a, b);
-		assertNotEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityDiffArtifact() {
+        var a = new MavenId();
+        var b = new MavenId();
+        b.artifactId = "x";
+        assertNotEquals(a, b);
+        assertNotEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void equalityDiffVersion() {
-		var a = new MavenId();
-		var b = new MavenId();
-		b.version = "x";
-		assertNotEquals(a, b);
-		assertNotEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityDiffVersion() {
+        var a = new MavenId();
+        var b = new MavenId();
+        b.version = "x";
+        assertNotEquals(a, b);
+        assertNotEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void equalityDiffArtifactRepository() {
-		var a = new MavenId();
-		var b = new MavenId();
-		b.artifactRepository = "x";
-		assertNotEquals(a, b);
-		assertNotEquals(a.hashCode(), b.hashCode());
-	}
+    @Test
+    public void equalityDiffArtifactRepository() {
+        var a = new MavenId();
+        var b = new MavenId();
+        b.artifactRepository = "x";
+        assertNotEquals(a, b);
+        assertNotEquals(a.hashCode(), b.hashCode());
+    }
 
-	@Test
-	public void hasToString() {
-		var actual = new MavenId().toString();
-		assertTrue(actual.contains("\n"));
-		assertTrue(actual.contains(MavenId.class.getSimpleName()));
-		assertTrue(actual.contains("artifactRepository"));
-	}
+    @Test
+    public void hasToString() {
+        var actual = new MavenId().toString();
+        assertTrue(actual.contains("\n"));
+        assertTrue(actual.contains(MavenId.class.getSimpleName()));
+        assertTrue(actual.contains("artifactRepository"));
+    }
 
-	private MavenId someId() {
-		var id = new MavenId();
-		id.groupId = "g";
-		id.artifactId = "a";
-		id.version = "v";
-		id.artifactRepository = "ar";
-		return id;
-	}
+    private MavenId someId() {
+        var id = new MavenId();
+        id.groupId = "g";
+        id.artifactId = "a";
+        id.version = "v";
+        id.artifactRepository = "ar";
+        return id;
+    }
 }

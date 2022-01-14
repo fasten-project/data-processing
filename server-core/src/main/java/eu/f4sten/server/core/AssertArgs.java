@@ -25,80 +25,80 @@ import com.beust.jcommander.ParameterDescription;
 
 public class AssertArgs {
 
-	public static <T> ArgsAssertChain<T> assertFor(T argObj) {
-		return new ArgsAssertChain<T>(argObj);
-	}
+    public static <T> ArgsAssertChain<T> assertFor(T argObj) {
+        return new ArgsAssertChain<T>(argObj);
+    }
 
-	public static <T> void notNull(T argObj, Function<T, Object> accessor, String hint) {
-		new ArgsAssertChain<>(argObj).notNull(accessor, hint);
-	}
+    public static <T> void notNull(T argObj, Function<T, Object> accessor, String hint) {
+        new ArgsAssertChain<>(argObj).notNull(accessor, hint);
+    }
 
-	public static <T> void that(T argObj, Function<T, Boolean> checker, String hint) {
-		new ArgsAssertChain<>(argObj).that(checker, hint);
-	}
+    public static <T> void that(T argObj, Function<T, Boolean> checker, String hint) {
+        new ArgsAssertChain<>(argObj).that(checker, hint);
+    }
 
-	public static class ArgsAssertChain<T> {
+    public static class ArgsAssertChain<T> {
 
-		private T argObj;
+        private T argObj;
 
-		public ArgsAssertChain(T argObj) {
-			this.argObj = argObj;
-		}
+        public ArgsAssertChain(T argObj) {
+            this.argObj = argObj;
+        }
 
-		public ArgsAssertChain<T> notNull(Function<T, Object> accessor, String hint) {
-			var prop = accessor.apply(argObj);
-			if (prop == null) {
-				failWithUsage(argObj, "A requested argument is null", hint);
-			}
-			return this;
-		}
+        public ArgsAssertChain<T> notNull(Function<T, Object> accessor, String hint) {
+            var prop = accessor.apply(argObj);
+            if (prop == null) {
+                failWithUsage(argObj, "A requested argument is null", hint);
+            }
+            return this;
+        }
 
-		public ArgsAssertChain<T> that(Function<T, Boolean> checker, String hint) {
-			if (!checker.apply(argObj)) {
-				failWithUsage(argObj, "A requested argument is invalid", hint);
-			}
-			return this;
-		}
+        public ArgsAssertChain<T> that(Function<T, Boolean> checker, String hint) {
+            if (!checker.apply(argObj)) {
+                failWithUsage(argObj, "A requested argument is invalid", hint);
+            }
+            return this;
+        }
 
-		private void failWithUsage(T argObj, String errType, String hint) {
-			var errMsg = String.format("%s (%s)", errType, hint);
-			Object defaultArgObj = newInstance(argObj);
-			System.out.printf("\n-------------------------\n\n");
-			System.out.printf("Insufficient startup arguments:\n-> %s\n\n", errMsg);
-			System.out.printf("The *subset* of related arguments that might get requested at runtime:\n");
-			var jc = new JCommander(defaultArgObj);
-			jc.setUsageFormatter(new MyUsageFormatter(jc));
-			jc.usage();
-			System.exit(1);
-		}
+        private void failWithUsage(T argObj, String errType, String hint) {
+            var errMsg = String.format("%s (%s)", errType, hint);
+            Object defaultArgObj = newInstance(argObj);
+            System.out.printf("\n-------------------------\n\n");
+            System.out.printf("Insufficient startup arguments:\n-> %s\n\n", errMsg);
+            System.out.printf("The *subset* of related arguments that might get requested at runtime:\n");
+            var jc = new JCommander(defaultArgObj);
+            jc.setUsageFormatter(new MyUsageFormatter(jc));
+            jc.usage();
+            System.exit(1);
+        }
 
-		private static <T> Object newInstance(T obj) {
-			try {
-				return obj.getClass().getConstructor().newInstance();
-			} catch (Exception e) {
-				var msg = String.format("Cannot instantiate %s", obj.getClass());
-				throw new InvalidParameterException(msg);
-			}
-		}
-	}
+        private static <T> Object newInstance(T obj) {
+            try {
+                return obj.getClass().getConstructor().newInstance();
+            } catch (Exception e) {
+                var msg = String.format("Cannot instantiate %s", obj.getClass());
+                throw new InvalidParameterException(msg);
+            }
+        }
+    }
 
-	private static final class MyUsageFormatter extends DefaultUsageFormatter {
+    private static final class MyUsageFormatter extends DefaultUsageFormatter {
 
-		private MyUsageFormatter(JCommander commander) {
-			super(commander);
-		}
+        private MyUsageFormatter(JCommander commander) {
+            super(commander);
+        }
 
-		@Override
-		public void appendMainLine(StringBuilder out, boolean hasOptions, boolean hasCommands, int indentCount,
-				String indent) {
-			// skip main line
-		}
+        @Override
+        public void appendMainLine(StringBuilder out, boolean hasOptions, boolean hasCommands, int indentCount,
+                String indent) {
+            // skip main line
+        }
 
-		@Override
-		public void appendAllParametersDetails(StringBuilder out, int indentCount, String indent,
-				List<ParameterDescription> sortedParameters) {
-			// TODO Auto-generated method stub
-			super.appendAllParametersDetails(out, indentCount, indent, sortedParameters);
-		}
-	}
+        @Override
+        public void appendAllParametersDetails(StringBuilder out, int indentCount, String indent,
+                List<ParameterDescription> sortedParameters) {
+            // TODO Auto-generated method stub
+            super.appendAllParametersDetails(out, indentCount, indent, sortedParameters);
+        }
+    }
 }

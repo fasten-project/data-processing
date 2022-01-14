@@ -46,65 +46,65 @@ import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaConnector {
 
-	private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
-	private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
+    private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
 
-	private final ServerArgs args;
-	private final Set<String> instanceIds = new HashSet<>();
+    private final ServerArgs args;
+    private final Set<String> instanceIds = new HashSet<>();
 
-	@Inject
-	public KafkaConnector(ServerArgs args) {
-		this.args = args;
-		assertFor(args) //
-				.notNull(a -> a.kafkaUrl, "kafka url") //
-				.that(a -> a.instanceId == null || !a.instanceId.isEmpty(), "instance id must be null or non-empty");
-	}
+    @Inject
+    public KafkaConnector(ServerArgs args) {
+        this.args = args;
+        assertFor(args) //
+                .notNull(a -> a.kafkaUrl, "kafka url") //
+                .that(a -> a.instanceId == null || !a.instanceId.isEmpty(), "instance id must be null or non-empty");
+    }
 
-	private String getFullInstanceId(Lane lane) {
-		if (args.instanceId == null) {
-			return null;
-		}
-		return format("%s-%s-%s", args.plugin, args.instanceId, lane);
-	}
+    private String getFullInstanceId(Lane lane) {
+        if (args.instanceId == null) {
+            return null;
+        }
+        return format("%s-%s-%s", args.plugin, args.instanceId, lane);
+    }
 
-	public KafkaConsumer<String, String> getConsumerConnection(Lane l) {
-		Properties p = new Properties();
-		p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
-		p.setProperty(GROUP_ID_CONFIG, args.plugin);
-		p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
-		p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    public KafkaConsumer<String, String> getConsumerConnection(Lane l) {
+        Properties p = new Properties();
+        p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
+        p.setProperty(GROUP_ID_CONFIG, args.plugin);
+        p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
+        p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-//		p.setProperty(CLIENT_ID_CONFIG, getClientId());
-		p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
-//		p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
-//		p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
-//		p.setProperty(HEARTBEAT_INTERVAL_MS_CONFIG, valueOf(5 * 1000)); // 5s
-//		p.setProperty(SESSION_TIMEOUT_MS_CONFIG, valueOf(sessionTimeoutMS));
-//		p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, valueOf(pollIntervalMS));
+        p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
+//        p.setProperty(CLIENT_ID_CONFIG, getClientId());
+//        p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
+//        p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
+//        p.setProperty(HEARTBEAT_INTERVAL_MS_CONFIG, valueOf(5 * 1000)); // 5s
+//        p.setProperty(SESSION_TIMEOUT_MS_CONFIG, valueOf(sessionTimeoutMS));
+//        p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, valueOf(pollIntervalMS));
 
-		var instanceId = getFullInstanceId(l);
-		if (instanceId != null) {
-			if (instanceIds.contains(instanceId)) {
-				throw new InvalidParameterException("instance id already exists " + instanceId);
-			}
-			instanceIds.add(instanceId);
-			p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
-			LOG.info("Enabling static membership (instance id: {})", instanceId);
-		}
+        var instanceId = getFullInstanceId(l);
+        if (instanceId != null) {
+            if (instanceIds.contains(instanceId)) {
+                throw new InvalidParameterException("instance id already exists " + instanceId);
+            }
+            instanceIds.add(instanceId);
+            p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
+            LOG.info("Enabling static membership (instance id: {})", instanceId);
+        }
 
-		return new KafkaConsumer<>(p);
-	}
+        return new KafkaConsumer<>(p);
+    }
 
-	public KafkaProducer<String, String> getProducerConnection() {
+    public KafkaProducer<String, String> getProducerConnection() {
 
-		Properties p = new Properties();
-		p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
-//		p.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
-		p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		p.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, MAX_REQUEST_SIZE);
+        Properties p = new Properties();
+        p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
+//        p.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
+        p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        p.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, MAX_REQUEST_SIZE);
 
-		return new KafkaProducer<>(p);
-	}
+        return new KafkaProducer<>(p);
+    }
 }

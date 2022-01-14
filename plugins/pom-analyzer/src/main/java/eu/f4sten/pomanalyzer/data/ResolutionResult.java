@@ -31,84 +31,84 @@ import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 
 public class ResolutionResult {
 
-	public final File localM2Repository;
+    public final File localM2Repository;
 
-	public String coordinate; // gid:aid:packageType:version
-	public String artifactRepository;
-	public File localPomFile;
+    public String coordinate; // gid:aid:packageType:version
+    public String artifactRepository;
+    public File localPomFile;
 
-	public ResolutionResult(String coordinate, String artifactRepository) {
-		this.localM2Repository = getLocalM2Repository();
-		this.coordinate = coordinate;
-		this.artifactRepository = artifactRepository;
-		this.localPomFile = deriveLocalPomPath(localM2Repository, coordinate);
-	}
+    public ResolutionResult(String coordinate, String artifactRepository) {
+        this.localM2Repository = getLocalM2Repository();
+        this.coordinate = coordinate;
+        this.artifactRepository = artifactRepository;
+        this.localPomFile = deriveLocalPomPath(localM2Repository, coordinate);
+    }
 
-	public ResolutionResult(String coordinate, String artifactRepository, File localPkg) {
-		this(coordinate, artifactRepository);
-		// pkg can be .pom, .jar, .war, ... but all of them have a corresponding .pom
-		this.localPomFile = changeExtension(localPkg, ".pom");
-	}
+    public ResolutionResult(String coordinate, String artifactRepository, File localPkg) {
+        this(coordinate, artifactRepository);
+        // pkg can be .pom, .jar, .war, ... but all of them have a corresponding .pom
+        this.localPomFile = changeExtension(localPkg, ".pom");
+    }
 
-	protected File getLocalM2Repository() {
-		return MavenRepositoryUtils.getPathOfLocalRepository();
-	}
+    protected File getLocalM2Repository() {
+        return MavenRepositoryUtils.getPathOfLocalRepository();
+    }
 
-	public String getPomUrl() {
-		var localPomUri = localPomFile.toURI();
-		var localM2Uri = localM2Repository.toURI();
-		if (!localPomUri.getPath().startsWith(localM2Uri.getPath())) {
-			var msg = "instead of local .m2 folder, file is contained in '%s'";
-			throw new IllegalStateException(String.format(msg, localPomUri));
-		}
-		try {
-			// The '/' in URIs is the correct path separator, no matter the platform.
-			var repoUri = new URI(artifactRepository);
-			var path = localM2Uri.relativize(localPomUri).getPath();
-			if (!repoUri.getPath().endsWith("/")) {
-				path = "/" + path;
-			}
-			return new URL(repoUri.getScheme(), repoUri.getHost(), repoUri.getPort(), repoUri.getPath() + path)
-					.toString();
-		} catch (MalformedURLException | URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public String getPomUrl() {
+        var localPomUri = localPomFile.toURI();
+        var localM2Uri = localM2Repository.toURI();
+        if (!localPomUri.getPath().startsWith(localM2Uri.getPath())) {
+            var msg = "instead of local .m2 folder, file is contained in '%s'";
+            throw new IllegalStateException(String.format(msg, localPomUri));
+        }
+        try {
+            // The '/' in URIs is the correct path separator, no matter the platform.
+            var repoUri = new URI(artifactRepository);
+            var path = localM2Uri.relativize(localPomUri).getPath();
+            if (!repoUri.getPath().endsWith("/")) {
+                path = "/" + path;
+            }
+            return new URL(repoUri.getScheme(), repoUri.getHost(), repoUri.getPort(), repoUri.getPath() + path)
+                    .toString();
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public File getLocalPackageFile() {
-		var packaging = coordinate.split(":")[2];
-		return changeExtension(localPomFile, '.' + packaging);
-	}
+    public File getLocalPackageFile() {
+        var packaging = coordinate.split(":")[2];
+        return changeExtension(localPomFile, '.' + packaging);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
 
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+    }
 
-	private static File deriveLocalPomPath(File pathM2, String coordinate) {
-		var parts = coordinate.split(":");
-		var g = parts[0];
-		var a = parts[1];
-		var v = parts[3];
-		var path = pathM2.getAbsolutePath() + File.separatorChar + g.replace('.', File.separatorChar)
-				+ File.separatorChar + a + File.separatorChar + v + File.separatorChar + a + "-" + v + ".pom";
-		return new File(path);
-	}
+    private static File deriveLocalPomPath(File pathM2, String coordinate) {
+        var parts = coordinate.split(":");
+        var g = parts[0];
+        var a = parts[1];
+        var v = parts[3];
+        var path = pathM2.getAbsolutePath() + File.separatorChar + g.replace('.', File.separatorChar)
+                + File.separatorChar + a + File.separatorChar + v + File.separatorChar + a + "-" + v + ".pom";
+        return new File(path);
+    }
 
-	private static File changeExtension(File f, String extInclDot) {
-		String path = f.getAbsolutePath();
-		int idxOfExt = path.lastIndexOf('.');
-		String newPath = path.substring(0, idxOfExt) + extInclDot;
-		return new File(newPath);
-	}
+    private static File changeExtension(File f, String extInclDot) {
+        String path = f.getAbsolutePath();
+        int idxOfExt = path.lastIndexOf('.');
+        String newPath = path.substring(0, idxOfExt) + extInclDot;
+        return new File(newPath);
+    }
 }

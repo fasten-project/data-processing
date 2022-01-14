@@ -21,27 +21,27 @@ import com.beust.jcommander.Parameter;
 
 public class ServerArgs {
 
-	@Parameter(names = "--plugin", arity = 1, required = true, description = "fully-qualified class name of the plugin to be started")
-	public String plugin;
+    @Parameter(names = "--plugin", arity = 1, required = true, description = "fully-qualified class name of the plugin to be started")
+    public String plugin;
 
-	@Parameter(names = "--db.url", arity = 1, description = "JDBC url for the database")
-	public String dbUrl;
+    @Parameter(names = "--db.url", arity = 1, description = "JDBC url for the database")
+    public String dbUrl;
 
-	@Parameter(names = "--db.user", arity = 1, description = "user for the database connection")
-	public String dbUser;
+    @Parameter(names = "--db.user", arity = 1, description = "user for the database connection")
+    public String dbUser;
 
-	@Parameter(names = "--logLevel", arity = 1, description = "Desired log level")
-	public LogLevel logLevel = LogLevel.INFO;
+    @Parameter(names = "--logLevel", arity = 1, description = "Desired log level")
+    public LogLevel logLevel = LogLevel.INFO;
 
-	@Parameter(names = "--baseDir", arity = 1, description = "Base folder for all file-based operations")
-	public File baseDir;
+    @Parameter(names = "--baseDir", arity = 1, description = "Base folder for all file-based operations")
+    public File baseDir;
 
-	@Parameter(names = "--kafka.url", arity = 1, description = "address for the Kafka Server")
-	public String kafkaUrl;
+    @Parameter(names = "--kafka.url", arity = 1, description = "address for the Kafka Server")
+    public String kafkaUrl;
 
-	@Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this instance of the application")
-	public String instanceId = null;
+    @Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this instance of the application")
+    public String instanceId = null;
 
-	@Parameter // keep to prevent failures when CLI command has main arg
-	private String mainArg;
+    @Parameter // keep to prevent failures when CLI command has main arg
+    private String mainArg;
 }

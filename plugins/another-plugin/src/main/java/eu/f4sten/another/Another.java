@@ -30,41 +30,41 @@ import eu.f4sten.server.core.kafka.Lane;
 
 public class Another implements Plugin {
 
-	private final Kafka kafka;
-	private final MyArgs args;
+    private final Kafka kafka;
+    private final MyArgs args;
 
-	@Inject
-	public Another(Kafka kafka, MyArgs args) {
-		this.kafka = kafka;
-		this.args = args;
-	}
+    @Inject
+    public Another(Kafka kafka, MyArgs args) {
+        this.kafka = kafka;
+        this.args = args;
+    }
 
-	@Override
-	public void run() {
-		assertFor(args) //
-				.notNull(a -> a.kafkaOut, "kafka output topic");
+    @Override
+    public void run() {
+        assertFor(args) //
+                .notNull(a -> a.kafkaOut, "kafka output topic");
 
-		var isRunning = true;
-		while (isRunning) {
+        var isRunning = true;
+        while (isRunning) {
 
-			var name = readNextName();
-			if (name.isEmpty()) {
-				System.out.print("No name provided, aborting.");
-				isRunning = false;
-				continue;
-			}
-			var t = new TestData(name, 3);
-			kafka.publish(t, args.kafkaOut, Lane.PRIORITY);
-		}
-	}
+            var name = readNextName();
+            if (name.isEmpty()) {
+                System.out.print("No name provided, aborting.");
+                isRunning = false;
+                continue;
+            }
+            var t = new TestData(name, 3);
+            kafka.publish(t, args.kafkaOut, Lane.PRIORITY);
+        }
+    }
 
-	private String readNextName() {
-		System.out.print("Please provide a name: ");
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try {
-			return br.readLine();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private String readNextName() {
+        System.out.print("Please provide a name: ");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            return br.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

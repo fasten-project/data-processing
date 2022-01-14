@@ -31,51 +31,51 @@ import eu.fasten.core.maven.data.VersionConstraint;
 
 public class CoreJacksonModule extends SimpleModule {
 
-	private static final long serialVersionUID = 8302574258846915634L;
+    private static final long serialVersionUID = 8302574258846915634L;
 
-	public CoreJacksonModule() {
+    public CoreJacksonModule() {
 
-		addDependencyClasses();
-	}
+        addDependencyClasses();
+    }
 
-	@Override
-	public String getModuleName() {
-		return "Module for some core classes (Dependency, VersionConstraint, Exclusion)";
-	}
+    @Override
+    public String getModuleName() {
+        return "Module for some core classes (Dependency, VersionConstraint, Exclusion)";
+    }
 
-	private void addDependencyClasses() {
+    private void addDependencyClasses() {
 
-		// Dependency.class itself works out of the box
+        // Dependency.class itself works out of the box
 
-		addSerializer(VersionConstraint.class, new JsonSerializer<VersionConstraint>() {
-			@Override
-			public void serialize(VersionConstraint value, JsonGenerator gen, SerializerProvider serializers)
-					throws IOException {
-				gen.writeString(value.spec);
-			}
-		});
-		addDeserializer(VersionConstraint.class, new JsonDeserializer<VersionConstraint>() {
-			@Override
-			public VersionConstraint deserialize(JsonParser p, DeserializationContext ctxt)
-					throws IOException, JacksonException {
-				return new VersionConstraint(p.getValueAsString());
-			}
-		});
+        addSerializer(VersionConstraint.class, new JsonSerializer<VersionConstraint>() {
+            @Override
+            public void serialize(VersionConstraint value, JsonGenerator gen, SerializerProvider serializers)
+                    throws IOException {
+                gen.writeString(value.spec);
+            }
+        });
+        addDeserializer(VersionConstraint.class, new JsonDeserializer<VersionConstraint>() {
+            @Override
+            public VersionConstraint deserialize(JsonParser p, DeserializationContext ctxt)
+                    throws IOException, JacksonException {
+                return new VersionConstraint(p.getValueAsString());
+            }
+        });
 
-		addSerializer(Exclusion.class, new JsonSerializer<Exclusion>() {
-			@Override
-			public void serialize(Exclusion value, JsonGenerator gen, SerializerProvider serializers)
-					throws IOException {
-				gen.writeString(String.format("%s:%s", value.groupId, value.artifactId));
-			}
-		});
-		addDeserializer(Exclusion.class, new JsonDeserializer<Exclusion>() {
-			@Override
-			public Exclusion deserialize(JsonParser p, DeserializationContext ctxt)
-					throws IOException, JacksonException {
-				String[] parts = p.getValueAsString().split(":");
-				return new Exclusion(parts[0], parts[1]);
-			}
-		});
-	}
+        addSerializer(Exclusion.class, new JsonSerializer<Exclusion>() {
+            @Override
+            public void serialize(Exclusion value, JsonGenerator gen, SerializerProvider serializers)
+                    throws IOException {
+                gen.writeString(String.format("%s:%s", value.groupId, value.artifactId));
+            }
+        });
+        addDeserializer(Exclusion.class, new JsonDeserializer<Exclusion>() {
+            @Override
+            public Exclusion deserialize(JsonParser p, DeserializationContext ctxt)
+                    throws IOException, JacksonException {
+                String[] parts = p.getValueAsString().split(":");
+                return new Exclusion(parts[0], parts[1]);
+            }
+        });
+    }
 }

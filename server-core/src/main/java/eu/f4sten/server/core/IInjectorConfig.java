@@ -20,5 +20,4 @@ import com.google.inject.Module;
 /**
  * Used to avoid name collisions for Module (Juice & Jackson)
  */
-public interface IInjectorConfig extends Module {
-}
+public interface IInjectorConfig extends Module {}

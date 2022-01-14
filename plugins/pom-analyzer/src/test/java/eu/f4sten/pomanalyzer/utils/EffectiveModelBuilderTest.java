@@ -34,86 +34,86 @@ import eu.fasten.core.utils.TestUtils;
 
 public class EffectiveModelBuilderTest {
 
-	@Test
-	public void invalidSyntax() {
-		assertThrows(InvalidConfigurationFileException.class, () -> {
-			buildEffectiveModel("invalid-syntax.pom");
-		});
-	}
+    @Test
+    public void invalidSyntax() {
+        assertThrows(InvalidConfigurationFileException.class, () -> {
+            buildEffectiveModel("invalid-syntax.pom");
+        });
+    }
 
-	@Test
-	public void invalidNonExistingDep() {
-		assertThrows(NoResolvedResultException.class, () -> {
-			buildEffectiveModel("invalid-non-existing-dep.pom");
-		});
-	}
+    @Test
+    public void invalidNonExistingDep() {
+        assertThrows(NoResolvedResultException.class, () -> {
+            buildEffectiveModel("invalid-non-existing-dep.pom");
+        });
+    }
 
-	@Test
-	public void basic() {
-		var model = buildEffectiveModel("basic.pom");
+    @Test
+    public void basic() {
+        var model = buildEffectiveModel("basic.pom");
 
-		var actual = model.getDependencies().stream() //
-				.map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
-				.collect(Collectors.toSet());
-		var expected = deps("commons-lang3:3.12.0");
-		assertEquals(expected, actual);
-	}
+        var actual = model.getDependencies().stream() //
+                .map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
+                .collect(Collectors.toSet());
+        var expected = deps("commons-lang3:3.12.0");
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void inheritedDependency() {
-		var model = buildEffectiveModel("inherited-dependency.pom");
+    @Test
+    public void inheritedDependency() {
+        var model = buildEffectiveModel("inherited-dependency.pom");
 
-		var actual = model.getDependencies().stream() //
-				.map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
-				.collect(Collectors.toSet());
-		assertTrue(actual.contains("guava:18.0"));
-		assertTrue(actual.contains("commons-lang3:3.0"));
-		// ... and others, left out for brevity
-	}
+        var actual = model.getDependencies().stream() //
+                .map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
+                .collect(Collectors.toSet());
+        assertTrue(actual.contains("guava:18.0"));
+        assertTrue(actual.contains("commons-lang3:3.0"));
+        // ... and others, left out for brevity
+    }
 
-	@Test
-	public void inheritedVersion() {
-		var model = buildEffectiveModel("inherited-version.pom");
+    @Test
+    public void inheritedVersion() {
+        var model = buildEffectiveModel("inherited-version.pom");
 
-		var actual = model.getVersion();
-		var expected = "9";
-		assertEquals(expected, actual);
-	}
+        var actual = model.getVersion();
+        var expected = "9";
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void inheritedProperty() {
-		var model = buildEffectiveModel("inherited-property.pom");
+    @Test
+    public void inheritedProperty() {
+        var model = buildEffectiveModel("inherited-property.pom");
 
-		var actual = model.getProperties().getOrDefault("project.build.sourceEncoding", null);
-		var expected = "UTF-8";
-		assertEquals(expected, actual);
-	}
+        var actual = model.getProperties().getOrDefault("project.build.sourceEncoding", null);
+        var expected = "UTF-8";
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void propertyReplacement() {
-		var model = buildEffectiveModel("property-replacement.pom");
+    @Test
+    public void propertyReplacement() {
+        var model = buildEffectiveModel("property-replacement.pom");
 
-		var actual = model.getDependencies().stream() //
-				.map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
-				.collect(Collectors.toSet());
-		var expected = deps("commons-lang3:3.12.0");
-		assertEquals(expected, actual);
-	}
+        var actual = model.getDependencies().stream() //
+                .map(d -> String.format("%s:%s", d.getArtifactId(), d.getVersion())) //
+                .collect(Collectors.toSet());
+        var expected = deps("commons-lang3:3.12.0");
+        assertEquals(expected, actual);
+    }
 
-	private static Model buildEffectiveModel(String pathToPom) {
-		var fullPath = Path.of(EffectiveModelBuilderTest.class.getSimpleName(), pathToPom);
-		File pom = TestUtils.getTestResource(fullPath.toString());
-		// resolve once to make sure all dependencies exist in local repo
-		new Resolver().resolveDependenciesFromPom(pom);
-		var sut = new EffectiveModelBuilder();
-		return sut.buildEffectiveModel(pom);
-	}
+    private static Model buildEffectiveModel(String pathToPom) {
+        var fullPath = Path.of(EffectiveModelBuilderTest.class.getSimpleName(), pathToPom);
+        File pom = TestUtils.getTestResource(fullPath.toString());
+        // resolve once to make sure all dependencies exist in local repo
+        new Resolver().resolveDependenciesFromPom(pom);
+        var sut = new EffectiveModelBuilder();
+        return sut.buildEffectiveModel(pom);
+    }
 
-	private static Set<String> deps(String... deps) {
-		Set<String> res = new HashSet<String>();
-		for (String dep : deps) {
-			res.add(dep);
-		}
-		return res;
-	}
+    private static Set<String> deps(String... deps) {
+        Set<String> res = new HashSet<String>();
+        for (String dep : deps) {
+            res.add(dep);
+        }
+        return res;
+    }
 }

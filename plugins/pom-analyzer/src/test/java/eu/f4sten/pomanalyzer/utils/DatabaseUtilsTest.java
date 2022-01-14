@@ -46,129 +46,129 @@ import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
 
-	private MetadataDao dao;
-	private JsonUtils json;
-	private DSLContext dslContext;
-	private DatabaseUtils sut;
+    private MetadataDao dao;
+    private JsonUtils json;
+    private DSLContext dslContext;
+    private DatabaseUtils sut;
 
-	@BeforeEach
-	public void setup() {
-		dao = mock(MetadataDao.class);
-		json = mock(JsonUtils.class);
-		dslContext = mock(DSLContext.class);
-		doAnswer(new Answer<Void>() {
-			public Void answer(InvocationOnMock i) throws Throwable {
-				var arg0 = (TransactionalRunnable) i.getArgument(0);
-				arg0.run(null);
-				return null;
-			};
-		}).when(dslContext).transaction(any(TransactionalRunnable.class));
+    @BeforeEach
+    public void setup() {
+        dao = mock(MetadataDao.class);
+        json = mock(JsonUtils.class);
+        dslContext = mock(DSLContext.class);
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock i) throws Throwable {
+                var arg0 = (TransactionalRunnable) i.getArgument(0);
+                arg0.run(null);
+                return null;
+            }
+        }).when(dslContext).transaction(any(TransactionalRunnable.class));
 
-		sut = new DatabaseUtils(dslContext, json) {
-			protected MetadataDao getDao(DSLContext ctx) {
-				return dao;
-			};
-		};
-	}
+        sut = new DatabaseUtils(dslContext, json) {
+            protected MetadataDao getDao(DSLContext ctx) {
+                return dao;
+            }
+        };
+    }
 
-	@Test
-	public void transactionIsStarted() {
-		var result = getSomeResult();
-		sut.save(result);
-		verify(dslContext).transaction(any(TransactionalRunnable.class));
+    @Test
+    public void transactionIsStarted() {
+        var result = getSomeResult();
+        sut.save(result);
+        verify(dslContext).transaction(any(TransactionalRunnable.class));
 
-	}
+    }
 
-	@Test
-	public void storePackage() {
-		var result = getSomeResult();
-		result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-		sut.save(result);
-		verify(dao).insertPackage("g:a", Constants.mvnForge, result.projectName, result.repoUrl, null);
-	}
+    @Test
+    public void storePackage() {
+        var result = getSomeResult();
+        result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
+        sut.save(result);
+        verify(dao).insertPackage("g:a", Constants.mvnForge, result.projectName, result.repoUrl, null);
+    }
 
-	@Test
-	public void doNotStoreMavenCentralRepo() {
-		var result = getSomeResult();
-		result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-		sut.save(result);
-		verify(dao, times(0)).insertArtifactRepository(anyString());
-	}
+    @Test
+    public void doNotStoreMavenCentralRepo() {
+        var result = getSomeResult();
+        result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
+        sut.save(result);
+        verify(dao, times(0)).insertArtifactRepository(anyString());
+    }
 
-	@Test
-	public void storeNonMavenCentralRepo() {
-		var result = getSomeResult();
-		result.artifactRepository = "Non Maven Central";
-		sut.save(result);
-		verify(dao).insertArtifactRepository(result.artifactRepository);
-	}
+    @Test
+    public void storeNonMavenCentralRepo() {
+        var result = getSomeResult();
+        result.artifactRepository = "Non Maven Central";
+        sut.save(result);
+        verify(dao).insertArtifactRepository(result.artifactRepository);
+    }
 
-	@Test
-	public void storePackageVersion() {
-		var result = getSomeResult();
-		when(json.toJson(eq(result))).thenReturn("<some json>");
+    @Test
+    public void storePackageVersion() {
+        var result = getSomeResult();
+        when(json.toJson(eq(result))).thenReturn("<some json>");
 
-		when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
-		when(dao.insertArtifactRepository(anyString())).thenReturn(234L);
-		sut.save(result);
+        when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
+        when(dao.insertArtifactRepository(anyString())).thenReturn(234L);
+        sut.save(result);
 
-		var captor = ArgumentCaptor.forClass(String.class);
+        var captor = ArgumentCaptor.forClass(String.class);
 
-		verify(dao).insertPackageVersion(eq(123L), eq(Constants.opalGenerator), eq(result.version), eq(234L), eq(null),
-				eq(new Timestamp(result.releaseDate)), captor.capture());
+        verify(dao).insertPackageVersion(eq(123L), eq(Constants.opalGenerator), eq(result.version), eq(234L), eq(null),
+                eq(new Timestamp(result.releaseDate)), captor.capture());
 
-		var actualJson = captor.getValue();
-		var expectedJson = "<some json>";
-		assertEquals(expectedJson.toString(), actualJson.toString());
-	}
+        var actualJson = captor.getValue();
+        var expectedJson = "<some json>";
+        assertEquals(expectedJson.toString(), actualJson.toString());
+    }
 
-	@Test
-	public void storeDependency() {
-		var result = getSomeResult();
+    @Test
+    public void storeDependency() {
+        var result = getSomeResult();
 
-		when(json.toJson(eq(result))).thenReturn("<some json>");
-		when(json.toJson(eq(result.dependencies.iterator().next()))).thenReturn("<some dep json>");
+        when(json.toJson(eq(result))).thenReturn("<some json>");
+        when(json.toJson(eq(result.dependencies.iterator().next()))).thenReturn("<some dep json>");
 
-		when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
-		when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),
-				any(String.class))).thenReturn(234L);
+        when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
+        when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),
+                any(String.class))).thenReturn(234L);
 
-		sut.save(result);
+        sut.save(result);
 
-		var arrCaptor = ArgumentCaptor.forClass(String[].class);
-		var jsonCaptor = ArgumentCaptor.forClass(String.class);
+        var arrCaptor = ArgumentCaptor.forClass(String[].class);
+        var jsonCaptor = ArgumentCaptor.forClass(String.class);
 
-		verify(dao).insertPackage("dg1:da1", Constants.mvnForge);
-		verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null),
-				jsonCaptor.capture());
+        verify(dao).insertPackage("dg1:da1", Constants.mvnForge);
+        verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null),
+                jsonCaptor.capture());
 
-		var actual = arrCaptor.getValue();
-		assertEquals(1, actual.length);
-		assertEquals("dv1", actual[0]);
+        var actual = arrCaptor.getValue();
+        assertEquals(1, actual.length);
+        assertEquals("dv1", actual[0]);
 
-		var actualJson = jsonCaptor.getValue();
-		var expectedJson = "<some dep json>";
-		assertEquals(expectedJson.toString(), actualJson.toString());
-	}
+        var actualJson = jsonCaptor.getValue();
+        var expectedJson = "<some dep json>";
+        assertEquals(expectedJson.toString(), actualJson.toString());
+    }
 
-	private PomAnalysisResult getSomeResult() {
-		PomAnalysisResult result = new PomAnalysisResult();
-		result.artifactRepository = "...";
-		result.groupId = "g";
-		result.artifactId = "a";
-		result.packagingType = "jar";
-		result.version = "1.2.3";
+    private PomAnalysisResult getSomeResult() {
+        PomAnalysisResult result = new PomAnalysisResult();
+        result.artifactRepository = "...";
+        result.groupId = "g";
+        result.artifactId = "a";
+        result.packagingType = "jar";
+        result.version = "1.2.3";
 
-		result.projectName = "projectName";
-		result.repoUrl = "repoUrl";
-		result.commitTag = "commitTag";
-		result.dependencies.add(new Dependency("dg1", "da1", "dv1"));
-		result.dependencyManagement.add(new Dependency("dmg1", "dma1", "dmv1"));
+        result.projectName = "projectName";
+        result.repoUrl = "repoUrl";
+        result.commitTag = "commitTag";
+        result.dependencies.add(new Dependency("dg1", "da1", "dv1"));
+        result.dependencyManagement.add(new Dependency("dmg1", "dma1", "dmv1"));
 
-		result.releaseDate = new Date().getTime();
-		result.forge = Constants.mvnForge;
-		result.parentCoordinate = "pg:pa:pom:2.3.4";
-		result.sourcesUrl = "soruceUrl";
-		return result;
-	}
+        result.releaseDate = new Date().getTime();
+        result.forge = Constants.mvnForge;
+        result.parentCoordinate = "pg:pa:pom:2.3.4";
+        result.sourcesUrl = "soruceUrl";
+        return result;
+    }
 }

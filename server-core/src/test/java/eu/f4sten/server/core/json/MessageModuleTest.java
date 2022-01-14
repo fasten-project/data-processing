@@ -37,122 +37,122 @@ import eu.f4sten.server.core.kafka.Message.Error;
 
 public class MessageModuleTest {
 
-	private ObjectMapper om;
+    private ObjectMapper om;
 
-	@BeforeEach
-	public void setup() {
-		om = new ObjectMapperBuilder() {
-			@Override
-			protected ObjectMapper addMapperOptions(ObjectMapper om) {
-				return om.enable(SerializationFeature.INDENT_OUTPUT);
-			}
-		}.build();
-		// message does not need a special serializer
-	}
+    @BeforeEach
+    public void setup() {
+        om = new ObjectMapperBuilder() {
+            @Override
+            protected ObjectMapper addMapperOptions(ObjectMapper om) {
+                return om.enable(SerializationFeature.INDENT_OUTPUT);
+            }
+        }.build();
+        // message does not need a special serializer
+    }
 
-	@Test
-	public void messagesCanBeDeSerialized() throws JsonProcessingException {
-		var in = someMessage();
-		String json = om.writeValueAsString(in);
-		var out = om.readValue(json, new TRef<Message<String, String>>() {});
-		assertEquals(in, out);
-	}
+    @Test
+    public void messagesCanBeDeSerialized() throws JsonProcessingException {
+        var in = someMessage();
+        String json = om.writeValueAsString(in);
+        var out = om.readValue(json, new TRef<Message<String, String>>() {});
+        assertEquals(in, out);
+    }
 
-	@Test
-	public void serializationDoesNotCrashWhenNotAllInfoIsConsumed() throws JsonProcessingException {
-		var in = someMessage();
-		String json = om.writeValueAsString(in);
-		var out = om.readValue(json, new TRef<Message<Void, String>>() {});
-		assertNull(out.input);
-		assertEquals(in.payload, out.payload);
-	}
+    @Test
+    public void serializationDoesNotCrashWhenNotAllInfoIsConsumed() throws JsonProcessingException {
+        var in = someMessage();
+        String json = om.writeValueAsString(in);
+        var out = om.readValue(json, new TRef<Message<Void, String>>() {});
+        assertNull(out.input);
+        assertEquals(in.payload, out.payload);
+    }
 
-	@Test
-	public void formatIsCompatibleWithLegacyMessages() throws JsonMappingException, JsonProcessingException {
+    @Test
+    public void formatIsCompatibleWithLegacyMessages() throws JsonMappingException, JsonProcessingException {
 
-		var createdAt = 1642127882997L;
-		var comsumedAt = 1642127889927L;
-		var oldJson = "{\n" //
-				+ "  \"created_at\": " + createdAt + ",\n" //
-				+ "  \"consumed_at\": " + comsumedAt + ",\n" //
-				+ "  \"host\": \"a68efd2412d9\",\n" //
-				+ "  \"plugin_name\": \"OPAL\",\n" //
-				+ "  \"plugin_version\": \"0.1.2\",\n" //
-				+ "  \"input\": \"i\",\n" //
-				+ "  \"payload\": \"p\"\n" //
-				+ "}";
+        var createdAt = 1642127882997L;
+        var comsumedAt = 1642127889927L;
+        var oldJson = "{\n" //
+                + "  \"created_at\": " + createdAt + ",\n" //
+                + "  \"consumed_at\": " + comsumedAt + ",\n" //
+                + "  \"host\": \"a68efd2412d9\",\n" //
+                + "  \"plugin_name\": \"OPAL\",\n" //
+                + "  \"plugin_version\": \"0.1.2\",\n" //
+                + "  \"input\": \"i\",\n" //
+                + "  \"payload\": \"p\"\n" //
+                + "}";
 
-		// read
-		var actual = om.readValue(oldJson, new TRef<Message<String, String>>() {});
-		var expected = new Message<String, String>();
-		expected.createdAt = toDate(createdAt);
-		expected.consumedAt = toDate(comsumedAt);
-		expected.host = "a68efd2412d9";
-		expected.plugin = "OPAL";
-		expected.version = "0.1.2";
-		expected.input = "i";
-		expected.payload = "p";
-		assertEquals(expected, actual);
+        // read
+        var actual = om.readValue(oldJson, new TRef<Message<String, String>>() {});
+        var expected = new Message<String, String>();
+        expected.createdAt = toDate(createdAt);
+        expected.consumedAt = toDate(comsumedAt);
+        expected.host = "a68efd2412d9";
+        expected.plugin = "OPAL";
+        expected.version = "0.1.2";
+        expected.input = "i";
+        expected.payload = "p";
+        assertEquals(expected, actual);
 
-		// write
-		var newJson = om.writeValueAsString(actual);
-		assertJsonEquals(oldJson, newJson);
-	}
+        // write
+        var newJson = om.writeValueAsString(actual);
+        assertJsonEquals(oldJson, newJson);
+    }
 
-	@Test
-	public void formatIsCompatibleWithLegacyErrors() throws JsonMappingException, JsonProcessingException {
-		var oldJson = "{\n" //
-				+ "  \"err\": {\n" //
-				+ "    \"error\": \"1\",\n" //
-				+ "    \"msg\": \"2\",\n" //
-				+ "    \"stacktrace\": \"3\"\n" //
-				+ "  }\n" //
-				+ "}";
+    @Test
+    public void formatIsCompatibleWithLegacyErrors() throws JsonMappingException, JsonProcessingException {
+        var oldJson = "{\n" //
+                + "  \"err\": {\n" //
+                + "    \"error\": \"1\",\n" //
+                + "    \"msg\": \"2\",\n" //
+                + "    \"stacktrace\": \"3\"\n" //
+                + "  }\n" //
+                + "}";
 
-		// read
-		var m = om.readValue(oldJson, new TRef<Message<String, String>>() {});
-		var actual = m.error;
-		var expected = new Message.Error();
-		expected.type = "1";
-		expected.message = "2";
-		expected.stacktrace = "3";
-		assertEquals(expected, actual);
+        // read
+        var m = om.readValue(oldJson, new TRef<Message<String, String>>() {});
+        var actual = m.error;
+        var expected = new Message.Error();
+        expected.type = "1";
+        expected.message = "2";
+        expected.stacktrace = "3";
+        assertEquals(expected, actual);
 
-		// write
-		var newJson = om.writeValueAsString(m);
-		assertJsonEquals(oldJson, newJson);
-	}
+        // write
+        var newJson = om.writeValueAsString(m);
+        assertJsonEquals(oldJson, newJson);
+    }
 
-	private Message<String, String> someMessage() {
-		var m = new Message<String, String>();
-		m.consumedAt = new Date();
-		m.createdAt = new Date();
-		m.error = someError();
-		m.version = "v";
-		m.host = "h";
-		m.input = "i";
-		m.payload = "p";
-		m.plugin = "pl";
-		return m;
-	}
+    private Message<String, String> someMessage() {
+        var m = new Message<String, String>();
+        m.consumedAt = new Date();
+        m.createdAt = new Date();
+        m.error = someError();
+        m.version = "v";
+        m.host = "h";
+        m.input = "i";
+        m.payload = "p";
+        m.plugin = "pl";
+        return m;
+    }
 
-	private Error someError() {
-		var e = new Message.Error();
-		e.message = "m";
-		e.stacktrace = "s";
-		e.type = "t";
-		return e;
-	}
+    private Error someError() {
+        var e = new Message.Error();
+        e.message = "m";
+        e.stacktrace = "s";
+        e.type = "t";
+        return e;
+    }
 
-	private static Date toDate(long comsumedAt) {
-		return new Date(new Timestamp(comsumedAt).getTime());
-	}
+    private static Date toDate(long comsumedAt) {
+        return new Date(new Timestamp(comsumedAt).getTime());
+    }
 
-	private void assertJsonEquals(String expectedJson, String actualJson) {
-		try {
-			JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.STRICT_ORDER);
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private void assertJsonEquals(String expectedJson, String actualJson) {
+        try {
+            JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.STRICT_ORDER);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

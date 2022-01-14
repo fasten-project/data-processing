@@ -39,113 +39,113 @@ import eu.fasten.core.utils.Asserts;
 
 public class PomAnalyzer implements Plugin {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PomAnalyzer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PomAnalyzer.class);
 
-	private final MavenRepositoryUtils repo;
-	private final EffectiveModelBuilder modelBuilder;
-	private final PomExtractor extractor;
-	private final DatabaseUtils db;
-	private final Resolver resolver;
-	private final Kafka kafka;
-	private final MyArgs args;
-	private final MessageGenerator msgs;
+    private final MavenRepositoryUtils repo;
+    private final EffectiveModelBuilder modelBuilder;
+    private final PomExtractor extractor;
+    private final DatabaseUtils db;
+    private final Resolver resolver;
+    private final Kafka kafka;
+    private final MyArgs args;
+    private final MessageGenerator msgs;
 
-	@Inject
-	public PomAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
-			DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs) {
-		this.repo = repo;
-		this.modelBuilder = modelBuilder;
-		this.extractor = extractor;
-		this.db = db;
-		this.resolver = resolver;
-		this.kafka = kafka;
-		this.args = args;
-		this.msgs = msgs;
-	}
+    @Inject
+    public PomAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
+            DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs) {
+        this.repo = repo;
+        this.modelBuilder = modelBuilder;
+        this.extractor = extractor;
+        this.db = db;
+        this.resolver = resolver;
+        this.kafka = kafka;
+        this.args = args;
+        this.msgs = msgs;
+    }
 
-	@Override
-	public void run() {
-		AssertArgs.assertFor(args)//
-				.notNull(a -> a.kafkaIn, "kafka input topic") //
-				.notNull(a -> a.kafkaOut, "kafka output topic");
+    @Override
+    public void run() {
+        AssertArgs.assertFor(args)//
+                .notNull(a -> a.kafkaIn, "kafka input topic") //
+                .notNull(a -> a.kafkaOut, "kafka output topic");
 
-		LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
-		kafka.subscribe(args.kafkaIn, MavenId.class, this::callback, this::errors);
-	}
+        LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
+        kafka.subscribe(args.kafkaIn, MavenId.class, this::callback, this::errors);
+    }
 
-	private void callback(MavenId id, Lane l) {
-		LOG.info("Consuming next record ...");
-		var artifact = bootstrapFirstResolutionResultFromInput(id);
-		if (!artifact.localPomFile.exists()) {
-			artifact.localPomFile = repo.downloadPomToTemp(artifact);
-		}
-		process(artifact, l);
-	}
+    private void callback(MavenId id, Lane l) {
+        LOG.info("Consuming next record ...");
+        var artifact = bootstrapFirstResolutionResultFromInput(id);
+        if (!artifact.localPomFile.exists()) {
+            artifact.localPomFile = repo.downloadPomToTemp(artifact);
+        }
+        process(artifact, l);
+    }
 
-	private Object errors(MavenId id, Throwable t) {
-		return msgs.getErr(id, t);
-	}
+    private Object errors(MavenId id, Throwable t) {
+        return msgs.getErr(id, t);
+    }
 
-	private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
-		Asserts.assertNotNull(id.groupId);
-		Asserts.assertNotNull(id.artifactId);
-		Asserts.assertNotNull(id.version);
+    private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
+        Asserts.assertNotNull(id.groupId);
+        Asserts.assertNotNull(id.artifactId);
+        Asserts.assertNotNull(id.version);
 
-		var groupId = id.groupId.strip();
-		var artifactId = id.artifactId.strip();
-		var version = id.version.strip();
-		var coord = asMavenCoordinate(groupId, artifactId, version);
+        var groupId = id.groupId.strip();
+        var artifactId = id.artifactId.strip();
+        var version = id.version.strip();
+        var coord = asMavenCoordinate(groupId, artifactId, version);
 
-		String artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-		if (id.artifactRepository != null) {
-			var val = id.artifactRepository.strip();
-			if (!val.isEmpty()) {
-				artifactRepository = val;
-			}
-		}
-		return new ResolutionResult(coord, artifactRepository);
-	}
+        String artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
+        if (id.artifactRepository != null) {
+            var val = id.artifactRepository.strip();
+            if (!val.isEmpty()) {
+                artifactRepository = val;
+            }
+        }
+        return new ResolutionResult(coord, artifactRepository);
+    }
 
-	private static String asMavenCoordinate(String groupId, String artifactId, String version) {
-		// packing type is unknown
-		return String.format("%s:%s:?:%s", groupId, artifactId, version);
-	}
+    private static String asMavenCoordinate(String groupId, String artifactId, String version) {
+        // packing type is unknown
+        return String.format("%s:%s:?:%s", groupId, artifactId, version);
+    }
 
-	private void process(ResolutionResult artifact, Lane lane) {
-		LOG.info("Processing {} ...", artifact.coordinate);
+    private void process(ResolutionResult artifact, Lane lane) {
+        LOG.info("Processing {} ...", artifact.coordinate);
 
-		// resolve dependencies to
-		// 1) have dependencies
-		// 2) identify artifact sources
-		// 3) make sure all dependencies exist in local .m2 folder
-		var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile);
+        // resolve dependencies to
+        // 1) have dependencies
+        // 2) identify artifact sources
+        // 3) make sure all dependencies exist in local .m2 folder
+        var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile);
 
-		// merge pom with all its parents and resolve properties
-		Model m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
+        // merge pom with all its parents and resolve properties
+        Model m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
 
-		// extract contents of pom file
-		var result = extractor.process(m);
+        // extract contents of pom file
+        var result = extractor.process(m);
 
-		// remember source repository for artifact
-		result.artifactRepository = artifact.artifactRepository;
+        // remember source repository for artifact
+        result.artifactRepository = artifact.artifactRepository;
 
-		result.sourcesUrl = repo.getSourceUrlIfExisting(result);
-		result.releaseDate = repo.getReleaseDate(result);
+        result.sourcesUrl = repo.getSourceUrlIfExisting(result);
+        result.releaseDate = repo.getReleaseDate(result);
 
-		store(result, lane);
+        store(result, lane);
 
-		// resolution can be different for dependencies, so process them independently
-		deps.forEach(dep -> {
-			process(dep, lane);
-		});
-	}
+        // resolution can be different for dependencies, so process them independently
+        deps.forEach(dep -> {
+            process(dep, lane);
+        });
+    }
 
-	private void store(PomAnalysisResult result, Lane lane) {
-		db.save(result);
-		if (lane == Lane.PRIORITY) {
-			db.markAsIngestedPackage(result);
-		}
-		var m = msgs.getStd(result);
-		kafka.publish(m, args.kafkaOut, lane);
-	}
+    private void store(PomAnalysisResult result, Lane lane) {
+        db.save(result);
+        if (lane == Lane.PRIORITY) {
+            db.markAsIngestedPackage(result);
+        }
+        var m = msgs.getStd(result);
+        kafka.publish(m, args.kafkaOut, lane);
+    }
 }

@@ -17,9 +17,9 @@ package eu.f4sten.server.core.json;
 
 public interface JsonUtils {
 
-	public <T> String toJson(T obj);
+    <T> String toJson(T obj);
 
-	public <T> T fromJson(String json, Class<T> type);
+    <T> T fromJson(String json, Class<T> type);
 
-	public <T> T fromJson(String json, TRef<T> typeRef);
+    <T> T fromJson(String json, TRef<T> typeRef);
 }

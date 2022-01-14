@@ -17,5 +17,5 @@ package eu.f4sten.server.core;
 
 public interface Plugin {
 
-	void run();
+    void run();
 }

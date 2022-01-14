@@ -18,5 +18,5 @@ package eu.f4sten.server.core.json;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 public abstract class TRef<T> extends TypeReference<T> {
-	// renaming class to make code shorter
+    // renaming class to make code shorter
 }

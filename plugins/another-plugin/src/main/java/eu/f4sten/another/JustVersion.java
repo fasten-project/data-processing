@@ -22,15 +22,15 @@ import eu.f4sten.server.core.utils.Version;
 
 public class JustVersion implements Plugin {
 
-	private Version version;
+    private Version version;
 
-	@Inject
-	public JustVersion(Version version) {
-		this.version = version;
-	}
+    @Inject
+    public JustVersion(Version version) {
+        this.version = version;
+    }
 
-	@Override
-	public void run() {
-		System.out.println(version.get());
-	}
+    @Override
+    public void run() {
+        System.out.println(version.get());
+    }
 }

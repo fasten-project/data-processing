@@ -35,50 +35,50 @@ import eu.fasten.core.maven.data.VersionConstraint;
 
 public class CoreJacksonModuleTest {
 
-	private ObjectMapper om;
+    private ObjectMapper om;
 
-	@BeforeEach
-	public void setup() {
-		om = new ObjectMapperBuilder() {
-			@Override
-			protected ObjectMapper addMapperOptions(ObjectMapper om) {
-				return om.enable(SerializationFeature.INDENT_OUTPUT);
-			}
-		}.build().registerModule(new CoreJacksonModule());
-	}
+    @BeforeEach
+    public void setup() {
+        om = new ObjectMapperBuilder() {
+            @Override
+            protected ObjectMapper addMapperOptions(ObjectMapper om) {
+                return om.enable(SerializationFeature.INDENT_OUTPUT);
+            }
+        }.build().registerModule(new CoreJacksonModule());
+    }
 
-	@Test
-	public void testDependency() {
-		var d = new Dependency("g1", "a1", Set.of(new VersionConstraint("[1,2]")), Set.of(new Exclusion("g2", "a2")),
-				"test", false, "type", "sources");
-		var json = "{\"versionConstraints\":[\"[1,2]\"],\"groupId\":\"g1\",\"scope\":\"test\",\"classifier\":\"sources\",\"artifactId\":\"a1\",\"exclusions\":[\"g2:a2\"],\"optional\":false,\"type\":\"type\"}";
-		test(d, json);
-	}
+    @Test
+    public void testDependency() {
+        var d = new Dependency("g1", "a1", Set.of(new VersionConstraint("[1,2]")), Set.of(new Exclusion("g2", "a2")),
+                "test", false, "type", "sources");
+        var json = "{\"versionConstraints\":[\"[1,2]\"],\"groupId\":\"g1\",\"scope\":\"test\",\"classifier\":\"sources\",\"artifactId\":\"a1\",\"exclusions\":[\"g2:a2\"],\"optional\":false,\"type\":\"type\"}";
+        test(d, json);
+    }
 
-	@Test
-	public void testVersionConstraint() {
-		var vc = new VersionConstraint("[1,2]");
-		test(vc, "\"[1,2]\"");
-	}
+    @Test
+    public void testVersionConstraint() {
+        var vc = new VersionConstraint("[1,2]");
+        test(vc, "\"[1,2]\"");
+    }
 
-	@Test
-	public void testExclusion() {
-		var e = new Exclusion("gid", "aid");
-		test(e, "\"gid:aid\"");
-	}
+    @Test
+    public void testExclusion() {
+        var e = new Exclusion("gid", "aid");
+        test(e, "\"gid:aid\"");
+    }
 
-	private void test(Object in, String expectedJson) {
-		try {
-			var json = om.writeValueAsString(in);
-			assertJsonEquals(expectedJson, json);
-			var out = om.readValue(json, in.getClass());
-			assertEquals(in, out);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private void test(Object in, String expectedJson) {
+        try {
+            var json = om.writeValueAsString(in);
+            assertJsonEquals(expectedJson, json);
+            var out = om.readValue(json, in.getClass());
+            assertEquals(in, out);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private void assertJsonEquals(String expectedJson, String actualJson) {
-		JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.STRICT_ORDER);
-	}
+    private void assertJsonEquals(String expectedJson, String actualJson) {
+        JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.STRICT_ORDER);
+    }
 }

@@ -25,34 +25,34 @@ import eu.f4sten.server.core.utils.PostgresConnector;
 
 public class PostgresConnectorImpl implements PostgresConnector {
 
-	private final String dbUrl;
-	private final String user;
-	private final boolean shouldAutocommit;
+    private final String dbUrl;
+    private final String user;
+    private final boolean shouldAutocommit;
 
-	public PostgresConnectorImpl(String dbUrl, String user, boolean shouldAutocommit) {
-		this.dbUrl = dbUrl;
-		this.user = user;
-		this.shouldAutocommit = shouldAutocommit;
+    public PostgresConnectorImpl(String dbUrl, String user, boolean shouldAutocommit) {
+        this.dbUrl = dbUrl;
+        this.user = user;
+        this.shouldAutocommit = shouldAutocommit;
 
-	}
+    }
 
-	@Override
-	public Connection getNewConnection() {
-		if (!new Driver().acceptsURL(dbUrl)) {
-			throw new IllegalArgumentException("Driver does not accept database URL: " + dbUrl);
-		}
-		var pwd = System.getenv(PASSWORD_ENV_VAR);
-		if (pwd == null) {
-			var err = "Postgres password missing. Provide through use ENV variable %s.";
-			throw new IllegalArgumentException(String.format(err, PASSWORD_ENV_VAR));
-		}
+    @Override
+    public Connection getNewConnection() {
+        if (!new Driver().acceptsURL(dbUrl)) {
+            throw new IllegalArgumentException("Driver does not accept database URL: " + dbUrl);
+        }
+        var pwd = System.getenv(PASSWORD_ENV_VAR);
+        if (pwd == null) {
+            var err = "Postgres password missing. Provide through use ENV variable %s.";
+            throw new IllegalArgumentException(String.format(err, PASSWORD_ENV_VAR));
+        }
 
-		try {
-			var connection = DriverManager.getConnection(dbUrl, user, pwd);
-			connection.setAutoCommit(this.shouldAutocommit);
-			return connection;
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            var connection = DriverManager.getConnection(dbUrl, user, pwd);
+            connection.setAutoCommit(this.shouldAutocommit);
+            return connection;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

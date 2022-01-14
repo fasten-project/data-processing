@@ -16,16 +16,16 @@
 package eu.f4sten.server;
 
 public enum LogLevel {
-	TRACE("trace"), //
-	DEBUG("debug"), //
-	INFO("info"), //
-	WARN("warn"), //
-	ERROR("error"), //
-	OFF("off");
+    TRACE("trace"),
+    DEBUG("debug"),
+    INFO("info"),
+    WARN("warn"),
+    ERROR("error"),
+    OFF("off");
 
-	public final String value;
+    public final String value;
 
-	private LogLevel(String value) {
-		this.value = value;
-	}
+    LogLevel(String value) {
+        this.value = value;
+    }
 }

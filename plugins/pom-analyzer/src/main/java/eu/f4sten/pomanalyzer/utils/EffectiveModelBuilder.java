@@ -27,25 +27,25 @@ import fr.inria.spirals.repairnator.process.maven.RepositoryModelResolver;
 
 public class EffectiveModelBuilder {
 
-	public static final File LOCAL_M2 = MavenRepositoryUtils.getPathOfLocalRepository();
+    public static final File LOCAL_M2 = MavenRepositoryUtils.getPathOfLocalRepository();
 
-	public Model buildEffectiveModel(File pom) {
+    public Model buildEffectiveModel(File pom) {
 
-		try {
-			var factory = new DefaultModelBuilderFactory();
-			var builder = factory.newInstance();
+        try {
+            var factory = new DefaultModelBuilderFactory();
+            var builder = factory.newInstance();
 
-			var req = new DefaultModelBuildingRequest();
-			req.setProcessPlugins(false);
-			req.setModelResolver(new RepositoryModelResolver(LOCAL_M2));
-			req.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
-			req.setPomFile(pom);
+            var req = new DefaultModelBuildingRequest();
+            req.setProcessPlugins(false);
+            req.setModelResolver(new RepositoryModelResolver(LOCAL_M2));
+            req.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+            req.setPomFile(pom);
 
-			var buildingResult = builder.build(req);
-			var model = buildingResult.getEffectiveModel();
-			return model;
-		} catch (ModelBuildingException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            var buildingResult = builder.build(req);
+            var model = buildingResult.getEffectiveModel();
+            return model;
+        } catch (ModelBuildingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

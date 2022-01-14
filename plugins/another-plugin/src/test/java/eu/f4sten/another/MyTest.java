@@ -21,10 +21,10 @@ import eu.fasten.core.data.opal.MavenCoordinate;
 
 public class MyTest {
 
-	@Test
-	public void asd() {
-		var c = MavenCoordinate.fromString("a:b:c", "jar");
-		System.out.println(c);
-	}
+    @Test
+    public void asd() {
+        var c = MavenCoordinate.fromString("a:b:c", "jar");
+        System.out.println(c);
+    }
 
 }

@@ -48,58 +48,58 @@ import eu.f4sten.server.utils.VersionImpl;
 
 public class ServerConfig implements IInjectorConfig {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);
 
-	private ServerArgs args;
+    private ServerArgs args;
 
-	public ServerConfig(ServerArgs args) {
-		this.args = args;
-	}
+    public ServerConfig(ServerArgs args) {
+        this.args = args;
+    }
 
-	@Override
-	public void configure(Binder binder) {
-		binder.bind(HostName.class).to(HostNameImpl.class);
-		binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
-		binder.bind(ServerArgs.class).toInstance(args);
-		binder.bind(Version.class).to(VersionImpl.class);
-	}
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(HostName.class).to(HostNameImpl.class);
+        binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
+        binder.bind(ServerArgs.class).toInstance(args);
+        binder.bind(Version.class).to(VersionImpl.class);
+    }
 
-	@Provides
-	public IoUtils bindIoUtils(JsonUtils jsonUtils) {
-		assertFor(args) //
-				.notNull(args -> args.baseDir, "base dir") //
-				.that(args -> args.baseDir.exists(), "base dir does not exist");
-		return new IoUtilsImpl(args.baseDir, jsonUtils);
-	}
+    @Provides
+    public IoUtils bindIoUtils(JsonUtils jsonUtils) {
+        assertFor(args) //
+                .notNull(args -> args.baseDir, "base dir") //
+                .that(args -> args.baseDir.exists(), "base dir does not exist");
+        return new IoUtilsImpl(args.baseDir, jsonUtils);
+    }
 
-	@Provides
-	public PostgresConnector bindPostgresConnector() {
-		assertFor(args) //
-				.notNull(a -> a.dbUrl, "db url") //
-				.notNull(a -> a.dbUser, "db user") //
-				.that(a -> !a.dbUrl.contains("@"), "providing user via db url is not supported") //
-				.that(a -> a.dbUrl.startsWith("jdbc:postgresql://"), "db url does not start with 'jdbc:postgresql://'");
+    @Provides
+    public PostgresConnector bindPostgresConnector() {
+        assertFor(args) //
+                .notNull(a -> a.dbUrl, "db url") //
+                .notNull(a -> a.dbUser, "db user") //
+                .that(a -> !a.dbUrl.contains("@"), "providing user via db url is not supported") //
+                .that(a -> a.dbUrl.startsWith("jdbc:postgresql://"), "db url does not start with 'jdbc:postgresql://'");
 
-		return new PostgresConnectorImpl(args.dbUrl, args.dbUser, true);
-	}
+        return new PostgresConnectorImpl(args.dbUrl, args.dbUser, true);
+    }
 
-	@Provides
-	@Singleton
-	public JsonUtils bindJsonUtils(ObjectMapper om) {
-		return new JsonUtilsImpl(om);
-	}
+    @Provides
+    @Singleton
+    public JsonUtils bindJsonUtils(ObjectMapper om) {
+        return new JsonUtilsImpl(om);
+    }
 
-	@ProvidesIntoSet
-	public Module bindJacksonModule() {
-		return new SimpleModule();
-	}
+    @ProvidesIntoSet
+    public Module bindJacksonModule() {
+        return new SimpleModule();
+    }
 
-	@Provides
-	@Singleton
-	public ObjectMapper bindObjectMapper(Set<Module> modules) {
-		LOG.info("Instantiating ObjectMapper from {} modules: {}", modules.size(), modules);
+    @Provides
+    @Singleton
+    public ObjectMapper bindObjectMapper(Set<Module> modules) {
+        LOG.info("Instantiating ObjectMapper from {} modules: {}", modules.size(), modules);
 
-		return new ObjectMapperBuilder().build() //
-				.registerModules(modules);
-	}
+        return new ObjectMapperBuilder().build() //
+                .registerModules(modules);
+    }
 }

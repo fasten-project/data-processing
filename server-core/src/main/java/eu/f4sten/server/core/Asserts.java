@@ -17,17 +17,17 @@ package eu.f4sten.server.core;
 
 public class Asserts {
 
-	// TODO merge with fasten.core Asserts
+    // TODO merge with fasten.core Asserts
 
-	public static void assertNotNullOrEmpty(String s) {
-		if (s == null || s.isEmpty()) {
-			throw new IllegalStateException("string is null or empty");
-		}
-	}
+    public static void assertNotNullOrEmpty(String s) {
+        if (s == null || s.isEmpty()) {
+            throw new IllegalStateException("string is null or empty");
+        }
+    }
 
-	public static void that(boolean b, String error) {
-		if (!b) {
-			throw new IllegalStateException(error);
-		}
-	}
+    public static void that(boolean b, String error) {
+        if (!b) {
+            throw new IllegalStateException(error);
+        }
+    }
 }

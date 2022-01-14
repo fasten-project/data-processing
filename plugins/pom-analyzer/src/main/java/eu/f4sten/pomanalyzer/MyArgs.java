@@ -21,9 +21,9 @@ import eu.f4sten.server.core.kafka.DefaultTopics;
 
 public class MyArgs {
 
-	@Parameter(names = "--pomanalyzer.kafkaIn", arity = 1)
-	public String kafkaIn = DefaultTopics.INGEST;
+    @Parameter(names = "--pomanalyzer.kafkaIn", arity = 1)
+    public String kafkaIn = DefaultTopics.INGEST;
 
-	@Parameter(names = "--pomanalyzer.kafkaOut", arity = 1)
-	public String kafkaOut = DefaultTopics.POM_ANALYZER;
+    @Parameter(names = "--pomanalyzer.kafkaOut", arity = 1)
+    public String kafkaOut = DefaultTopics.POM_ANALYZER;
 }

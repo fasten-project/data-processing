@@ -30,61 +30,61 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class VersionTest {
 
-	private File versionFile;
+    private File versionFile;
 
-	@AfterEach
-	public void teardown() {
-		overrideVersion("dev");
-	}
+    @AfterEach
+    public void teardown() {
+        overrideVersion("dev");
+    }
 
-	@Test // start with _ to make sure it is executed first
-	public void _getDefault() {
-		var actual = new VersionImpl().get();
-		var expected = "dev";
-		assertEquals(expected, actual);
-	}
+    @Test // start with _ to make sure it is executed first
+    public void _getDefault() {
+        var actual = new VersionImpl().get();
+        var expected = "dev";
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void canBeReplaced() {
-		overrideVersion("...");
+    @Test
+    public void canBeReplaced() {
+        overrideVersion("...");
 
-		var actual = new VersionImpl().get();
-		var expected = "...";
-		assertEquals(expected, actual);
-	}
+        var actual = new VersionImpl().get();
+        var expected = "...";
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void trimsWhitespace() {
-		overrideVersion(" \t ... \t ");
+    @Test
+    public void trimsWhitespace() {
+        overrideVersion(" \t ... \t ");
 
-		var actual = new VersionImpl().get();
-		var expected = "...";
-		assertEquals(expected, actual);
-	}
+        var actual = new VersionImpl().get();
+        var expected = "...";
+        assertEquals(expected, actual);
+    }
 
-	@Test
-	public void nonExisting() {
-		getFile().delete();
+    @Test
+    public void nonExisting() {
+        getFile().delete();
 
-		var actual = new VersionImpl().get();
-		var expected = "n/a";
-		assertEquals(expected, actual);
-	}
+        var actual = new VersionImpl().get();
+        var expected = "n/a";
+        assertEquals(expected, actual);
+    }
 
-	private void overrideVersion(String version) {
-		try {
-			writeStringToFile(getFile(), version, UTF_8);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private void overrideVersion(String version) {
+        try {
+            writeStringToFile(getFile(), version, UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private File getFile() {
-		if (versionFile != null) {
-			return versionFile;
-		}
-		var url = getClass().getClassLoader().getResource("version.txt");
-		versionFile = new File(url.getFile());
-		return versionFile;
-	}
+    private File getFile() {
+        if (versionFile != null) {
+            return versionFile;
+        }
+        var url = getClass().getClassLoader().getResource("version.txt");
+        versionFile = new File(url.getFile());
+        return versionFile;
+    }
 }

@@ -28,50 +28,50 @@ import eu.f4sten.server.core.utils.Version;
 
 public class MessageGeneratorImpl implements MessageGenerator {
 
-	private final ServerArgs args;
-	private final HostName host;
-	private final Version version;
+    private final ServerArgs args;
+    private final HostName host;
+    private final Version version;
 
-	@Inject
-	public MessageGeneratorImpl(ServerArgs args, HostName host, Version version) {
-		this.args = args;
-		this.host = host;
-		this.version = version;
-	}
+    @Inject
+    public MessageGeneratorImpl(ServerArgs args, HostName host, Version version) {
+        this.args = args;
+        this.host = host;
+        this.version = version;
+    }
 
-	@Override
-	public <Output> Message<?, Output> getStd(Output output) {
-		return getStd(null, output);
-	}
+    @Override
+    public <Output> Message<?, Output> getStd(Output output) {
+        return getStd(null, output);
+    }
 
-	@Override
-	public <Input, Output> Message<Input, Output> getStd(Input input, Output output) {
-		var m = fill(new Message<Input, Output>());
-		m.input = input;
-		m.payload = output;
-		return m;
-	}
+    @Override
+    public <Input, Output> Message<Input, Output> getStd(Input input, Output output) {
+        var m = fill(new Message<Input, Output>());
+        m.input = input;
+        m.payload = output;
+        return m;
+    }
 
-	@Override
-	public <Input> Message<Input, ?> getErr(Input input, Throwable t) {
-		var m = fill(new Message<Input, Object>());
-		m.input = input;
-		m.error = getError(t);
-		return m;
-	}
+    @Override
+    public <Input> Message<Input, ?> getErr(Input input, Throwable t) {
+        var m = fill(new Message<Input, Object>());
+        m.input = input;
+        m.error = getError(t);
+        return m;
+    }
 
-	private <Input, Output> Message<Input, Output> fill(Message<Input, Output> m) {
-		m.host = host.get();
-		m.plugin = args.plugin;
-		m.version = version.get();
-		return m;
-	}
+    private <Input, Output> Message<Input, Output> fill(Message<Input, Output> m) {
+        m.host = host.get();
+        m.plugin = args.plugin;
+        m.version = version.get();
+        return m;
+    }
 
-	private static Error getError(Throwable t) {
-		var e = new Message.Error();
-		e.message = t.getMessage();
-		e.type = t.getClass().getSimpleName();
-		e.stacktrace = ExceptionUtils.getStackTrace(t);
-		return e;
-	}
+    private static Error getError(Throwable t) {
+        var e = new Message.Error();
+        e.message = t.getMessage();
+        e.type = t.getClass().getSimpleName();
+        e.stacktrace = ExceptionUtils.getStackTrace(t);
+        return e;
+    }
 }

@@ -19,11 +19,11 @@ import java.io.File;
 
 public interface IoUtils {
 
-	public File getTempFolder();
+    File getTempFolder();
 
-	public File getBaseFolder();
+    File getBaseFolder();
 
-	public <T> void writeToFile(T t, File file);
+    <T> void writeToFile(T t, File file);
 
-	public <T> T readFromFile(File file, Class<T> typeOfContent);
+    <T> T readFromFile(File file, Class<T> typeOfContent);
 }

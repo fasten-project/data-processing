@@ -18,8 +18,8 @@ package eu.f4sten.server.core.utils;
 import java.sql.Connection;
 
 public interface PostgresConnector {
-	
-	public static final String PASSWORD_ENV_VAR = "PG_PWD";
 
-	Connection getNewConnection();
+    String PASSWORD_ENV_VAR = "PG_PWD";
+
+    Connection getNewConnection();
 }
