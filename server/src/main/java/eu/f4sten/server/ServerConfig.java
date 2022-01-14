@@ -40,7 +40,6 @@ import eu.f4sten.server.core.utils.IoUtils;
 import eu.f4sten.server.core.utils.PostgresConnector;
 import eu.f4sten.server.core.utils.Version;
 import eu.f4sten.server.json.JsonUtilsImpl;
-import eu.f4sten.server.kafka.KafkaConnector;
 import eu.f4sten.server.kafka.KafkaImpl;
 import eu.f4sten.server.utils.HostNameImpl;
 import eu.f4sten.server.utils.IoUtilsImpl;
@@ -71,16 +70,6 @@ public class ServerConfig implements IInjectorConfig {
 				.notNull(args -> args.baseDir, "base dir") //
 				.that(args -> args.baseDir.exists(), "base dir does not exist");
 		return new IoUtilsImpl(args.baseDir, jsonUtils);
-	}
-
-	@Provides
-	public KafkaConnector bindKafkaConnector(HostName hostName) {
-		assertFor(args) //
-				.notNull(args -> args.kafkaUrl, "kafka url") //
-				.that(args -> args.instanceId == null || (args.instanceId != null && !args.instanceId.isEmpty()),
-						"instance id must be null or non-empty");
-
-		return new KafkaConnector(hostName, args.kafkaUrl, args.plugin);
 	}
 
 	@Provides

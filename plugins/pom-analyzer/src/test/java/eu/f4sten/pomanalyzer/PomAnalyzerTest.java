@@ -31,8 +31,9 @@ import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.server.core.kafka.MessageGenerator;
 
-public class POMAnalyzerPluginTest {
+public class PomAnalyzerTest {
 
 	private MavenRepositoryUtils repo;
 	private EffectiveModelBuilder modelBuilder;
@@ -41,8 +42,9 @@ public class POMAnalyzerPluginTest {
 	private Resolver resolver;
 	private Kafka kafka;
 	private MyArgs args;
+	private MessageGenerator msgs;
 
-	private POMAnalyzer sut;
+	private PomAnalyzer sut;
 
 	@BeforeEach
 	public void setup() {
@@ -53,8 +55,9 @@ public class POMAnalyzerPluginTest {
 		resolver = mock(Resolver.class);
 		kafka = mock(Kafka.class);
 		args = new MyArgs();
+		msgs = mock(MessageGenerator.class);
 
-		sut = new POMAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args);
+		sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs);
 
 		when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
 		when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
@@ -62,6 +65,7 @@ public class POMAnalyzerPluginTest {
 
 	@Test
 	public void asd() {
+		sut.hashCode();
 		// sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}",
 		// NORMAL);
 	}

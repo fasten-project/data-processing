@@ -31,7 +31,6 @@ import java.util.Date;
 
 import org.jooq.DSLContext;
 import org.jooq.TransactionalRunnable;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -126,11 +125,9 @@ public class DatabaseUtilsTest {
 	@Test
 	public void storeDependency() {
 		var result = getSomeResult();
-		
+
 		when(json.toJson(eq(result))).thenReturn("<some json>");
 		when(json.toJson(eq(result.dependencies.iterator().next()))).thenReturn("<some dep json>");
-		
-		
 
 		when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
 		when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),

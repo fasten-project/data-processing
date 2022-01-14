@@ -15,6 +15,11 @@
  */
 package eu.f4sten.server.kafka;
 
+import static eu.f4sten.server.core.kafka.Lane.ERROR;
+import static eu.f4sten.server.core.kafka.Lane.NORMAL;
+import static eu.f4sten.server.core.kafka.Lane.PRIORITY;
+import static java.time.Duration.ZERO;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,11 +33,8 @@ import javax.inject.Inject;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.f4sten.server.ServerArgs;
-import eu.f4sten.server.core.Asserts;
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.TRef;
 import eu.f4sten.server.core.kafka.Kafka;
@@ -40,7 +42,6 @@ import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaImpl implements Kafka {
 
-	private static final Logger LOG = LoggerFactory.getLogger(KafkaImpl.class);
 	private static final Duration POLL_TIMEOUT_PRIO = Duration.ofSeconds(10);
 	private static final Object NONE = new Object();
 
@@ -62,17 +63,9 @@ public class KafkaImpl implements Kafka {
 	@Inject
 	public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector, ServerArgs args) {
 		this.jsonUtils = jsonUtils;
-		connNorm = connector.getConsumerConnection(getFullInstanceId(args, Lane.NORMAL));
-		connPrio = connector.getConsumerConnection(getFullInstanceId(args, Lane.PRIORITY));
+		connNorm = connector.getConsumerConnection(NORMAL);
+		connPrio = connector.getConsumerConnection(PRIORITY);
 		producer = connector.getProducerConnection();
-	}
-
-	private static String getFullInstanceId(ServerArgs args, Lane lane) {
-		if (args.instanceId == null) {
-			return null;
-		}
-		Asserts.that(!args.instanceId.isEmpty(), "instance id must be null or non-empty");
-		return args.plugin + "-" + args.instanceId + "." + lane;
 	}
 
 	@Override
@@ -97,9 +90,9 @@ public class KafkaImpl implements Kafka {
 		for (var lane : Lane.values()) {
 			getCallbacks(topic, lane).add(new Callback<T>(typeRef, callback, errors));
 		}
-		subsNorm.add(combine(topic, Lane.NORMAL));
+		subsNorm.add(combine(topic, NORMAL));
 		connNorm.subscribe(subsNorm);
-		subsPrio.add(combine(topic, Lane.PRIORITY));
+		subsPrio.add(combine(topic, PRIORITY));
 		connPrio.subscribe(subsPrio);
 	}
 
@@ -128,13 +121,13 @@ public class KafkaImpl implements Kafka {
 
 	@Override
 	public void poll() {
-		// don't wait if any lane had messages, otherwise, only wait in PRIO
-		var timeout = hadMessages ? Duration.ZERO : POLL_TIMEOUT_PRIO;
+		// don't wait if no lane had messages, otherwise, only wait in PRIO
+		var timeout = hadMessages ? ZERO : POLL_TIMEOUT_PRIO;
 		if (process(connPrio, Lane.PRIORITY, timeout)) {
 			// make sure the session does not time out
 			sendHeartBeat(connNorm);
 		} else {
-			process(connNorm, Lane.NORMAL, Duration.ZERO);
+			process(connNorm, NORMAL, ZERO);
 		}
 	}
 
@@ -160,7 +153,7 @@ public class KafkaImpl implements Kafka {
 		// See https://stackoverflow.com/a/43722731
 		var partitions = c.assignment();
 		c.pause(partitions);
-		c.poll(Duration.ZERO);
+		c.poll(ZERO);
 		c.resume(partitions);
 	}
 
@@ -182,11 +175,11 @@ public class KafkaImpl implements Kafka {
 				obj = jsonUtils.fromJson(json, messageType);
 				callback.accept(obj, lane);
 			} catch (Throwable t) {
-				var errTopic = combine(baseTopics.get(combinedTopic), Lane.ERROR);
+				var errTopic = combine(baseTopics.get(combinedTopic), ERROR);
 				var err = errors.apply(obj, t);
 				// check instance equality!
 				if (err != NONE) {
-					publish(err, errTopic, Lane.ERROR);
+					publish(err, errTopic, ERROR);
 				}
 			}
 		}

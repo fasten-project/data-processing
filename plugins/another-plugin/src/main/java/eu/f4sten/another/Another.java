@@ -23,29 +23,20 @@ import java.io.InputStreamReader;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import eu.f4sten.another.data.TestData;
 import eu.f4sten.server.core.Plugin;
 import eu.f4sten.server.core.kafka.Kafka;
 import eu.f4sten.server.core.kafka.Lane;
-import eu.f4sten.server.core.utils.IoUtils;
 
 public class Another implements Plugin {
-
-	private static final Logger LOG = LoggerFactory.getLogger(Another.class);
 
 	private final Kafka kafka;
 	private final MyArgs args;
 
-	private IoUtils io;
-
 	@Inject
-	public Another(Kafka kafka, MyArgs args, IoUtils io) {
+	public Another(Kafka kafka, MyArgs args) {
 		this.kafka = kafka;
 		this.args = args;
-		this.io = io;
 	}
 
 	@Override

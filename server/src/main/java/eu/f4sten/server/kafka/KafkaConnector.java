@@ -15,6 +15,8 @@
  */
 package eu.f4sten.server.kafka;
 
+import static eu.f4sten.server.core.AssertArgs.assertFor;
+import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
@@ -29,6 +31,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -37,33 +41,36 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.server.core.Asserts;
-import eu.f4sten.server.core.utils.HostName;
+import eu.f4sten.server.ServerArgs;
+import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaConnector {
 
+	private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
 	private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
 
-	private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
-
-	private final HostName myHostName;
-	private final String kafkaUrl;
-	private final String plugin;
-
+	private final ServerArgs args;
 	private final Set<String> instanceIds = new HashSet<>();
 
-	public KafkaConnector(HostName myHostName, String kafkaUrl, String plugin) {
-		this.myHostName = myHostName;
-		this.kafkaUrl = kafkaUrl;
-		this.plugin = plugin;
+	@Inject
+	public KafkaConnector(ServerArgs args) {
+		this.args = args;
+		assertFor(args) //
+				.notNull(a -> a.kafkaUrl, "kafka url") //
+				.that(a -> a.instanceId == null || !a.instanceId.isEmpty(), "instance id must be null or non-empty");
 	}
 
-	public KafkaConsumer<String, String> getConsumerConnection(String instanceId) {
-		Asserts.that(instanceId == null || !instanceId.isEmpty(), "instance id must be null or non-empty");
+	private String getFullInstanceId(Lane lane) {
+		if (args.instanceId == null) {
+			return null;
+		}
+		return format("%s-%s-%s", args.plugin, args.instanceId, lane);
+	}
 
+	public KafkaConsumer<String, String> getConsumerConnection(Lane l) {
 		Properties p = new Properties();
-		p.setProperty(BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
-		p.setProperty(GROUP_ID_CONFIG, plugin);
+		p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
+		p.setProperty(GROUP_ID_CONFIG, args.plugin);
 		p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
 		p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -76,13 +83,14 @@ public class KafkaConnector {
 //		p.setProperty(SESSION_TIMEOUT_MS_CONFIG, valueOf(sessionTimeoutMS));
 //		p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, valueOf(pollIntervalMS));
 
+		var instanceId = getFullInstanceId(l);
 		if (instanceId != null) {
 			if (instanceIds.contains(instanceId)) {
 				throw new InvalidParameterException("instance id already exists " + instanceId);
 			}
 			instanceIds.add(instanceId);
-			LOG.info("Enabling static membership (instance id: {})", instanceId);
 			p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
+			LOG.info("Enabling static membership (instance id: {})", instanceId);
 		}
 
 		return new KafkaConsumer<>(p);
@@ -91,7 +99,7 @@ public class KafkaConnector {
 	public KafkaProducer<String, String> getProducerConnection() {
 
 		Properties p = new Properties();
-		p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
+		p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
 //		p.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
 		p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());

@@ -33,12 +33,13 @@ import eu.f4sten.server.core.AssertArgs;
 import eu.f4sten.server.core.Plugin;
 import eu.f4sten.server.core.kafka.Kafka;
 import eu.f4sten.server.core.kafka.Lane;
+import eu.f4sten.server.core.kafka.MessageGenerator;
 import eu.fasten.core.maven.utils.MavenUtilities;
 import eu.fasten.core.utils.Asserts;
 
-public class POMAnalyzer implements Plugin {
+public class PomAnalyzer implements Plugin {
 
-	private static final Logger LOG = LoggerFactory.getLogger(POMAnalyzer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PomAnalyzer.class);
 
 	private final MavenRepositoryUtils repo;
 	private final EffectiveModelBuilder modelBuilder;
@@ -47,10 +48,11 @@ public class POMAnalyzer implements Plugin {
 	private final Resolver resolver;
 	private final Kafka kafka;
 	private final MyArgs args;
+	private final MessageGenerator msgs;
 
 	@Inject
-	public POMAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
-			DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args) {
+	public PomAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
+			DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs) {
 		this.repo = repo;
 		this.modelBuilder = modelBuilder;
 		this.extractor = extractor;
@@ -58,6 +60,7 @@ public class POMAnalyzer implements Plugin {
 		this.resolver = resolver;
 		this.kafka = kafka;
 		this.args = args;
+		this.msgs = msgs;
 	}
 
 	@Override
@@ -67,15 +70,20 @@ public class POMAnalyzer implements Plugin {
 				.notNull(a -> a.kafkaOut, "kafka output topic");
 
 		LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
+		kafka.subscribe(args.kafkaIn, MavenId.class, this::callback, this::errors);
+	}
 
-		kafka.subscribe(args.kafkaIn, MavenId.class, (id, lane) -> {
-			LOG.info("Consuming next record ...");
-			var artifact = bootstrapFirstResolutionResultFromInput(id);
-			if (!artifact.localPomFile.exists()) {
-				artifact.localPomFile = repo.downloadPomToTemp(artifact);
-			}
-			process(artifact, lane);
-		});
+	private void callback(MavenId id, Lane l) {
+		LOG.info("Consuming next record ...");
+		var artifact = bootstrapFirstResolutionResultFromInput(id);
+		if (!artifact.localPomFile.exists()) {
+			artifact.localPomFile = repo.downloadPomToTemp(artifact);
+		}
+		process(artifact, l);
+	}
+
+	private Object errors(MavenId id, Throwable t) {
+		return msgs.getErr(id, t);
 	}
 
 	private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
@@ -137,7 +145,7 @@ public class POMAnalyzer implements Plugin {
 		if (lane == Lane.PRIORITY) {
 			db.markAsIngestedPackage(result);
 		}
-		kafka.publish(result, args.kafkaOut, lane);
+		var m = msgs.getStd(result);
+		kafka.publish(m, args.kafkaOut, lane);
 	}
-
 }

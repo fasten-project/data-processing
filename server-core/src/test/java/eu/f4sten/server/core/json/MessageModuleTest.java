@@ -18,12 +18,17 @@ package eu.f4sten.server.core.json;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -62,11 +67,68 @@ public class MessageModuleTest {
 		assertEquals(in.payload, out.payload);
 	}
 
+	@Test
+	public void formatIsCompatibleWithLegacyMessages() throws JsonMappingException, JsonProcessingException {
+
+		var createdAt = 1642127882997L;
+		var comsumedAt = 1642127889927L;
+		var oldJson = "{\n" //
+				+ "  \"created_at\": " + createdAt + ",\n" //
+				+ "  \"consumed_at\": " + comsumedAt + ",\n" //
+				+ "  \"host\": \"a68efd2412d9\",\n" //
+				+ "  \"plugin_name\": \"OPAL\",\n" //
+				+ "  \"plugin_version\": \"0.1.2\",\n" //
+				+ "  \"input\": \"i\",\n" //
+				+ "  \"payload\": \"p\"\n" //
+				+ "}";
+
+		// read
+		var actual = om.readValue(oldJson, new TRef<Message<String, String>>() {});
+		var expected = new Message<String, String>();
+		expected.createdAt = toDate(createdAt);
+		expected.consumedAt = toDate(comsumedAt);
+		expected.host = "a68efd2412d9";
+		expected.plugin = "OPAL";
+		expected.version = "0.1.2";
+		expected.input = "i";
+		expected.payload = "p";
+		assertEquals(expected, actual);
+
+		// write
+		var newJson = om.writeValueAsString(actual);
+		assertJsonEquals(oldJson, newJson);
+	}
+
+	@Test
+	public void formatIsCompatibleWithLegacyErrors() throws JsonMappingException, JsonProcessingException {
+		var oldJson = "{\n" //
+				+ "  \"err\": {\n" //
+				+ "    \"error\": \"1\",\n" //
+				+ "    \"msg\": \"2\",\n" //
+				+ "    \"stacktrace\": \"3\"\n" //
+				+ "  }\n" //
+				+ "}";
+
+		// read
+		var m = om.readValue(oldJson, new TRef<Message<String, String>>() {});
+		var actual = m.error;
+		var expected = new Message.Error();
+		expected.type = "1";
+		expected.message = "2";
+		expected.stacktrace = "3";
+		assertEquals(expected, actual);
+
+		// write
+		var newJson = om.writeValueAsString(m);
+		assertJsonEquals(oldJson, newJson);
+	}
+
 	private Message<String, String> someMessage() {
 		var m = new Message<String, String>();
+		m.consumedAt = new Date();
 		m.createdAt = new Date();
 		m.error = someError();
-		m.fastenVersion = "v";
+		m.version = "v";
 		m.host = "h";
 		m.input = "i";
 		m.payload = "p";
@@ -80,5 +142,17 @@ public class MessageModuleTest {
 		e.stacktrace = "s";
 		e.type = "t";
 		return e;
+	}
+
+	private static Date toDate(long comsumedAt) {
+		return new Date(new Timestamp(comsumedAt).getTime());
+	}
+
+	private void assertJsonEquals(String expectedJson, String actualJson) {
+		try {
+			JSONAssert.assertEquals(expectedJson, actualJson, JSONCompareMode.STRICT_ORDER);
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
