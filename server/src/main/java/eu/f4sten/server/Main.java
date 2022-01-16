@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.LogManager;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.beust.jcommander.JCommander;
 import com.google.inject.Guice;
@@ -91,7 +93,15 @@ public class Main {
     }
 
     private static void setLogLevel(LogLevel level) {
-        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, level.value);
+        // slf4j-simple
+        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, level.slf4j);
+
+        // jul
+        var lm = LogManager.getLogManager();
+        lm.reset();
+        var root = lm.getLogger("");
+        root.setLevel(level.jul); // avoid bridging all levels(!)
+        root.addHandler(new SLF4JBridgeHandler());
     }
 
     private static List<Module> loadModules(String[] rawArgs, ServerArgs args) {

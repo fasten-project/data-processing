@@ -15,17 +15,21 @@
  */
 package eu.f4sten.server;
 
+import java.util.logging.Level;
+
 public enum LogLevel {
-    TRACE("trace"),
-    DEBUG("debug"),
-    INFO("info"),
-    WARN("warn"),
-    ERROR("error"),
-    OFF("off");
+    ALL("trace", Level.ALL),
+    DEBUG("debug", Level.FINER),
+    INFO("info", Level.CONFIG),
+    WARN("warn", Level.WARNING),
+    ERROR("error", Level.SEVERE),
+    OFF("off", Level.OFF);
 
-    public final String value;
+    public final String slf4j;
+    public final Level jul;
 
-    LogLevel(String value) {
-        this.value = value;
+    LogLevel(String slf4j, Level jul) {
+        this.slf4j = slf4j;
+        this.jul = jul;
     }
 }

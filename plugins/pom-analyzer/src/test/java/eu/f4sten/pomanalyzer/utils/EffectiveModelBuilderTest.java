@@ -23,16 +23,30 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.maven.model.Model;
 import org.jboss.shrinkwrap.resolver.api.InvalidConfigurationFileException;
 import org.jboss.shrinkwrap.resolver.api.NoResolvedResultException;
+import org.jboss.shrinkwrap.resolver.impl.maven.logging.LogRepositoryListener;
+import org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import eu.fasten.core.utils.TestUtils;
 
 public class EffectiveModelBuilderTest {
+
+    @BeforeAll
+    public static void disableJulLogging() {
+        for (var n : Set.of( //
+                LogTransferListener.class.getName(), //
+                LogRepositoryListener.class.getName())) {
+            Logger.getLogger(n).setLevel(Level.OFF);
+        }
+    }
 
     @Test
     public void invalidSyntax() {
