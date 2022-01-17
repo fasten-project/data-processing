@@ -25,6 +25,14 @@ import com.beust.jcommander.ParameterDescription;
 
 public class AssertArgs {
 
+    static final String TEXT_ERROR_INTRO = "Insufficient startup arguments";
+    static final String TEXT_GENERIC_ERROR = "A requested argument is invalid";
+    static final String TEXT_IS_NULL_ERROR = "A requested argument is null";
+    static final String TEXT_INTRO_FOR_PARAMS = "The *subset* of related arguments that might get requested at runtime";
+
+    // no instantiation
+    private AssertArgs() {}
+
     public static <T> ArgsAssertChain<T> assertFor(T argObj) {
         return new ArgsAssertChain<T>(argObj);
     }
@@ -48,14 +56,14 @@ public class AssertArgs {
         public ArgsAssertChain<T> notNull(Function<T, Object> accessor, String hint) {
             var prop = accessor.apply(argObj);
             if (prop == null) {
-                failWithUsage(argObj, "A requested argument is null", hint);
+                failWithUsage(argObj, TEXT_IS_NULL_ERROR, hint);
             }
             return this;
         }
 
         public ArgsAssertChain<T> that(Function<T, Boolean> checker, String hint) {
             if (!checker.apply(argObj)) {
-                failWithUsage(argObj, "A requested argument is invalid", hint);
+                failWithUsage(argObj, TEXT_GENERIC_ERROR, hint);
             }
             return this;
         }
@@ -64,8 +72,8 @@ public class AssertArgs {
             var errMsg = String.format("%s (%s)", errType, hint);
             Object defaultArgObj = newInstance(argObj);
             System.out.printf("\n-------------------------\n\n");
-            System.out.printf("Insufficient startup arguments:\n-> %s\n\n", errMsg);
-            System.out.printf("The *subset* of related arguments that might get requested at runtime:\n");
+            System.out.printf("%s:\n-> %s\n\n", TEXT_ERROR_INTRO, errMsg);
+            System.out.printf(TEXT_INTRO_FOR_PARAMS + ":\n");
             var jc = new JCommander(defaultArgObj);
             jc.setUsageFormatter(new MyUsageFormatter(jc));
             jc.usage();
