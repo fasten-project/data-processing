@@ -1,12 +1,12 @@
 /*
  * Copyright 2021 Delft University of Technology
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,13 +15,24 @@
  */
 package eu.f4sten.server.core.kafka;
 
-public class DefaultTopics {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private DefaultTopics() {
-        // do not instantiate
+import org.junit.jupiter.api.Test;
+
+public class LaneTest {
+
+    @Test
+    public void normalExtension() {
+        assertEquals("out", Lane.NORMAL.extension);
     }
 
-    public static final String INGEST = "fasten.mvn.releases";
-    public static final String ANOTHER = "test";
-    public static final String POM_ANALYZER = "fasten.POMAnalyzer";
+    @Test
+    public void prioExtension() {
+        assertEquals("priority.out", Lane.PRIORITY.extension);
+    }
+
+    @Test
+    public void errorExtension() {
+        assertEquals("err", Lane.ERROR.extension);
+    }
 }
