@@ -95,7 +95,7 @@ public class MessageTest {
     @Test
     public void defaults() {
         var sut = new Message<String, String>();
-        assertNotNull(sut.consumedAt);
+        assertNull(sut.consumedAt);
         assertNotNull(sut.createdAt);
         assertNull(sut.error);
         assertNull(sut.version);

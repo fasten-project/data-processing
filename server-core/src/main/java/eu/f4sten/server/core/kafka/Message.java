@@ -32,7 +32,7 @@ public class Message<Input, Payload> {
     @JsonProperty("created_at")
     public Date createdAt = new Date();
     @JsonProperty("consumed_at")
-    public Date consumedAt = new Date();
+    public Date consumedAt;
     @JsonProperty("plugin_name")
     public String plugin;
     @JsonProperty("plugin_version")
