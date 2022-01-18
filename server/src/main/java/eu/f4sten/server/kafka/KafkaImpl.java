@@ -34,7 +34,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
-import eu.f4sten.server.ServerArgs;
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.TRef;
 import eu.f4sten.server.core.kafka.Kafka;
@@ -61,7 +60,7 @@ public class KafkaImpl implements Kafka {
     private boolean hadMessages = true;
 
     @Inject
-    public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector, ServerArgs args) {
+    public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector) {
         this.jsonUtils = jsonUtils;
         connNorm = connector.getConsumerConnection(NORMAL);
         connPrio = connector.getConsumerConnection(PRIORITY);
@@ -175,11 +174,11 @@ public class KafkaImpl implements Kafka {
                 obj = jsonUtils.fromJson(json, messageType);
                 callback.accept(obj, lane);
             } catch (Throwable t) {
-                var errTopic = combine(baseTopics.get(combinedTopic), ERROR);
+                var baseTopic = baseTopics.get(combinedTopic);
                 var err = errors.apply(obj, t);
                 // check instance equality!
                 if (err != NONE) {
-                    publish(err, errTopic, ERROR);
+                    publish(err, baseTopic, ERROR);
                 }
             }
         }
