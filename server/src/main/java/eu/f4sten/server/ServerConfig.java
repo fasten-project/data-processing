@@ -50,7 +50,7 @@ public class ServerConfig implements IInjectorConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);
 
-    private ServerArgs args;
+    private final ServerArgs args;
 
     public ServerConfig(ServerArgs args) {
         this.args = args;
@@ -58,9 +58,9 @@ public class ServerConfig implements IInjectorConfig {
 
     @Override
     public void configure(Binder binder) {
+        binder.bind(ServerArgs.class).toInstance(args);
         binder.bind(HostName.class).to(HostNameImpl.class);
         binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
-        binder.bind(ServerArgs.class).toInstance(args);
         binder.bind(Version.class).to(VersionImpl.class);
     }
 
