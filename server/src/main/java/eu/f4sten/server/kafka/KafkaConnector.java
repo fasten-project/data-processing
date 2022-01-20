@@ -60,28 +60,18 @@ public class KafkaConnector {
                 .that(a -> a.instanceId == null || !a.instanceId.isEmpty(), "instance id must be null or non-empty");
     }
 
-    private String getFullInstanceId(Lane lane) {
-        if (args.instanceId == null) {
-            return null;
-        }
-        return format("%s-%s-%s", args.plugin, args.instanceId, lane);
+    public KafkaConsumer<String, String> getConsumerConnection(Lane l) {
+        return new KafkaConsumer<>(getConsumerProperties(l));
     }
 
-    public KafkaConsumer<String, String> getConsumerConnection(Lane l) {
+    public Properties getConsumerProperties(Lane l) {
         Properties p = new Properties();
         p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
         p.setProperty(GROUP_ID_CONFIG, args.plugin);
         p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
         p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
         p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
-//        p.setProperty(CLIENT_ID_CONFIG, getClientId());
-//        p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
-//        p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
-//        p.setProperty(HEARTBEAT_INTERVAL_MS_CONFIG, valueOf(5 * 1000)); // 5s
-//        p.setProperty(SESSION_TIMEOUT_MS_CONFIG, valueOf(sessionTimeoutMS));
-//        p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, valueOf(pollIntervalMS));
 
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
@@ -92,19 +82,26 @@ public class KafkaConnector {
             p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
             LOG.info("Enabling static membership (instance id: {})", instanceId);
         }
+        return p;
+    }
 
-        return new KafkaConsumer<>(p);
+    private String getFullInstanceId(Lane lane) {
+        if (args.instanceId == null) {
+            return null;
+        }
+        return format("%s-%s-%s", args.plugin, args.instanceId, lane);
     }
 
     public KafkaProducer<String, String> getProducerConnection() {
+        return new KafkaProducer<>(getProducerProperties());
+    }
 
+    public Properties getProducerProperties() {
         Properties p = new Properties();
         p.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
-//        p.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
         p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         p.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, MAX_REQUEST_SIZE);
-
-        return new KafkaProducer<>(p);
+        return p;
     }
 }
