@@ -11,6 +11,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <modules>
+        <module>..</module>
+    </modules>
+
     <build>
         <plugins>
             <plugin>
@@ -46,7 +50,7 @@
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <sourceDirectories>${project.basedir}</sourceDirectories>
-                    <includes>src/main/**/*.java,src/test/**/*.java,**/*.xml</includes>
+                    <includes>src/**/*.java,**/*.xml,**/*.yml</includes>
                     <excludes>**/target/**</excludes>
                 </configuration>
                 <executions>
@@ -89,4 +93,19 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <!-- <url>https://maven.pkg.github.com/fasten-project/fasten/</url> -->
+            <url>https://maven.pkg.github.com/proksch/fasten-server-ng</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </distributionManagement>
 </project>

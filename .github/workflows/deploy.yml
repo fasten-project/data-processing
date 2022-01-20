@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Parse version info from tag
         run: |
           # GITHUB_REF is like refs/tags/v2.3.5, so strip the first 11 chars
@@ -22,7 +22,19 @@ jobs:
           echo "version_minor=$MINOR" >> $GITHUB_ENV
           echo "version_patch=$PATCH" >> $GITHUB_ENV
 
-      - run: echo "${{env.version}} -- ${{env.version_major}}.${{env.version_minor}}.${{env.version_patch}}"
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          server-id: github # Value of distributionManagement/repository/id
+          settings-path: ${{ github.workspace }} # location of settings.xml
 
-      - run: echo "${{env.version_major}}.${{env.version_minor}}:latest"
+      - name: Updating versions in all projects
+        run: |
+          cd releng
+          mvn -B -ntp versions:set -DnewVersion=${{env.version}}
 
+      - name: Deploy Maven packages
+        run: mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
