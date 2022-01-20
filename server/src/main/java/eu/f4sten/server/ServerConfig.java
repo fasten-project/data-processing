@@ -32,6 +32,7 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
 import eu.f4sten.server.core.IInjectorConfig;
+import eu.f4sten.server.core.InjectorConfig;
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.ObjectMapperBuilder;
 import eu.f4sten.server.core.kafka.Kafka;
@@ -46,6 +47,7 @@ import eu.f4sten.server.utils.IoUtilsImpl;
 import eu.f4sten.server.utils.PostgresConnectorImpl;
 import eu.f4sten.server.utils.VersionImpl;
 
+@InjectorConfig
 public class ServerConfig implements IInjectorConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);

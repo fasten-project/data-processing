@@ -37,7 +37,7 @@ public class Main {
 
         // find classes
         var ru = new ReflectionUtils("eu.f4sten", InjectorConfig.class, argsParser);
-        var modules = ru.loadModules(args);
+        var modules = ru.loadModules();
         var pluginClass = ru.findPluginClass(args.plugin);
 
         // setup injector and run server

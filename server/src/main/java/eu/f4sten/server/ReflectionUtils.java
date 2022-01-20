@@ -17,14 +17,13 @@ package eu.f4sten.server;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.util.LinkedList;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Module;
 
 import eu.f4sten.server.core.IInjectorConfig;
 import eu.f4sten.server.core.Plugin;
@@ -43,10 +42,8 @@ public class ReflectionUtils {
         this.argsParser = argsParser;
     }
 
-    public List<Module> loadModules(ServerArgs serverArgs) {
-        var modules = new LinkedList<Module>();
-        modules.add(new ServerConfig(serverArgs));
-
+    public Set<IInjectorConfig> loadModules() {
+        var modules = new HashSet<IInjectorConfig>();
         LOG.info("Searching for @{} in package {} ...", markerAnnotation.getSimpleName(), basePkg);
         Reflections ref = new Reflections(basePkg);
         for (Class<?> cl : ref.getTypesAnnotatedWith(markerAnnotation)) {
@@ -58,42 +55,48 @@ public class ReflectionUtils {
         return modules;
     }
 
-    private static Module loadModule(Class<?> cl, ArgsParser args) {
-        LOG.info("Loading {} ...", cl);
+    private static IInjectorConfig loadModule(Class<?> cl, ArgsParser args) {
+        LOG.info("Loading {} ...", cl.getName());
         if (!IInjectorConfig.class.isAssignableFrom(cl)) {
-            LOG.error("{} does not implement {}.", cl, IInjectorConfig.class);
+            LOG.error("Class {} does not implement {}", cl.getName(), IInjectorConfig.class.getName());
             return null;
         }
 
         try {
             @SuppressWarnings("unchecked")
-            var inits = (Constructor<Module>[]) cl.getConstructors();
-            if (inits.length == 0 || inits.length > 1) {
-                LOG.error("{} should have at most one constructor, but has {}.", cl, inits.length);
+            var inits = (Constructor<IInjectorConfig>[]) cl.getConstructors();
+            if (inits.length > 1) {
+                LOG.error("{} should have at most one constructor, but has {}", cl.getName(), inits.length);
                 return null;
             }
-            var init = (Constructor<Module>) inits[0];
+            var init = (Constructor<IInjectorConfig>) inits[0];
 
             if (init.getParameterCount() == 0) {
                 String msg = "{} only has a no-args constructor. A custom argument class usually "
                         + "makes configuration easier and will be automatically injected to the "
                         + "constructor (and can then be bound and provided for other classes).";
-                LOG.info(msg, cl);
+                LOG.info(msg, cl.getName());
                 return init.newInstance();
             }
 
-            if (init.getParameterCount() == 1) {
+            int parameterCount = init.getParameterCount();
+            if (parameterCount == 1) {
                 var paramType = init.getParameters()[0].getType();
                 var argObj = args.parse(paramType);
                 return init.newInstance(argObj);
             }
 
-            LOG.error("Configuration {} should have at most one parameter, but has {}.", cl, inits.length);
+            LOG.error("Constructor of {} should have at most one parameter, but has {}", cl.getName(), parameterCount);
+            return null;
+
+        } catch (InvocationTargetException e) {
+            var causingClass = e.getCause().getClass().getName();
+            var causingMsg = e.getCause().getMessage();
+            LOG.error("Construction of {} failed with {}: {}", cl.getName(), causingClass, causingMsg);
             return null;
 
         } catch (Exception e) {
-            var msg = String.format("Failed to initialize {}.", cl);
-            LOG.error(msg, e);
+            LOG.error("Failed to initialize {} ({})", cl.getName(), e.getClass().getName());
             return null;
         }
     }
@@ -102,7 +105,7 @@ public class ReflectionUtils {
         try {
             var c = Class.forName(plugin);
             if (!Plugin.class.isAssignableFrom(c)) {
-                LOG.error("{} does not implement {}.", c, Plugin.class);
+                LOG.error("Class {} does not implement {}", c.getName(), Plugin.class.getName());
                 System.exit(1);
             }
             @SuppressWarnings("unchecked")
