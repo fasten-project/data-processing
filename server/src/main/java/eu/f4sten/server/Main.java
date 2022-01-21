@@ -19,6 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import com.google.inject.Guice;
 
+import eu.f4sten.server.core.AssertArgs;
 import eu.f4sten.server.core.InjectorConfig;
 
 public class Main {
@@ -32,6 +33,7 @@ public class Main {
         // setup logging
         var argsParser = new ArgsParser(rawArgs);
         var args = argsParser.parse(ServerArgs.class);
+        AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
         new LoggingUtils(args.logLevel);
         getLogger(Main.class).info("Starting plugin {} ...", args.plugin);
 

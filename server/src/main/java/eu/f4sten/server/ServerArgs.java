@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 
 public class ServerArgs {
 
-    @Parameter(names = "--plugin", arity = 1, required = true, description = "fully-qualified class name of the plugin to be started")
+    @Parameter(names = "--plugin", arity = 1, description = "fully-qualified class name of the plugin to be started")
     public String plugin;
 
     @Parameter(names = "--db.url", arity = 1, description = "JDBC url for the database")
