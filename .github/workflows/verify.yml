@@ -9,19 +9,26 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
 
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, windows-2019]
+        jdk: [11, 17]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-java@v2
         with:
-          java-version: '11'
+          java-version: ${{ matrix.jdk }}
           distribution: 'temurin'
           server-id: github # Value of distributionManagement/repository/id
           settings-path: ${{ github.workspace }} # location of settings.xml
 
-      - run: mvn -B -ntp clean verify -s $GITHUB_WORKSPACE/settings.xml
+      - run: mvn -B -ntp clean verify -s ${{ github.workspace }}/settings.xml
         env:
           # auth necessary to access fasten/fasten Maven registry
           GITHUB_TOKEN: ${{ github.token }}
