@@ -32,9 +32,24 @@ jobs:
       - name: Updating versions in all projects
         run: |
           cd releng
-          mvn -B -ntp versions:set -DnewVersion=${{env.version}}
+          mvn -B -ntp versions:set -DnewVersion=${{ env.version }}
 
       - name: Deploy Maven packages
         run: mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Build Docker image and push to ghcr.io
+        run: |
+          cd server
+          echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # Multiple .jar files in the folder will break Dockerfile
+          rm target/*-sources.jar
+          IMG=ghcr.io/${{ github.repository }}
+          docker build \
+            --tag $IMG:${{ env.version }} \
+            --tag $IMG:${{ env.version_major }}.${{ env.version_minor }}.latest \
+            --tag $IMG:${{ env.version_major }}.latest \
+            --tag $IMG:latest \
+            .
+          docker push --all-tags $IMG
