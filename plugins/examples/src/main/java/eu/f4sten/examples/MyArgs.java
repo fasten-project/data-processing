@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.another;
+package eu.f4sten.examples;
 
 import com.beust.jcommander.Parameter;
 
-import eu.f4sten.server.core.kafka.DefaultTopics;
-
 public class MyArgs {
 
-    @Parameter(names = "--myplugin.kafkaOut", arity = 1)
-    public String kafkaOut = DefaultTopics.ANOTHER;
+    @Parameter(names = "--examples.kafkaIn", arity = 1)
+    public String kafkaIn;
+
+    @Parameter(names = "--examples.kafkaOut", arity = 1)
+    public String kafkaOut;
 }

@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.another;
+package eu.f4sten.examples;
 
-import org.junit.jupiter.api.Test;
+import javax.inject.Inject;
 
-import eu.fasten.core.data.opal.MavenCoordinate;
+import eu.f4sten.server.core.Plugin;
+import eu.f4sten.server.core.utils.Version;
 
-public class MyTest {
+public class PrintVersion implements Plugin {
 
-    @Test
-    public void asd() {
-        var c = MavenCoordinate.fromString("a:b:c", "jar");
-        System.out.println(c);
+    private Version version;
+
+    @Inject
+    public PrintVersion(Version version) {
+        this.version = version;
     }
 
+    @Override
+    public void run() {
+        System.out.printf("Server version: \n", version.get());
+    }
 }

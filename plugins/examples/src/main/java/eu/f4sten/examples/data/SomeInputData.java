@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.another.data;
+package eu.f4sten.examples.data;
 
-import java.io.File;
+import java.util.Date;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class TestData {
-    public String name;
-    public int age;
+public class SomeInputData {
 
-    public File linkToAdditionalData;
+    public String input;
+    public Date time;
 
-    public TestData() {}
+    public SomeInputData() {}
 
-    public TestData(String name, int age) {
-        this.name = name;
-        this.age = age;
+    public SomeInputData(String input, Date time) {
+        this.input = input;
+        this.time = time;
     }
 
     @Override

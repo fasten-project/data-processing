@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.another.data;
+package eu.f4sten.examples.data;
 
 import java.io.IOException;
+import java.util.Date;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -25,25 +26,27 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class TestDataJson {
+public class SomeInputDataJson {
 
-    public static class TestDataDeserializer extends JsonDeserializer<TestData> {
+    public static class SomeInputDataDeserializer extends JsonDeserializer<SomeInputData> {
 
         @Override
-        public TestData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        public SomeInputData deserialize(JsonParser p, DeserializationContext ctxt)
+                throws IOException, JacksonException {
             var parts = p.getValueAsString().split(":");
-            TestData t = new TestData();
-            t.name = parts[0];
-            t.age = Integer.valueOf(parts[1]);
+            SomeInputData t = new SomeInputData();
+            t.input = parts[0];
+            t.time = new Date(Long.valueOf(parts[1]));
             return t;
         }
     }
 
-    public static class TestDataSerializer extends JsonSerializer<TestData> {
+    public static class SomeInputDataSerializer extends JsonSerializer<SomeInputData> {
 
         @Override
-        public void serialize(TestData value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            gen.writeString(value.name + ":" + value.age);
+        public void serialize(SomeInputData value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            var time = value.time.getTime();
+            gen.writeString(value.input + ":" + time);
         }
     }
 }

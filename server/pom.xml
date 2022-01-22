@@ -40,7 +40,7 @@
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
-            <artifactId>another-plugin</artifactId>
+            <artifactId>examples</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

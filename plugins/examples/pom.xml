@@ -7,5 +7,5 @@
         <artifactId>plugins</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>another-plugin</artifactId>
+    <artifactId>examples</artifactId>
 </project>

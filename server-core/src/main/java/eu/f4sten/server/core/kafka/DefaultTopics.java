@@ -22,6 +22,5 @@ public class DefaultTopics {
     }
 
     public static final String INGEST = "fasten.mvn.releases";
-    public static final String ANOTHER = "test";
     public static final String POM_ANALYZER = "fasten.POMAnalyzer";
 }

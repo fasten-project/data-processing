@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.another;
+package eu.f4sten.examples;
 
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
-import eu.f4sten.another.data.TestData;
-import eu.f4sten.another.data.TestDataJson;
+import eu.f4sten.examples.data.SomeInputData;
+import eu.f4sten.examples.data.SomeInputDataJson;
 import eu.f4sten.server.core.IInjectorConfig;
 import eu.f4sten.server.core.InjectorConfig;
 
@@ -42,8 +42,8 @@ public class MyInjectorConfig implements IInjectorConfig {
     @ProvidesIntoSet
     public Module provideJacksonModule() {
         var m = new SimpleModule();
-        m.addSerializer(TestData.class, new TestDataJson.TestDataSerializer());
-        m.addDeserializer(TestData.class, new TestDataJson.TestDataDeserializer());
+        m.addSerializer(SomeInputData.class, new SomeInputDataJson.SomeInputDataSerializer());
+        m.addDeserializer(SomeInputData.class, new SomeInputDataJson.SomeInputDataDeserializer());
         return m;
     }
 }

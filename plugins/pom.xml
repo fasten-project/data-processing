@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>another-plugin</module>
+        <module>examples</module>
         <module>pom-analyzer</module>
         <module>callable-indexer</module>
     </modules>
