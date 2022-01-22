@@ -15,6 +15,8 @@
  */
 package eu.f4sten.pomanalyzer;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 
 import org.apache.maven.model.Model;
@@ -70,20 +72,31 @@ public class PomAnalyzer implements Plugin {
                 .notNull(a -> a.kafkaOut, "kafka output topic");
 
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
-        kafka.subscribe(args.kafkaIn, MavenId.class, this::callback, this::errors);
-    }
-
-    private void callback(MavenId id, Lane l) {
-        LOG.info("Consuming next record ...");
-        var artifact = bootstrapFirstResolutionResultFromInput(id);
-        if (!artifact.localPomFile.exists()) {
-            artifact.localPomFile = repo.downloadPomToTemp(artifact);
+        kafka.subscribe(args.kafkaIn, MavenId.class, (id, l) -> {
+            LOG.info("Consuming next record ...");
+            LOG.debug("{}", id);
+            runAndCatch(id, () -> {
+                var artifact = bootstrapFirstResolutionResultFromInput(id);
+                if (!artifact.localPomFile.exists()) {
+                    artifact.localPomFile = repo.downloadPomToTemp(artifact);
+                }
+                process(id, artifact, l);
+            });
+        });
+        while (true) {
+            LOG.debug("Polling ...");
+            kafka.poll();
         }
-        process(artifact, l);
     }
 
-    private Object errors(MavenId id, Throwable t) {
-        return msgs.getErr(id, t);
+    private void runAndCatch(MavenId id, Runnable r) {
+        try {
+            r.run();
+        } catch (Throwable t) {
+            LOG.warn("Execution failed for input: {}", id, t);
+            var msg = msgs.getErr(id, t);
+            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+        }
     }
 
     private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
@@ -111,8 +124,9 @@ public class PomAnalyzer implements Plugin {
         return String.format("%s:%s:?:%s", groupId, artifactId, version);
     }
 
-    private void process(ResolutionResult artifact, Lane lane) {
+    private void process(MavenId id, ResolutionResult artifact, Lane lane) {
         LOG.info("Processing {} ...", artifact.coordinate);
+        var consumedAt = new Date();
 
         // resolve dependencies to
         // 1) have dependencies
@@ -132,20 +146,24 @@ public class PomAnalyzer implements Plugin {
         result.sourcesUrl = repo.getSourceUrlIfExisting(result);
         result.releaseDate = repo.getReleaseDate(result);
 
-        store(result, lane);
+        store(result, lane, consumedAt);
 
         // resolution can be different for dependencies, so process them independently
         deps.forEach(dep -> {
-            process(dep, lane);
+            runAndCatch(id, () -> {
+                process(id, dep, lane);
+            });
         });
     }
 
-    private void store(PomAnalysisResult result, Lane lane) {
+    private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
+        LOG.debug("Finished: {}", result);
         db.save(result);
         if (lane == Lane.PRIORITY) {
             db.markAsIngestedPackage(result);
         }
         var m = msgs.getStd(result);
+        m.consumedAt = consumedAt;
         kafka.publish(m, args.kafkaOut, lane);
     }
 }
