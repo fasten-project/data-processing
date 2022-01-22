@@ -36,12 +36,14 @@ import eu.f4sten.server.core.InjectorConfig;
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.ObjectMapperBuilder;
 import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.server.core.kafka.MessageGenerator;
 import eu.f4sten.server.core.utils.HostName;
 import eu.f4sten.server.core.utils.IoUtils;
 import eu.f4sten.server.core.utils.PostgresConnector;
 import eu.f4sten.server.core.utils.Version;
 import eu.f4sten.server.json.JsonUtilsImpl;
 import eu.f4sten.server.kafka.KafkaImpl;
+import eu.f4sten.server.kafka.MessageGeneratorImpl;
 import eu.f4sten.server.utils.HostNameImpl;
 import eu.f4sten.server.utils.IoUtilsImpl;
 import eu.f4sten.server.utils.PostgresConnectorImpl;
@@ -64,6 +66,7 @@ public class ServerConfig implements IInjectorConfig {
         binder.bind(HostName.class).to(HostNameImpl.class);
         binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
         binder.bind(Version.class).to(VersionImpl.class);
+        binder.bind(MessageGenerator.class).to(MessageGeneratorImpl.class);
     }
 
     @Provides
