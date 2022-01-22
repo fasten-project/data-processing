@@ -33,6 +33,8 @@ import javax.inject.Inject;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.f4sten.server.core.json.JsonUtils;
 import eu.f4sten.server.core.json.TRef;
@@ -40,6 +42,8 @@ import eu.f4sten.server.core.kafka.Kafka;
 import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaImpl implements Kafka {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaImpl.class);
 
     private static final Duration POLL_TIMEOUT_PRIO = Duration.ofSeconds(10);
     private static final Object NONE = new Object();
@@ -89,8 +93,11 @@ public class KafkaImpl implements Kafka {
         for (var lane : Lane.values()) {
             getCallbacks(topic, lane).add(new Callback<T>(typeRef, callback, errors));
         }
+        LOG.debug("Subscribing ({}): {}", NORMAL, subsNorm);
         subsNorm.add(combine(topic, NORMAL));
         connNorm.subscribe(subsNorm);
+
+        LOG.debug("Subscribing ({}): {}", PRIORITY, subsPrio);
         subsPrio.add(combine(topic, PRIORITY));
         connPrio.subscribe(subsPrio);
     }
@@ -111,6 +118,7 @@ public class KafkaImpl implements Kafka {
 
     @Override
     public <T> void publish(T obj, String topic, Lane lane) {
+        LOG.debug("Publishing to {} ({})", topic, lane);
         String json = jsonUtils.toJson(obj);
         var combinedTopic = combine(topic, lane);
         var record = new ProducerRecord<String, String>(combinedTopic, json);
@@ -120,6 +128,7 @@ public class KafkaImpl implements Kafka {
 
     @Override
     public void poll() {
+        LOG.debug("Polling ...");
         // don't wait if no lane had messages, otherwise, only wait in PRIO
         var timeout = hadMessages ? ZERO : POLL_TIMEOUT_PRIO;
         if (process(connPrio, Lane.PRIORITY, timeout)) {
@@ -131,8 +140,10 @@ public class KafkaImpl implements Kafka {
     }
 
     private boolean process(KafkaConsumer<String, String> con, Lane lane, Duration timeout) {
+        LOG.debug("Sending heartbeat ...");
         hadMessages = false;
         for (var r : con.poll(timeout)) {
+            LOG.debug("Received message on ('combined') topic {}, invoking callbacks ...", r.topic());
             hadMessages = true;
             var json = r.value();
             Set<Callback<?>> cbs = callbacks.get(r.topic());
@@ -149,6 +160,7 @@ public class KafkaImpl implements Kafka {
     }
 
     private static void sendHeartBeat(KafkaConsumer<?, ?> c) {
+        LOG.debug("Sending heartbeat ...");
         // See https://stackoverflow.com/a/43722731
         var partitions = c.assignment();
         c.pause(partitions);
@@ -174,6 +186,7 @@ public class KafkaImpl implements Kafka {
                 obj = jsonUtils.fromJson(json, messageType);
                 callback.accept(obj, lane);
             } catch (Throwable t) {
+                LOG.error("Unhandled exception in callback", t);
                 var baseTopic = baseTopics.get(combinedTopic);
                 var err = errors.apply(obj, t);
                 // check instance equality!
