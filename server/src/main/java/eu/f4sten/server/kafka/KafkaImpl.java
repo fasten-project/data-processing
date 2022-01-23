@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -73,33 +74,38 @@ public class KafkaImpl implements Kafka {
 
     @Override
     public <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback) {
-        subscribe(topic, new TRef<T>() {}, callback);
+        subscribe(topic, type, callback, (x, y) -> NONE);
     }
 
     @Override
     public <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback,
             BiFunction<T, Throwable, ?> errors) {
-        subscribe(topic, new TRef<T>() {}, callback, errors);
+        subscribe(topic, new Callback<T>(type, callback, errors));
     }
 
     @Override
     public <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback) {
-        subscribe(topic, new TRef<T>() {}, callback, (x, y) -> NONE);
+        subscribe(topic, typeRef, callback, (x, y) -> NONE);
     }
 
     @Override
     public <T> void subscribe(String topic, TRef<T> typeRef, BiConsumer<T, Lane> callback,
             BiFunction<T, Throwable, ?> errors) {
+        subscribe(topic, new Callback<T>(typeRef, callback, errors));
+    }
+
+    private <T> void subscribe(String topic, Callback<T> cb) {
         for (var lane : Lane.values()) {
-            getCallbacks(topic, lane).add(new Callback<T>(typeRef, callback, errors));
+            getCallbacks(topic, lane).add(cb);
         }
-        LOG.debug("Subscribing ({}): {}", NORMAL, subsNorm);
+
         subsNorm.add(combine(topic, NORMAL));
         connNorm.subscribe(subsNorm);
+        LOG.debug("Subscribed ({}): {}", NORMAL, subsNorm);
 
-        LOG.debug("Subscribing ({}): {}", PRIORITY, subsPrio);
         subsPrio.add(combine(topic, PRIORITY));
         connPrio.subscribe(subsPrio);
+        LOG.debug("Subscribed ({}): {}", PRIORITY, subsPrio);
     }
 
     private Set<Callback<?>> getCallbacks(String baseTopic, Lane lane) {
@@ -170,20 +176,30 @@ public class KafkaImpl implements Kafka {
 
     private class Callback<T> {
 
-        private final TRef<T> messageType;
+        private final Function<String, T> deserializer;
         private final BiConsumer<T, Lane> callback;
         private final BiFunction<T, Throwable, ?> errors;
 
-        private Callback(TRef<T> messageType, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors) {
-            this.messageType = messageType;
+        private Callback(Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors) {
             this.callback = callback;
             this.errors = errors;
+            this.deserializer = json -> {
+                return jsonUtils.fromJson(json, type);
+            };
         }
 
-        private void exec(String combinedTopic, String json, Lane lane) {
+        private Callback(TRef<T> typeRef, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors) {
+            this.callback = callback;
+            this.errors = errors;
+            this.deserializer = json -> {
+                return jsonUtils.fromJson(json, typeRef);
+            };
+        }
+
+        public void exec(String combinedTopic, String json, Lane lane) {
             T obj = null;
             try {
-                obj = jsonUtils.fromJson(json, messageType);
+                obj = deserializer.apply(json);
                 callback.accept(obj, lane);
             } catch (Throwable t) {
                 LOG.error("Unhandled exception in callback", t);
