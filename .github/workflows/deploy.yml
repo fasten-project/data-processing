@@ -49,7 +49,7 @@ jobs:
 
       - name: Build Docker image and push to ghcr.io
         run: |
-          cd server
+          cd infrastructure/loader
           echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Multiple .jar files in the folder will break Dockerfile
           rm target/*-sources.jar
