@@ -6,10 +6,12 @@
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
     </parent>
-    <artifactId>server</artifactId>
+    <artifactId>loader</artifactId>
 
     <dependencies>
+        <!-- bind loggers before doing anything else -->
         <dependency>
             <groupId>com.github.valfirst</groupId>
             <artifactId>slf4j-test</artifactId>
@@ -30,17 +32,17 @@
         <!-- FASTEN plugins -->
         <dependency>
             <groupId>eu.fasten-project</groupId>
-            <artifactId>server-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.fasten-project</groupId>
-            <artifactId>pom-analyzer</artifactId>
+            <artifactId>infrastructure-impl</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>examples</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>pom-analyzer</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

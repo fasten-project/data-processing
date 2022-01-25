@@ -50,19 +50,19 @@ import eu.f4sten.server.utils.PostgresConnectorImpl;
 import eu.f4sten.server.utils.VersionImpl;
 
 @InjectorConfig
-public class ServerConfig implements IInjectorConfig {
+public class LoaderConfig implements IInjectorConfig {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ServerConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoaderConfig.class);
 
-    private final ServerArgs args;
+    private final LoaderArgs args;
 
-    public ServerConfig(ServerArgs args) {
+    public LoaderConfig(LoaderArgs args) {
         this.args = args;
     }
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(ServerArgs.class).toInstance(args);
+        binder.bind(LoaderArgs.class).toInstance(args);
         binder.bind(HostName.class).to(HostNameImpl.class);
         binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
         binder.bind(Version.class).to(VersionImpl.class);

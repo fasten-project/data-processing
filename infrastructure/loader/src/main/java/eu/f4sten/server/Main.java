@@ -32,7 +32,7 @@ public class Main {
 
         // setup logging
         var argsParser = new ArgsParser(rawArgs);
-        var args = argsParser.parse(ServerArgs.class);
+        var args = argsParser.parse(LoaderArgs.class);
         AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
         new LoggingUtils(args.logLevel);
         getLogger(Main.class).info("Starting plugin {} ...", args.plugin);

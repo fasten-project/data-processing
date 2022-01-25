@@ -5,8 +5,9 @@
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
     </parent>
-    <artifactId>server-core</artifactId>
+    <artifactId>infrastructure-impl</artifactId>
 
     <dependencies>
         <dependency>

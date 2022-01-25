@@ -106,7 +106,7 @@ public class MavenRepositoryUtilsTest {
             var a = newResolutionResult(SOME_COORD, ARTIFACT_REPO, f);
             sut.downloadPomToTemp(a);
         });
-        assertTrue(e.getCause() instanceof FileNotFoundException);
+        assertEquals(FileNotFoundException.class, e.getCause().getClass());
     }
 
     private File inM2(String... path) {

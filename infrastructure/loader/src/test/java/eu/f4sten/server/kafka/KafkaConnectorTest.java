@@ -43,19 +43,19 @@ import org.junit.jupiter.api.Test;
 
 import com.github.stefanbirkner.systemlambda.SystemLambda;
 
-import eu.f4sten.server.ServerArgs;
+import eu.f4sten.server.LoaderArgs;
 import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaConnectorTest {
 
     private static final String KAFKA_URL = "1.2.3.4:1234";
 
-    private ServerArgs args;
+    private LoaderArgs args;
     private KafkaConnector sut;
 
     @BeforeEach
     public void setup() {
-        args = new ServerArgs();
+        args = new LoaderArgs();
         args.plugin = "p";
         args.kafkaUrl = KAFKA_URL;
         sut = new KafkaConnector(args);
@@ -63,7 +63,7 @@ public class KafkaConnectorTest {
 
     @Test
     public void inputValidationKafkaUrlMustNotBeNull() throws Exception {
-        var args = new ServerArgs();
+        var args = new LoaderArgs();
         var out = tapSystemOut(() -> {
             SystemLambda.catchSystemExit(() -> {
                 new KafkaConnector(args);
@@ -74,7 +74,7 @@ public class KafkaConnectorTest {
 
     @Test
     public void inputValidationInstanceIdMustNotBeEmpty() throws Exception {
-        ServerArgs args = new ServerArgs();
+        LoaderArgs args = new LoaderArgs();
         args.kafkaUrl = KAFKA_URL;
         args.instanceId = null;
         new KafkaConnector(args);

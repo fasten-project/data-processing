@@ -19,7 +19,7 @@ import java.io.File;
 
 import com.beust.jcommander.Parameter;
 
-public class ServerArgs {
+public class LoaderArgs {
 
     @Parameter(names = "--plugin", arity = 1, description = "fully-qualified class name of the plugin to be started")
     public String plugin;

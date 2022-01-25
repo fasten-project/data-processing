@@ -12,10 +12,11 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>test-core</module>
-        <module>server-core</module>
-        <module>server</module>
+        <module>infrastructure/infrastructure</module>
+        <module>infrastructure/infrastructure-impl</module>
+        <module>infrastructure/loader</module>
         <module>plugins</module>
+        <module>test-utils</module>
     </modules>
 
     <dependencies>
@@ -32,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
-            <artifactId>test-core</artifactId>
+            <artifactId>test-utils</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
@@ -58,6 +59,12 @@
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
             <version>1.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-lambda</artifactId>
+            <version>1.2.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

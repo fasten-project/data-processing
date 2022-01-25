@@ -41,7 +41,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.server.ServerArgs;
+import eu.f4sten.server.LoaderArgs;
 import eu.f4sten.server.core.kafka.Lane;
 
 public class KafkaConnector {
@@ -49,11 +49,11 @@ public class KafkaConnector {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
 
-    private final ServerArgs args;
+    private final LoaderArgs args;
     private final Set<String> instanceIds = new HashSet<>();
 
     @Inject
-    public KafkaConnector(ServerArgs args) {
+    public KafkaConnector(LoaderArgs args) {
         this.args = args;
         assertFor(args) //
                 .notNull(a -> a.kafkaUrl, "kafka url") //

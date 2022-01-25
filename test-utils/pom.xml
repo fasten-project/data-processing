@@ -8,7 +8,7 @@
         <artifactId>releng</artifactId>
         <relativePath>../releng</relativePath>
     </parent>
-    <artifactId>test-core</artifactId>
+    <artifactId>test-utils</artifactId>
 
     <dependencies>
         <dependency>

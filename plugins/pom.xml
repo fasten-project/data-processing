@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>eu.fasten-project</groupId>
-            <artifactId>server-core</artifactId>
+            <artifactId>infrastructure</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
