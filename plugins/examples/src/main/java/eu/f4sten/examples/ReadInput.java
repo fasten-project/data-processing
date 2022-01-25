@@ -23,10 +23,10 @@ import java.util.Date;
 import com.google.inject.Inject;
 
 import eu.f4sten.examples.data.SomeInputData;
-import eu.f4sten.server.core.AssertArgs;
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.kafka.Kafka;
-import eu.f4sten.server.core.kafka.Lane;
+import eu.f4sten.infra.AssertArgs;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
 
 public class ReadInput implements Plugin {
 

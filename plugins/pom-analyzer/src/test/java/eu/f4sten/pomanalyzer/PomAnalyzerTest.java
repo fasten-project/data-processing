@@ -24,14 +24,14 @@ import org.apache.maven.model.Model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.f4sten.server.core.kafka.Kafka;
-import eu.f4sten.server.core.kafka.MessageGenerator;
 
 public class PomAnalyzerTest {
 

@@ -17,8 +17,8 @@ package eu.f4sten.callableindexer;
 
 import javax.inject.Inject;
 
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.json.JsonUtils;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.json.JsonUtils;
 
 public class CallableIndexer implements Plugin {
 

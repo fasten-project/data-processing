@@ -18,9 +18,9 @@ package eu.f4sten.examples;
 import com.google.inject.Inject;
 
 import eu.f4sten.examples.data.SomeInputData;
-import eu.f4sten.server.core.AssertArgs;
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.kafka.Kafka;
+import eu.f4sten.infra.AssertArgs;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.kafka.Kafka;
 
 public class TransformInput implements Plugin {
 

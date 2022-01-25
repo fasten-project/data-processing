@@ -17,7 +17,7 @@ package eu.f4sten.pomanalyzer;
 
 import com.beust.jcommander.Parameter;
 
-import eu.f4sten.server.core.kafka.DefaultTopics;
+import eu.f4sten.infra.kafka.DefaultTopics;
 
 public class MyArgs {
 

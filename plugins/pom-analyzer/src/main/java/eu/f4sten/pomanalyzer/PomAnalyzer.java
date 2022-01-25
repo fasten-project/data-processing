@@ -23,6 +23,11 @@ import org.apache.maven.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.f4sten.infra.AssertArgs;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
+import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
@@ -31,11 +36,6 @@ import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.f4sten.server.core.AssertArgs;
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.kafka.Kafka;
-import eu.f4sten.server.core.kafka.Lane;
-import eu.f4sten.server.core.kafka.MessageGenerator;
 import eu.fasten.core.maven.utils.MavenUtilities;
 import eu.fasten.core.utils.Asserts;
 

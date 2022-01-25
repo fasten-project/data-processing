@@ -37,8 +37,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.server.core.json.JsonUtils;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.maven.data.Dependency;

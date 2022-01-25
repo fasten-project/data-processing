@@ -23,13 +23,13 @@ import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
+import eu.f4sten.infra.IInjectorConfig;
+import eu.f4sten.infra.InjectorConfig;
+import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.f4sten.server.core.IInjectorConfig;
-import eu.f4sten.server.core.InjectorConfig;
-import eu.f4sten.server.core.json.JsonUtils;
-import eu.f4sten.server.core.utils.PostgresConnector;
 
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {

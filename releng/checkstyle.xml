@@ -53,7 +53,7 @@
         <module name="UpperEll" />
         <module name="ArrayTypeStyle" />
         <module name="UncommentedMain">
-            <property name="excludedClasses" value="^eu\.f4sten\.server\.Main$" />
+            <property name="excludedClasses" value="^eu\.f4sten\.loader\.Main$" />
         </module>
 
         <!-- metrics -->

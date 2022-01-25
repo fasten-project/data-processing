@@ -22,8 +22,8 @@ import com.google.inject.multibindings.ProvidesIntoSet;
 
 import eu.f4sten.examples.data.SomeInputData;
 import eu.f4sten.examples.data.SomeInputDataJson;
-import eu.f4sten.server.core.IInjectorConfig;
-import eu.f4sten.server.core.InjectorConfig;
+import eu.f4sten.infra.IInjectorConfig;
+import eu.f4sten.infra.InjectorConfig;
 
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {

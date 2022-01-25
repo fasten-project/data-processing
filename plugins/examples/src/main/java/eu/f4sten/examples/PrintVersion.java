@@ -17,8 +17,8 @@ package eu.f4sten.examples;
 
 import javax.inject.Inject;
 
-import eu.f4sten.server.core.Plugin;
-import eu.f4sten.server.core.utils.Version;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.utils.Version;
 
 public class PrintVersion implements Plugin {
 
