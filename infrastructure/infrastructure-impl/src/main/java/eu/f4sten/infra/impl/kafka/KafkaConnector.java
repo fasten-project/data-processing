@@ -24,6 +24,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_C
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import java.security.InvalidParameterException;
@@ -75,6 +76,7 @@ public class KafkaConnector {
         p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
+        p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
 
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
