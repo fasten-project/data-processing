@@ -34,6 +34,11 @@ jobs:
           cd releng
           mvn -B -ntp versions:set -DnewVersion=${{ env.version }}
 
+      - name: Update version.txt in infrastructure-impl
+        run: |
+          cd infrastructure/infrastructure-impl/src/main/resources
+          echo "${{ env.version }}" > version.txt
+
       - name: Deploy Maven packages
         run: mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
