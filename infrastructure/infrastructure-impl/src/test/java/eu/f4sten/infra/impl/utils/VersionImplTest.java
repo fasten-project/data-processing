@@ -19,26 +19,39 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 
-@TestMethodOrder(MethodOrderer.MethodName.class)
-public class VersionTest {
+public class VersionImplTest {
 
-    private File versionFile;
+    private static String srcVersion;
+
+    @BeforeAll
+    public static void setupClass() {
+        // remember current version from src...
+        srcVersion = readSrcVersion();
+    }
 
     @AfterEach
     public void teardown() {
-        overrideVersion("dev");
+        // ... and restore it after each test
+        writeToTarget(srcVersion);
     }
 
-    @Test // start with _ to make sure it is executed first
-    public void _getDefault() {
+    @Test
+    @Disabled
+    public void disabled() {
+        // prevent organize-import form removing import of annotation
+    }
+
+    @Test
+    public void getDefault() {
         var actual = new VersionImpl().get();
         var expected = "dev";
         assertEquals(expected, actual);
@@ -46,7 +59,7 @@ public class VersionTest {
 
     @Test
     public void canBeReplaced() {
-        overrideVersion("...");
+        writeToTarget("...");
 
         var actual = new VersionImpl().get();
         var expected = "...";
@@ -55,7 +68,7 @@ public class VersionTest {
 
     @Test
     public void trimsWhitespace() {
-        overrideVersion(" \t ... \t ");
+        writeToTarget(" \t ... \t ");
 
         var actual = new VersionImpl().get();
         var expected = "...";
@@ -64,27 +77,29 @@ public class VersionTest {
 
     @Test
     public void nonExisting() {
-        getFile().delete();
+        var f = Paths.get("target", "classes", "version.txt").toFile();
+        f.delete();
 
         var actual = new VersionImpl().get();
         var expected = "n/a";
         assertEquals(expected, actual);
     }
 
-    private void overrideVersion(String version) {
+    private static void writeToTarget(String version) {
         try {
-            writeStringToFile(getFile(), version, UTF_8);
+            var f = Paths.get("target", "classes", "version.txt").toFile();
+            writeStringToFile(f, version, UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private File getFile() {
-        if (versionFile != null) {
-            return versionFile;
+    private static String readSrcVersion() {
+        try {
+            var f = Paths.get("src", "main", "resources", "version.txt").toFile();
+            return FileUtils.readFileToString(f, UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        var url = getClass().getClassLoader().getResource("version.txt");
-        versionFile = new File(url.getFile());
-        return versionFile;
     }
 }
