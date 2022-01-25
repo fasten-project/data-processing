@@ -59,11 +59,11 @@ public class InfraConfig implements IInjectorConfig {
 
     public InfraConfig(InfraArgs args) {
         this.args = args;
-
     }
 
     @Override
     public void configure(Binder binder) {
+        binder.bind(InfraArgs.class).toInstance(args);
         binder.bind(HostName.class).to(HostNameImpl.class);
         binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
         binder.bind(Version.class).to(VersionImpl.class);
