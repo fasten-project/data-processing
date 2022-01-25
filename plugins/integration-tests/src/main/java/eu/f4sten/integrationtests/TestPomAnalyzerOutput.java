@@ -35,7 +35,7 @@ public class TestPomAnalyzerOutput implements Plugin {
         msgsByTopic.forEach((topic, msgs) -> {
             System.out.printf("### %s #######################\n", topic);
             msgs.forEach(msg -> {
-                System.out.println(msgs);
+                System.out.println(msg);
             });
         });
     }

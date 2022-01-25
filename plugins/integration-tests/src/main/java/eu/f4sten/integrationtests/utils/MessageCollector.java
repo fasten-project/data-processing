@@ -16,21 +16,24 @@
 package eu.f4sten.integrationtests.utils;
 
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
 
 import java.time.Duration;
-import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 
 import eu.f4sten.infra.impl.kafka.KafkaConnector;
 
@@ -42,7 +45,12 @@ public class MessageCollector {
 
     @Inject
     public MessageCollector(KafkaConnector connector) {
-        con = connector.getConsumerConnection(NORMAL);
+        String uniqueName = MessageCollector.class.getName() + new Date().getTime();
+        var p = connector.getConsumerProperties(NORMAL);
+        p.setProperty(GROUP_ID_CONFIG, uniqueName);
+        p.remove(GROUP_INSTANCE_ID_CONFIG);
+        con = new KafkaConsumer<>(p);
+
         internalTopics.add("__consumer_offsets");
     }
 
@@ -54,60 +62,43 @@ public class MessageCollector {
             if (internalTopics.contains(topic)) {
                 continue;
             }
-
-            System.out.printf("### Analyzing '%s' #######################\n", topic);
-
-            System.out.printf("\nPartition info:\n");
-            for (var part : topics.get(topic)) {
-                System.out.printf(" - %s\n", part);
-            }
-
-            var isRebalancing = new boolean[] { true };
-            con.subscribe(Set.of(topic), new ConsumerRebalanceListener() {
-
-                @Override
-                public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-                    System.out.println("Parts revoked");
-                }
-
-                @Override
-                public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-                    System.out.println("Parts assigned");
-                    isRebalancing[0] = false;
-                }
-            });
-//            while (isRebalancing[0]) {
-//                System.out.println("Waiting...");
-//            }
-
-//            con.poll(Duration.ZERO);
-//            con.commitSync();
-            con.seekToBeginning(con.assignment());
-
-            System.out.printf("\nCollecting messages...\n[");
-            var hadMessages = true;
-            var msgs = msgsFor(publishedMsgs, topic);
-            while (hadMessages) {
-                var records = con.poll(Duration.ofSeconds(1));
-                hadMessages = records.count() > 0;
-                for (var r : records) {
-                    System.out.printf(".");
-                    msgs.add(r.value());
-                }
-            }
-            System.out.println("]\n");
-            con.commitSync();
+            publishedMsgs.put(topic, collectMessages(topic));
         }
 
         return publishedMsgs;
     }
 
-    private List<String> msgsFor(Map<String, List<String>> msgs, String topicName) {
-        if (msgs.containsKey(topicName)) {
-            return msgs.get(topicName);
+    private List<String> collectMessages(String topic) {
+        con.subscribe(Set.of(topic));
+
+        var msgs = new LinkedList<String>();
+        Function<ConsumerRecords<String, String>, Boolean> registerMsgs = crs -> {
+            for (var cr : crs) {
+                msgs.add(cr.value());
+            }
+            return crs.count() > 0;
+        };
+
+        // first poll needs to wait for assignment/rebalance
+        callUntilTrue(() -> {
+            var crs = con.poll(Duration.ofMillis(100));
+            return registerMsgs.apply(crs);
+        });
+        var hadMessages = true;
+        while (hadMessages) {
+            var crs = con.poll(Duration.ZERO);
+            hadMessages = registerMsgs.apply(crs);
         }
-        var topic = new LinkedList<String>();
-        msgs.put(topicName, topic);
-        return topic;
+
+        return msgs;
+    }
+
+    private void callUntilTrue(BooleanSupplier s) {
+        var count = 0;
+        while (count++ < 10 && !s.getAsBoolean()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {}
+        }
     }
 }
