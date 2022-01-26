@@ -98,7 +98,9 @@ public class MessageCollector {
         while (count++ < 10 && !s.getAsBoolean()) {
             try {
                 Thread.sleep(10);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+                // do nothing
+            }
         }
     }
 }
