@@ -55,10 +55,8 @@ public class IndexProcessor {
     }
 
     private void process(int idx) {
-        System.out.printf("Working on index %d", idx);
         var file = utils.download(idx);
         Set<MavenId> artifacts = reader.readIndexFile(file);
-        System.out.printf("Found %d artifacts", artifacts.size());
         for (var ma : artifacts) {
             kafka.publish(ma, args.kafkaOut, NORMAL);
         }
