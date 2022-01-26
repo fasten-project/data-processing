@@ -11,6 +11,7 @@
 
     <modules>
         <module>examples</module>
+        <module>maven-crawler</module>
         <module>pom-analyzer</module>
         <module>callable-indexer</module>
         <module>integration-tests</module>
