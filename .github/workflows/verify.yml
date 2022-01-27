@@ -1,10 +1,8 @@
 name: Verify
 
-# no trigger on tags
+# no trigger on tags, PRs already covered by the previous push
 on:
   push:
-    branches: ['**']
-  pull_request:
     branches: ['**']
 
 jobs:
