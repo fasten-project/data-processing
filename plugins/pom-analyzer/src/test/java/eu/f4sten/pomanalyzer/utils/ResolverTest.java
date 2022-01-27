@@ -66,6 +66,17 @@ public class ResolverTest {
     }
 
     @Test
+    public void resolveDirectDependenciesWithTraiilingSlash() {
+        var actual = resolveTestPom("basic-with-trailing-repo-slashes.pom");
+        var expected = new HashSet<ResolutionResult>();
+        expected.add(JSR305);
+        expected.add(COMMONS_LANG3);
+        expected.add(REMLA);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void defaultConfigAddsEverything() {
         sut = new Resolver();
         resolveDirectDependencies();
@@ -108,22 +119,22 @@ public class ResolverTest {
 
     private static final ResolutionResult JSR305 = new ResolutionResult(//
             "com.google.code.findbugs:jsr305:jar:3.0.2", //
-            "https://repo.maven.apache.org/maven2", //
+            "https://repo.maven.apache.org/maven2/", //
             new File("/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom"));
 
     private static final ResolutionResult COMMONS_LANG3 = new ResolutionResult(//
             "org.apache.commons:commons-lang3:jar:3.9", //
-            "https://repo.maven.apache.org/maven2", //
+            "https://repo.maven.apache.org/maven2/", //
             new File("/org/apache/commons/commons-lang3/3.9/commons-lang3-3.9.pom"));
 
     private static final ResolutionResult COMMONS_TEXT = new ResolutionResult(//
             "org.apache.commons:commons-text:jar:1.8", //
-            "https://repo.maven.apache.org/maven2", //
+            "https://repo.maven.apache.org/maven2/", //
             new File("/org/apache/commons/commons-text/1.8/commons-text-1.8.pom"));
 
     private static final ResolutionResult REMLA = new ResolutionResult(//
             "remla:mylib:jar:0.0.5", //
-            "https://gitlab.com/api/v4/projects/26117144/packages/maven", //
+            "https://gitlab.com/api/v4/projects/26117144/packages/maven/", //
             new File("/remla/mylib/0.0.5/mylib-0.0.5.pom"));
 
     private Set<ResolutionResult> resolveTestPom(String pathToPom) {

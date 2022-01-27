@@ -117,7 +117,12 @@ public class Resolver {
 
     private static Set<ResolutionResult> toResolutionResult(Set<String[]> res) {
         return res.stream() //
-                .map(a -> new ResolutionResult(a[0], a[1], new File(a[2]))) //
+                .map(a -> {
+                    if (!a[1].endsWith("/")) {
+                        a[1] += "/";
+                    }
+                    return new ResolutionResult(a[0], a[1], new File(a[2]));
+                }) //
                 .collect(Collectors.toSet());
     }
 }
