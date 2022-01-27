@@ -33,6 +33,6 @@ public class InfraArgs {
     @Parameter(names = "--kafka.url", arity = 1, description = "address for the Kafka Server")
     public String kafkaUrl;
 
-    @Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this instance of the application")
+    @Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this application instance across re-starts")
     public String instanceId = null;
 }
