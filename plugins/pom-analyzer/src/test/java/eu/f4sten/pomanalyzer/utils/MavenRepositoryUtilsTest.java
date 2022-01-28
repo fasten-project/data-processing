@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.nio.file.Path;
 import java.util.Date;
 
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
+import io.github.artsok.RepeatedIfExceptionsTest;
 
 public class MavenRepositoryUtilsTest {
 
@@ -99,7 +101,8 @@ public class MavenRepositoryUtilsTest {
         assertEquals(SOME_CONTENT, actual);
     }
 
-    @Test
+    // this test is flaky in Windows builds
+    @RepeatedIfExceptionsTest(repeats = 3, exceptions = ConnectException.class)
     public void nonExistingPom() {
         var e = assertThrows(RuntimeException.class, () -> {
             var f = inM2("some", "coord.pom");
