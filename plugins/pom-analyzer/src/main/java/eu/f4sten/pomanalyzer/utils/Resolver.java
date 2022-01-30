@@ -17,6 +17,10 @@ package eu.f4sten.pomanalyzer.utils;
 
 import static java.lang.String.format;
 import static java.util.stream.IntStream.range;
+import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.COMPILE;
+import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.PROVIDED;
+import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.RUNTIME;
+import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.SYSTEM;
 
 import java.io.File;
 import java.util.HashMap;
@@ -103,7 +107,7 @@ public class Resolver {
             Maven.configureResolver() //
                     .withClassPathResolution(false) //
                     .loadPomFromFile(f) //
-                    .importCompileAndRuntimeDependencies() //
+                    .importDependencies(COMPILE, RUNTIME, PROVIDED, SYSTEM) //
                     .resolve() //
                     .withTransitivity() //
                     .asResolvedArtifact();
