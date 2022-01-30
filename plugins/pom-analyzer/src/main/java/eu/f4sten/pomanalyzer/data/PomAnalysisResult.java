@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.maven.data.Dependency;
 
-public class PomAnalysisResult {
+public class PomAnalysisResult implements Cloneable {
 
     public String forge = Constants.mvnForge;
 
@@ -49,6 +49,32 @@ public class PomAnalysisResult {
     public String commitTag = null;
     public String sourcesUrl = null;
     public String artifactRepository = null;
+
+    @Override
+    public PomAnalysisResult clone() {
+        var clone = new PomAnalysisResult();
+        clone.forge = forge;
+
+        clone.artifactId = artifactId;
+        clone.groupId = groupId;
+        clone.packagingType = packagingType;
+        clone.version = version;
+
+        clone.parentCoordinate = parentCoordinate;
+
+        clone.releaseDate = releaseDate;
+        clone.projectName = projectName;
+
+        clone.dependencies.addAll(dependencies);
+        clone.dependencyManagement.addAll(dependencyManagement);
+
+        clone.repoUrl = repoUrl;
+        clone.commitTag = commitTag;
+        clone.sourcesUrl = sourcesUrl;
+        clone.artifactRepository = artifactRepository;
+
+        return clone;
+    }
 
     @Override
     public boolean equals(Object obj) {
