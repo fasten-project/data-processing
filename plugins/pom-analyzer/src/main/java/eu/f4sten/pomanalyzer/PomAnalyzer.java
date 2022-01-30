@@ -34,6 +34,7 @@ import eu.f4sten.pomanalyzer.data.ResolutionResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
+import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.fasten.core.maven.utils.MavenUtilities;
@@ -51,10 +52,12 @@ public class PomAnalyzer implements Plugin {
     private final Kafka kafka;
     private final MyArgs args;
     private final MessageGenerator msgs;
+    private final PackagingFixer fixer;
 
     @Inject
     public PomAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
-            DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs) {
+            DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs,
+            PackagingFixer fixer) {
         this.repo = repo;
         this.modelBuilder = modelBuilder;
         this.extractor = extractor;
@@ -63,6 +66,7 @@ public class PomAnalyzer implements Plugin {
         this.kafka = kafka;
         this.args = args;
         this.msgs = msgs;
+        this.fixer = fixer;
     }
 
     @Override
@@ -139,6 +143,9 @@ public class PomAnalyzer implements Plugin {
 
         // extract contents of pom file
         var result = extractor.process(m);
+
+        // double check packaging, which is often bogus
+        result.packagingType = fixer.checkPackage(result);
 
         // remember source repository for artifact
         result.artifactRepository = artifact.artifactRepository;

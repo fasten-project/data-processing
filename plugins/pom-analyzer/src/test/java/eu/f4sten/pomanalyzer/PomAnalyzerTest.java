@@ -30,6 +30,7 @@ import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
+import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 
@@ -43,6 +44,7 @@ public class PomAnalyzerTest {
     private Kafka kafka;
     private MyArgs args;
     private MessageGenerator msgs;
+    private PackagingFixer fixer;
 
     private PomAnalyzer sut;
 
@@ -56,11 +58,13 @@ public class PomAnalyzerTest {
         kafka = mock(Kafka.class);
         args = new MyArgs();
         msgs = mock(MessageGenerator.class);
+        fixer = mock(PackagingFixer.class);
 
-        sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs);
+        sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
 
         when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
         when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
+        when(fixer.checkPackage(any(PomAnalysisResult.class))).thenReturn("jar");
     }
 
     @Test
