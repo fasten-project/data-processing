@@ -144,11 +144,11 @@ public class PomAnalyzer implements Plugin {
         // extract contents of pom file
         var result = extractor.process(m);
 
-        // double check packaging, which is often bogus
-        result.packagingType = fixer.checkPackage(result);
-
         // remember source repository for artifact
         result.artifactRepository = artifact.artifactRepository;
+
+        // double check packaging, which is often bogus
+        result.packagingType = fixer.checkPackage(result);
 
         result.sourcesUrl = repo.getSourceUrlIfExisting(result);
         result.releaseDate = repo.getReleaseDate(result);
