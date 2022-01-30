@@ -96,7 +96,10 @@ public class MavenRepositoryUtils {
         }
         Asserts.assertContains(ALLOWED_CLASSIFIERS, classifier);
         var classifierStr = classifier != null ? "-" + classifier : "";
-        var url = r.artifactRepository + "/" + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/"
+        if(!r.artifactRepository.endsWith("/")) {
+            r.artifactRepository += "/";
+        }
+        var url = r.artifactRepository + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/"
                 + r.artifactId + "-" + r.version + classifierStr + "." + r.packagingType;
         return url;
     }
