@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
@@ -224,6 +226,19 @@ public class MavenRepositoryUtilsTest {
     }
 
     @Test
+    public void doesNotExist() {
+        var res = par("g1.g2:a:pt:1");
+        assertFalse(sut.doesExist(res));
+    }
+
+    @Test
+    public void doesExist() {
+        var res = par("g1.g2:a:pt:1");
+        webContent("<content>", "g1", "g2", "a", "1", "a-1.pt");
+        assertTrue(sut.doesExist(res));
+    }
+
+    @Test
     public void getReleaseDate() {
         var par = minimalPomAnalysisResult();
         webContent(SOME_CONTENT, "g", "a", "1.2.3", "a-1.2.3.jar");
@@ -269,5 +284,27 @@ public class MavenRepositoryUtilsTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void create(String... elems) {
+        var f = Paths.get(dirHttpd.getAbsolutePath(), elems).toFile();
+        var folder = f.getParentFile();
+        try {
+            folder.mkdirs();
+            f.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static PomAnalysisResult par(String gapt) {
+        String[] parts = gapt.split(":");
+        var par = new PomAnalysisResult();
+        par.groupId = parts[0];
+        par.artifactId = parts[1];
+        par.packagingType = parts[2];
+        par.version = parts[3];
+        par.artifactRepository = ARTIFACT_REPO;
+        return par;
     }
 }
