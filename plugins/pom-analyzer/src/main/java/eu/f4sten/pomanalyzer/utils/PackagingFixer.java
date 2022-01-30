@@ -41,9 +41,14 @@ public class PackagingFixer {
             return r.packagingType;
         }
 
+        if (!exists(r, "pom", false)) {
+            LOG.warn("Neither the coordinate nor its pom can be found.");
+            return r.packagingType;
+        }
+
         var lc = r.packagingType.toLowerCase();
         var isDifferent = !r.packagingType.equals(lc);
-        if (isDifferent && exists(r, lc)) {
+        if (isDifferent && exists(r, lc, true)) {
             return lc;
         }
 
@@ -51,20 +56,20 @@ public class PackagingFixer {
             if (pt.equals(r.packagingType)) {
                 continue;
             }
-            if (exists(r, pt)) {
+            if (exists(r, pt, true)) {
                 return pt;
             }
         }
 
-        LOG.warn("Coordinate not found, no fix found.");
+        LOG.warn("Pom exists, coordinate not found. No fix available.");
         return r.packagingType;
     }
 
-    private boolean exists(PomAnalysisResult r, String packagingType) {
+    private boolean exists(PomAnalysisResult r, String packagingType, boolean shouldLog) {
         var clone = r.clone();
         clone.packagingType = packagingType;
         boolean doesExist = repoUtils.doesExist(clone);
-        if (doesExist) {
+        if (shouldLog && doesExist) {
             LOG.warn("Coordinate found after fixing packagingType: {} -> {}", r.packagingType, packagingType);
         }
         return doesExist;

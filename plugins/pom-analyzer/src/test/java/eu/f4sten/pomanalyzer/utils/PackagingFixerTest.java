@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,18 +42,18 @@ public class PackagingFixerTest {
 
     private MavenRepositoryUtils repoUtils;
     private PackagingFixer sut;
-    private String existingPackaging;
+    private Set<String> existingPackaging;
 
     @BeforeEach
     public void setup() {
         clearLog();
-        existingPackaging = "<none>";
+        existingPackaging = Set.of("<none>");
         repoUtils = mock(MavenRepositoryUtils.class);
         when(repoUtils.doesExist(any(PomAnalysisResult.class))).then(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock i) throws Throwable {
                 PomAnalysisResult arg = i.getArgument(0);
-                return existingPackaging.equals(arg.packagingType);
+                return existingPackaging.contains(arg.packagingType);
             }
         });
         sut = new PackagingFixer(repoUtils);
@@ -65,7 +66,7 @@ public class PackagingFixerTest {
 
     @Test
     public void packageExists() {
-        existingPackaging = "jar";
+        existingPackaging = Set.of("pom", "jar");
         assertResult("jar", "jar");
 
         verify(repoUtils, times(1)).doesExist(getPAR("jar"));
@@ -73,7 +74,7 @@ public class PackagingFixerTest {
 
     @Test
     public void doesExistIsNotCalledTwice() {
-        existingPackaging = "war";
+        existingPackaging = Set.of("pom", "war");
         assertResult("jar", "war");
 
         verify(repoUtils, times(1)).doesExist(getPAR("jar"));
@@ -81,7 +82,7 @@ public class PackagingFixerTest {
 
     @Test
     public void triesLowercase() {
-        existingPackaging = "xxx";
+        existingPackaging = Set.of("pom", "xxx");
         assertResult("Xxx", "xxx");
         verify(repoUtils, times(1)).doesExist(getPAR("Xxx"));
         verify(repoUtils, times(1)).doesExist(getPAR("xxx"));
@@ -89,52 +90,53 @@ public class PackagingFixerTest {
 
     @Test
     public void onlyTriesLowercaseWhenDifferent() {
-        existingPackaging = "war";
+        existingPackaging = Set.of("pom", "war");
         assertResult("jar", "war");
         verify(repoUtils, times(1)).doesExist(getPAR("jar"));
     }
 
     @Test
     public void worksForJars() {
-        existingPackaging = "jar";
+        existingPackaging = Set.of("pom", "jar");
         assertResult("xxx", "jar");
         verifyNumberOfAdditionalDoesExistCalls(1);
     }
 
     @Test
     public void worksForWars() {
-        existingPackaging = "war";
+        existingPackaging = Set.of("pom", "war");
         assertResult("xxx", "war");
         verifyNumberOfAdditionalDoesExistCalls(2);
     }
 
     @Test
     public void worksForEars() {
-        existingPackaging = "ear";
+        existingPackaging = Set.of("pom", "ear");
         assertResult("xxx", "ear");
         verifyNumberOfAdditionalDoesExistCalls(3);
     }
 
     @Test
     public void worksForAars() {
-        existingPackaging = "aar";
+        existingPackaging = Set.of("pom", "aar");
         assertResult("xxx", "aar");
         verifyNumberOfAdditionalDoesExistCalls(4);
     }
 
     @Test
     public void worksForEjbs() {
-        existingPackaging = "ejb";
+        existingPackaging = Set.of("pom", "ejb");
         assertResult("xxx", "ejb");
         verifyNumberOfAdditionalDoesExistCalls(5);
     }
 
     @Test
     public void isCalledWithClone() {
+        existingPackaging = Set.of("pom");
         var orig = getPAR("Xxx");
         sut.checkPackage(orig);
         var captor = ArgumentCaptor.forClass(PomAnalysisResult.class);
-        verify(repoUtils, times(7)).doesExist(captor.capture());
+        verify(repoUtils, times(8)).doesExist(captor.capture());
         var values = captor.getAllValues();
         assertSame(orig, values.get(0));
         for (int i = 1; i < 7; i++) {
@@ -144,23 +146,30 @@ public class PackagingFixerTest {
 
     @Test
     public void noLogWhenExisting() {
-        existingPackaging = "jar";
+        existingPackaging = Set.of("pom", "jar");
         assertResult("jar", "jar");
         List<String> log = getFormattedLogs(PackagingFixer.class);
         assertEquals(0, log.size());
     }
 
     @Test
-    public void logWhenChangeFound() {
-        existingPackaging = "war";
-        assertResult("jar", "war");
-        assertLogsContain(PackagingFixer.class, "WARN Coordinate found after fixing packagingType: jar -> war");
+    public void logWhenNotFound() {
+        assertResult("xxx", "xxx");
+        assertLogsContain(PackagingFixer.class, "WARN Neither the coordinate nor its pom can be found.");
     }
 
     @Test
-    public void logWhenNotFound() {
-        assertResult("xxx", "xxx");
-        assertLogsContain(PackagingFixer.class, "WARN Coordinate not found, no fix found.");
+    public void noLogWhenOnlyPomExisting() {
+        existingPackaging = Set.of("pom");
+        assertResult("jar", "jar");
+        assertLogsContain(PackagingFixer.class, "WARN Pom exists, coordinate not found. No fix available.");
+    }
+
+    @Test
+    public void logWhenChangeFound() {
+        existingPackaging = Set.of("pom", "war");
+        assertResult("jar", "war");
+        assertLogsContain(PackagingFixer.class, "WARN Coordinate found after fixing packagingType: jar -> war");
     }
 
     private void assertResult(String inputPackaging, String expectedPackaging) {
@@ -169,8 +178,8 @@ public class PackagingFixerTest {
     }
 
     private void verifyNumberOfAdditionalDoesExistCalls(int numAdditional) {
-        // 1) check input 2) NO lowercase call 3) cycle through up to 5 types
-        var numCalls = 1 + numAdditional;
+        // 1) orig 2) pom 3) lowercase (not needed) 3) cycle through up to 5 types
+        var numCalls = 2 + numAdditional;
         verify(repoUtils, times(numCalls)).doesExist(any(PomAnalysisResult.class));
     }
 
