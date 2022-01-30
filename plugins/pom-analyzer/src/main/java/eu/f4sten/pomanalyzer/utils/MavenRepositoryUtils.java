@@ -130,4 +130,10 @@ public class MavenRepositoryUtils {
         String localRepository = settings.getLocalRepository();
         return new File(localRepository);
     }
+
+    public boolean doesExist(PomAnalysisResult r) {
+        var url = getUrl(r, null);
+        var status = sendGetRequest(url);
+        return status == 200;
+    }
 }
