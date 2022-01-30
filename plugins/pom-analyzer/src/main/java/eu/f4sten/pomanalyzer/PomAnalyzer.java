@@ -19,7 +19,6 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-import org.apache.maven.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,28 +131,24 @@ public class PomAnalyzer implements Plugin {
         LOG.info("Processing {} ...", artifact.coordinate);
         var consumedAt = new Date();
 
+        // merge pom with all its parents and resolve properties
+        var m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
+
+        // extract details
+        var result = extractor.process(m);
+        result.artifactRepository = artifact.artifactRepository;
+        // packaging often bogus, check and possibly fix
+        result.packagingType = fixer.checkPackage(result);
+        result.sourcesUrl = repo.getSourceUrlIfExisting(result);
+        result.releaseDate = repo.getReleaseDate(result);
+
+        store(result, lane, consumedAt);
+
         // resolve dependencies to
         // 1) have dependencies
         // 2) identify artifact sources
         // 3) make sure all dependencies exist in local .m2 folder
         var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile);
-
-        // merge pom with all its parents and resolve properties
-        Model m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
-
-        // extract contents of pom file
-        var result = extractor.process(m);
-
-        // remember source repository for artifact
-        result.artifactRepository = artifact.artifactRepository;
-
-        // double check packaging, which is often bogus
-        result.packagingType = fixer.checkPackage(result);
-
-        result.sourcesUrl = repo.getSourceUrlIfExisting(result);
-        result.releaseDate = repo.getReleaseDate(result);
-
-        store(result, lane, consumedAt);
 
         // resolution can be different for dependencies, so process them independently
         deps.forEach(dep -> {
