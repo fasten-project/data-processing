@@ -16,6 +16,7 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -104,6 +105,23 @@ public class ResolverTest {
     }
 
     @Test
+    public void ignoresTestAndImportScopes() {
+        var actual = resolveTestPom("scopes.pom");
+        assertTrue(actual.contains(JSR305), "JSR305"); // default (none)
+        assertTrue(actual.contains(SLF4J), "SLF4J"); // compile
+        assertTrue(actual.contains(COMMONS_TEXT), "COMMONS_TEXT"); // runtime
+        assertTrue(actual.contains(COMMONS_LANG3), "COMMONS_LANG3"); // provided
+        assertTrue(actual.contains(OKIO), "OKIO"); // system
+
+        assertFalse(actual.contains(OSS_PARENT), "OSS_PARENT"); // import
+        assertFalse(actual.contains(JUNIT), "JUNIT"); // test
+
+        // direct and transitive dependencies
+        // TODO not clear where the Kotlin reference comes from?!
+        assertEquals(5 + 1, actual.size());
+    }
+
+    @Test
     public void noDependencies() {
         var actual = resolveTestPom("no-dependencies.pom");
         var expected = new HashSet<ResolutionResult>();
@@ -122,6 +140,11 @@ public class ResolverTest {
             "https://repo.maven.apache.org/maven2/", //
             new File("/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom"));
 
+    private static final ResolutionResult SLF4J = new ResolutionResult(//
+            "org.slf4j:slf4j-api:jar:1.7.32", //
+            "https://repo.maven.apache.org/maven2/", //
+            new File("/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.pom"));
+
     private static final ResolutionResult COMMONS_LANG3 = new ResolutionResult(//
             "org.apache.commons:commons-lang3:jar:3.9", //
             "https://repo.maven.apache.org/maven2/", //
@@ -131,6 +154,21 @@ public class ResolverTest {
             "org.apache.commons:commons-text:jar:1.8", //
             "https://repo.maven.apache.org/maven2/", //
             new File("/org/apache/commons/commons-text/1.8/commons-text-1.8.pom"));
+
+    private static final ResolutionResult OKIO = new ResolutionResult(//
+            "com.squareup.okio:okio:jar:3.0.0", //
+            "https://repo.maven.apache.org/maven2/", //
+            new File("/com/squareup/okio/okio/3.0.0/okio-3.0.0.pom"));
+
+    private static final ResolutionResult OSS_PARENT = new ResolutionResult(//
+            "org.sonatype.oss:oss-parent:jar:2.6.3", //
+            "https://repo.maven.apache.org/maven2/", //
+            new File("/org/sonatype/oss/oss-parent/9/oss-parent-9.pom"));
+
+    private static final ResolutionResult JUNIT = new ResolutionResult(//
+            "org.junit.jupiter:junit-jupiter-api:jar:5.8.2", //
+            "https://repo.maven.apache.org/maven2/", //
+            new File("/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.pom"));
 
     private static final ResolutionResult REMLA = new ResolutionResult(//
             "remla:mylib:jar:0.0.5", //
@@ -144,7 +182,8 @@ public class ResolverTest {
         actual.forEach(rr -> {
             rr.localPomFile = stripLocalBasePath(rr.localPomFile);
         });
-        return actual;
+        // make sure hash-buckets are updated after mutation
+        return new HashSet<>(actual);
     }
 
     private static File stripLocalBasePath(File f) {
