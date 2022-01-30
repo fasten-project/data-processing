@@ -18,6 +18,7 @@ package eu.f4sten.pomanalyzer.data;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -212,6 +213,20 @@ public class PomAnalysisResultTest {
         assertTrue(actual.contains("\n"));
         assertTrue(actual.split("\n")[0].contains("@"));
         assertTrue(actual.contains("artifactId"));
+    }
+
+    @Test
+    public void canBeCloned() {
+        var a = somePomAnalysisResult();
+        var b = a.clone();
+        assertEquals(a, b);
+        assertNotSame(a, b);
+
+        assertEquals(a.dependencies, b.dependencies);
+        assertNotSame(a.dependencies, b.dependencies);
+
+        assertEquals(a.dependencyManagement, b.dependencyManagement);
+        assertNotSame(a.dependencyManagement, b.dependencyManagement);
     }
 
     private static PomAnalysisResult somePomAnalysisResult() {
