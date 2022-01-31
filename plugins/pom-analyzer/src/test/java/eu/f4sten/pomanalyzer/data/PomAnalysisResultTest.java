@@ -229,6 +229,13 @@ public class PomAnalysisResultTest {
         assertNotSame(a.dependencyManagement, b.dependencyManagement);
     }
 
+    @Test
+    public void toCoordinate() {
+        var actual = somePomAnalysisResult().toCoordinate();
+        var expected = "g:a:h:n";
+        assertEquals(expected, actual);
+    }
+
     private static PomAnalysisResult somePomAnalysisResult() {
         PomAnalysisResult r = new PomAnalysisResult();
         r.artifactId = "a";
