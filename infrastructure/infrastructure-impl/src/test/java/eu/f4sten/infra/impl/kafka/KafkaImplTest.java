@@ -199,6 +199,23 @@ public class KafkaImplTest {
     }
 
     @Test
+    public void sendHeartbeat() {
+        sut.sendHeartbeat();
+
+        verify(consumerNorm).assignment();
+        verify(consumerNorm).pause(anySet());
+        verify(consumerNorm).poll(Duration.ZERO);
+        verify(consumerNorm).resume(anySet());
+        verifyNoMoreInteractions(consumerNorm);
+
+        verify(consumerPrio).assignment();
+        verify(consumerPrio).pause(anySet());
+        verify(consumerPrio).poll(Duration.ZERO);
+        verify(consumerPrio).resume(anySet());
+        verifyNoMoreInteractions(consumerPrio);
+    }
+
+    @Test
     public void subIsTriggered() {
         registerSerialization("some_input", String.class);
         var wasCalled = new boolean[] { false };

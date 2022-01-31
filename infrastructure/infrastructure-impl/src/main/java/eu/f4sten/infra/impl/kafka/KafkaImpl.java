@@ -73,6 +73,12 @@ public class KafkaImpl implements Kafka {
     }
 
     @Override
+    public void sendHeartbeat() {
+        sendHeartBeat(connNorm);
+        sendHeartBeat(connPrio);
+    }
+
+    @Override
     public <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback) {
         subscribe(topic, type, callback, (x, y) -> NONE);
     }
