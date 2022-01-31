@@ -85,8 +85,12 @@
 
     <repositories>
         <repository>
-            <id>github</id>
+            <id>shrinkwrap</id>
             <url>https://github.com/fasten-project/shrinkwrap-resolver-patched/raw/repository/</url>
+        </repository>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/fasten-project/fasten/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
