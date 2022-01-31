@@ -109,7 +109,7 @@ public class MessageGeneratorImplTest {
         expected.version = SOME_VERSION;
 
         expected.error = new Message.Error();
-        expected.error.type = IllegalArgumentException.class.getSimpleName();
+        expected.error.type = IllegalArgumentException.class.getName();
         expected.error.message = SOME_ERROR;
         expected.error.stacktrace = null;
 

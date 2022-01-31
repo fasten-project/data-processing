@@ -73,11 +73,11 @@ public class MessageModuleTest {
         var createdAt = 1642127882997L;
         var comsumedAt = 1642127889927L;
         var oldJson = "{\n" //
-                + "  \"created_at\": " + createdAt + ",\n" //
-                + "  \"consumed_at\": " + comsumedAt + ",\n" //
+                + "  \"createdAt\": " + createdAt + ",\n" //
+                + "  \"consumedAt\": " + comsumedAt + ",\n" //
                 + "  \"host\": \"a68efd2412d9\",\n" //
-                + "  \"plugin_name\": \"OPAL\",\n" //
-                + "  \"plugin_version\": \"0.1.2\",\n" //
+                + "  \"plugin\": \"X\",\n" //
+                + "  \"version\": \"0.1.2\",\n" //
                 + "  \"input\": \"i\",\n" //
                 + "  \"payload\": \"p\"\n" //
                 + "}";
@@ -88,7 +88,7 @@ public class MessageModuleTest {
         expected.createdAt = toDate(createdAt);
         expected.consumedAt = toDate(comsumedAt);
         expected.host = "a68efd2412d9";
-        expected.plugin = "OPAL";
+        expected.plugin = "X";
         expected.version = "0.1.2";
         expected.input = "i";
         expected.payload = "p";
@@ -102,9 +102,9 @@ public class MessageModuleTest {
     @Test
     public void formatIsCompatibleWithLegacyErrors() throws JsonMappingException, JsonProcessingException {
         var oldJson = "{\n" //
-                + "  \"err\": {\n" //
-                + "    \"error\": \"1\",\n" //
-                + "    \"msg\": \"2\",\n" //
+                + "  \"error\": {\n" //
+                + "    \"type\": \"1\",\n" //
+                + "    \"message\": \"2\",\n" //
                 + "    \"stacktrace\": \"3\"\n" //
                 + "  }\n" //
                 + "}";
