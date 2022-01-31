@@ -22,6 +22,8 @@ import eu.f4sten.infra.json.TRef;
 
 public interface Kafka {
 
+    void sendHeartbeat();
+
     <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback);
 
     <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);

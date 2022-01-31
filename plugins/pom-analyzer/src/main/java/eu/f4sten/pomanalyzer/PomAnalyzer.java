@@ -130,6 +130,7 @@ public class PomAnalyzer implements Plugin {
     private void process(MavenId id, ResolutionResult artifact, Lane lane) {
         LOG.info("Processing {} ...", artifact.coordinate);
         var consumedAt = new Date();
+        kafka.sendHeartbeat();
 
         // merge pom with all its parents and resolve properties
         var m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
