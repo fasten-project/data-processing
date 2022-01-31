@@ -21,8 +21,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import eu.f4sten.infra.LoaderArgs;
 import eu.f4sten.infra.kafka.Message;
-import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.kafka.Message.Error;
+import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.HostName;
 import eu.f4sten.infra.utils.Version;
 
@@ -70,7 +70,7 @@ public class MessageGeneratorImpl implements MessageGenerator {
     private static Error getError(Throwable t) {
         var e = new Message.Error();
         e.message = t.getMessage();
-        e.type = t.getClass().getSimpleName();
+        e.type = t.getClass().getName();
         e.stacktrace = ExceptionUtils.getStackTrace(t);
         return e;
     }
