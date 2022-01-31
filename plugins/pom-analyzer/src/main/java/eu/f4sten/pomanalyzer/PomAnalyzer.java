@@ -15,6 +15,9 @@
  */
 package eu.f4sten.pomanalyzer;
 
+import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static eu.f4sten.infra.kafka.Lane.PRIORITY;
+
 import java.util.Date;
 
 import javax.inject.Inject;
@@ -128,7 +131,12 @@ public class PomAnalyzer implements Plugin {
     }
 
     private void process(ResolutionResult artifact, Lane lane, MavenId originalInput) {
+        if (hasBeenIngested(artifact.coordinate, lane)) {
+            LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
+            return;
+        }
         LOG.info("Processing {} ...", artifact.coordinate);
+
         var consumedAt = new Date();
         kafka.sendHeartbeat();
 
@@ -157,16 +165,26 @@ public class PomAnalyzer implements Plugin {
                 process(dep, lane, originalInput);
             });
         });
+
+        // to stay crash resilient, only mark once all dependencies have been processed
+        db.markAsIngestedPackage(result.toCoordinate(), lane);
     }
 
     private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
         LOG.debug("Finished: {}", result);
-        db.save(result);
-        if (lane == Lane.PRIORITY) {
-            db.markAsIngestedPackage(result);
+        if (hasBeenIngested(result.toCoordinate(), lane)) {
+            // reduce the opportunity for race-conditions by re-checking before storing
+            return;
         }
+        db.save(result);
         var m = msgs.getStd(result);
         m.consumedAt = consumedAt;
         kafka.publish(m, args.kafkaOut, lane);
+    }
+
+    private boolean hasBeenIngested(String coordinate, Lane lane) {
+        return lane == Lane.NORMAL
+                ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY)
+                : db.hasPackageBeenIngested(coordinate, lane);
     }
 }
