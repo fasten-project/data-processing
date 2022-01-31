@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -38,6 +39,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.utils.Version;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
@@ -46,9 +48,12 @@ import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
 
+    private static final String SOME_PLUGIN_VERSION = "0.1.2";
     private MetadataDao dao;
     private JsonUtils json;
     private DSLContext dslContext;
+    private Version version;
+
     private DatabaseUtils sut;
 
     @BeforeEach
@@ -56,6 +61,9 @@ public class DatabaseUtilsTest {
         dao = mock(MetadataDao.class);
         json = mock(JsonUtils.class);
         dslContext = mock(DSLContext.class);
+        version = mock(Version.class);
+        when(version.get()).thenReturn(SOME_PLUGIN_VERSION);
+
         doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock i) throws Throwable {
                 var arg0 = (TransactionalRunnable) i.getArgument(0);
@@ -64,7 +72,7 @@ public class DatabaseUtilsTest {
             }
         }).when(dslContext).transaction(any(TransactionalRunnable.class));
 
-        sut = new DatabaseUtils(dslContext, json) {
+        sut = new DatabaseUtils(dslContext, json, version) {
             protected MetadataDao getDao(DSLContext ctx) {
                 return dao;
             }
@@ -149,6 +157,18 @@ public class DatabaseUtilsTest {
         var actualJson = jsonCaptor.getValue();
         var expectedJson = "<some dep json>";
         assertEquals(expectedJson.toString(), actualJson.toString());
+    }
+
+    @Test
+    public void insertIngest() {
+        sut.markAsIngestedPackage("gapv", NORMAL);
+        verify(dao).insertIngestedArtifact("gapv-NORMAL", SOME_PLUGIN_VERSION);
+    }
+
+    @Test
+    public void hasIngested() {
+        sut.hasPackageBeenIngested("gapv", NORMAL);
+        verify(dao).isArtifactIngested("gapv-NORMAL");
     }
 
     private PomAnalysisResult getSomeResult() {

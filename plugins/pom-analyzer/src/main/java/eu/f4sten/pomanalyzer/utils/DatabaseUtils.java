@@ -18,13 +18,14 @@ package eu.f4sten.pomanalyzer.utils;
 import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.kafka.Lane;
+import eu.f4sten.infra.utils.Version;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
@@ -33,12 +34,14 @@ public class DatabaseUtils {
 
     private final DSLContext context;
     private final JsonUtils jsonUtils;
+    private final Version version;
 
     private boolean processedRecord;
 
-    public DatabaseUtils(DSLContext context, JsonUtils jsonUtils) {
+    public DatabaseUtils(DSLContext context, JsonUtils jsonUtils, Version version) {
         this.context = context;
         this.jsonUtils = jsonUtils;
+        this.version = version;
     }
 
     protected MetadataDao getDao(DSLContext ctx) {
@@ -83,21 +86,16 @@ public class DatabaseUtils {
         }
     }
 
-    public void markAsIngestedPackage(PomAnalysisResult result) {
-        var packageName = result.groupId + ":" + result.artifactId;
-        var time = new Timestamp(new Date().getTime());
+    public void markAsIngestedPackage(String gapv, Lane lane) {
+        var key = String.format("%s-%s", gapv, lane);
         var dao = getDao(context);
-        dao.insertIngestedArtifact(packageName, result.version, time);
+        dao.insertIngestedArtifact(key, version.get());
     }
 
-    public boolean hasPackageBeenIngested(String gapv) {
-        // gid:aid:packaging:version
-
-        String[] parts = gapv.split(":");
-        var depProduct = parts[0] + ":" + parts[1];
-
+    public boolean hasPackageBeenIngested(String gapv, Lane lane) {
+        var key = String.format("%s-%s", gapv, lane);
         var dao = getDao(context);
-        return dao.isArtifactIngested(depProduct, parts[3]);
+        return dao.isArtifactIngested(key);
     }
 
     private static Timestamp getProperTimestamp(long timestamp) {
