@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.data;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.util.HashSet;
@@ -49,6 +50,11 @@ public class PomAnalysisResult implements Cloneable {
     public String commitTag = null;
     public String sourcesUrl = null;
     public String artifactRepository = null;
+
+    /** gid:aid:packaging:version */
+    public String toCoordinate() {
+        return format("%s:%s:%s:%s", groupId, artifactId, packagingType, version);
+    }
 
     @Override
     public PomAnalysisResult clone() {
