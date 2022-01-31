@@ -83,7 +83,7 @@ public class PomAnalyzer implements Plugin {
                 if (!artifact.localPomFile.exists()) {
                     artifact.localPomFile = repo.downloadPomToTemp(artifact);
                 }
-                process(id, artifact, l);
+                process(artifact, l, id);
             });
         });
         while (true) {
@@ -127,7 +127,7 @@ public class PomAnalyzer implements Plugin {
         return String.format("%s:%s:?:%s", groupId, artifactId, version);
     }
 
-    private void process(MavenId id, ResolutionResult artifact, Lane lane) {
+    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput) {
         LOG.info("Processing {} ...", artifact.coordinate);
         var consumedAt = new Date();
         kafka.sendHeartbeat();
@@ -151,10 +151,10 @@ public class PomAnalyzer implements Plugin {
         // 3) make sure all dependencies exist in local .m2 folder
         var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile);
 
-        // resolution can be different for dependencies, so process them independently
+        // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {
-            runAndCatch(id, () -> {
-                process(id, dep, lane);
+            runAndCatch(originalInput, () -> {
+                process(dep, lane, originalInput);
             });
         });
     }
