@@ -136,8 +136,8 @@ public class PomAnalyzer implements Plugin {
         return String.format("%s:%s:?:%s", groupId, artifactId, version);
     }
 
-    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput, Set<String> finished) {
-        var shouldSkip = finished.contains(artifact.coordinate) || hasBeenIngested(artifact.coordinate, lane);
+    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput, Set<String> ingested) {
+        var shouldSkip = ingested.contains(artifact.coordinate) || hasBeenIngested(artifact.coordinate, lane);
         if (shouldSkip) {
             LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
             return;
@@ -160,8 +160,9 @@ public class PomAnalyzer implements Plugin {
 
         store(result, lane, consumedAt);
 
-        finished.add(artifact.coordinate);
-        finished.add(result.toCoordinate());
+        // for performance (and to prevent cycles), remember visited coordinates in-mem
+        ingested.add(artifact.coordinate);
+        ingested.add(result.toCoordinate());
 
         // resolve dependencies to
         // 1) have dependencies
@@ -171,17 +172,17 @@ public class PomAnalyzer implements Plugin {
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {
-            if (finished.contains(dep.coordinate)) {
+            if (ingested.contains(dep.coordinate)) {
                 LOG.warn("Detected cyclic dependency, skipping coordinate {}", dep.coordinate);
                 return;
             }
 
             runAndCatch(originalInput, () -> {
-                process(dep, lane, originalInput, new HashSet<>(finished));
+                process(dep, lane, originalInput, new HashSet<>(ingested));
             });
         });
 
-        // to stay crash resilient, only mark once all dependencies have been processed
+        // to stay crash resilient, only mark in DB once all deps have been processed
         db.markAsIngestedPackage(artifact.coordinate, lane);
         db.markAsIngestedPackage(result.toCoordinate(), lane);
     }
