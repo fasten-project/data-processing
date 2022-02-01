@@ -100,7 +100,11 @@ public class PomAnalyzer implements Plugin {
             r.run();
         } catch (Throwable t) {
             LOG.warn("Execution failed for input: {}", id, t);
-            var msg = msgs.getErr(id, t);
+
+            boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(t.getClass());
+            boolean isWrapped = isRuntimeExceptionAndNoSubtype && t.getCause() != null;
+
+            var msg = msgs.getErr(id, isWrapped ? t.getCause() : t);
             kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
