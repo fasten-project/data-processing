@@ -137,7 +137,8 @@ public class PomAnalyzer implements Plugin {
     }
 
     private void process(ResolutionResult artifact, Lane lane, MavenId originalInput, Set<String> finished) {
-        if (hasBeenIngested(artifact.coordinate, lane)) {
+        var shouldSkip = finished.contains(artifact.coordinate) || hasBeenIngested(artifact.coordinate, lane);
+        if (shouldSkip) {
             LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
             return;
         }
