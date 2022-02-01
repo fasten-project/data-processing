@@ -87,9 +87,11 @@ public class DatabaseUtils {
     }
 
     public void markAsIngestedPackage(String gapv, Lane lane) {
-        var key = String.format("%s-%s", gapv, lane);
-        var dao = getDao(context);
-        dao.insertIngestedArtifact(key, version.get());
+        if (!hasPackageBeenIngested(gapv, lane)) {
+            var key = String.format("%s-%s", gapv, lane);
+            var dao = getDao(context);
+            dao.insertIngestedArtifact(key, version.get());
+        }
     }
 
     public boolean hasPackageBeenIngested(String gapv, Lane lane) {

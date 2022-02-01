@@ -19,6 +19,8 @@ import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static eu.f4sten.infra.kafka.Lane.PRIORITY;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -86,7 +88,7 @@ public class PomAnalyzer implements Plugin {
                 if (!artifact.localPomFile.exists()) {
                     artifact.localPomFile = repo.downloadPomToTemp(artifact);
                 }
-                process(artifact, l, id);
+                process(artifact, l, id, new HashSet<>());
             });
         });
         while (true) {
@@ -134,7 +136,7 @@ public class PomAnalyzer implements Plugin {
         return String.format("%s:%s:?:%s", groupId, artifactId, version);
     }
 
-    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput) {
+    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput, Set<String> finished) {
         if (hasBeenIngested(artifact.coordinate, lane)) {
             LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
             return;
@@ -157,6 +159,9 @@ public class PomAnalyzer implements Plugin {
 
         store(result, lane, consumedAt);
 
+        finished.add(artifact.coordinate);
+        finished.add(result.toCoordinate());
+
         // resolve dependencies to
         // 1) have dependencies
         // 2) identify artifact sources
@@ -165,12 +170,18 @@ public class PomAnalyzer implements Plugin {
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {
+            if (finished.contains(dep.coordinate)) {
+                LOG.warn("Detected cyclic dependency, skipping coordinate {}", dep.coordinate);
+                return;
+            }
+
             runAndCatch(originalInput, () -> {
-                process(dep, lane, originalInput);
+                process(dep, lane, originalInput, new HashSet<>(finished));
             });
         });
 
         // to stay crash resilient, only mark once all dependencies have been processed
+        db.markAsIngestedPackage(artifact.coordinate, lane);
         db.markAsIngestedPackage(result.toCoordinate(), lane);
     }
 
