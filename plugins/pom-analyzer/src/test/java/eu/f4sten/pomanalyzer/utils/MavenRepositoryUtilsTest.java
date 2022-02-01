@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
@@ -287,17 +286,6 @@ public class MavenRepositoryUtilsTest {
         try {
             File f = Path.of(dirHttpd.getAbsolutePath(), path).toFile();
             writeStringToFile(f, content, UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void create(String... elems) {
-        var f = Paths.get(dirHttpd.getAbsolutePath(), elems).toFile();
-        var folder = f.getParentFile();
-        try {
-            folder.mkdirs();
-            f.createNewFile();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
