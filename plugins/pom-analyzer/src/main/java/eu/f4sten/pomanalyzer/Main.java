@@ -44,9 +44,9 @@ import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.fasten.core.maven.utils.MavenUtilities;
 import eu.fasten.core.utils.Asserts;
 
-public class PomAnalyzer implements Plugin {
+public class Main implements Plugin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PomAnalyzer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     private final MavenRepositoryUtils repo;
     private final EffectiveModelBuilder modelBuilder;
@@ -54,14 +54,13 @@ public class PomAnalyzer implements Plugin {
     private final DatabaseUtils db;
     private final Resolver resolver;
     private final Kafka kafka;
-    private final MyArgs args;
+    private final PomAnalyzerArgs args;
     private final MessageGenerator msgs;
     private final PackagingFixer fixer;
 
     @Inject
-    public PomAnalyzer(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor,
-            DatabaseUtils db, Resolver resolver, Kafka kafka, MyArgs args, MessageGenerator msgs,
-            PackagingFixer fixer) {
+    public Main(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor, DatabaseUtils db,
+            Resolver resolver, Kafka kafka, PomAnalyzerArgs args, MessageGenerator msgs, PackagingFixer fixer) {
         this.repo = repo;
         this.modelBuilder = modelBuilder;
         this.extractor = extractor;

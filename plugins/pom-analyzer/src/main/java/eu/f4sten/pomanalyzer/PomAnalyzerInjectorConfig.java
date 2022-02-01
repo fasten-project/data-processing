@@ -35,17 +35,17 @@ import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 
 @InjectorConfig
-public class MyInjectorConfig implements IInjectorConfig {
+public class PomAnalyzerInjectorConfig implements IInjectorConfig {
 
-    private MyArgs args;
+    private PomAnalyzerArgs args;
 
-    public MyInjectorConfig(MyArgs args) {
+    public PomAnalyzerInjectorConfig(PomAnalyzerArgs args) {
         this.args = args;
     }
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(MyArgs.class).toInstance(args);
+        binder.bind(PomAnalyzerArgs.class).toInstance(args);
     }
 
     @Provides

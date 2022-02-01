@@ -34,7 +34,7 @@ import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 
-public class PomAnalyzerTest {
+public class MainTest {
 
     private MavenRepositoryUtils repo;
     private EffectiveModelBuilder modelBuilder;
@@ -42,11 +42,11 @@ public class PomAnalyzerTest {
     private DatabaseUtils db;
     private Resolver resolver;
     private Kafka kafka;
-    private MyArgs args;
+    private PomAnalyzerArgs args;
     private MessageGenerator msgs;
     private PackagingFixer fixer;
 
-    private PomAnalyzer sut;
+    private Main sut;
 
     @BeforeEach
     public void setup() {
@@ -56,11 +56,11 @@ public class PomAnalyzerTest {
         db = mock(DatabaseUtils.class);
         resolver = mock(Resolver.class);
         kafka = mock(Kafka.class);
-        args = new MyArgs();
+        args = new PomAnalyzerArgs();
         msgs = mock(MessageGenerator.class);
         fixer = mock(PackagingFixer.class);
 
-        sut = new PomAnalyzer(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
+        sut = new Main(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
 
         when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
         when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
