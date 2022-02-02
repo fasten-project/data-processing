@@ -83,6 +83,8 @@
                             <mainClass>eu.f4sten.loader.Main</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
+                            <!-- need to circumvent https://issues.apache.org/jira/browse/MJAR-156 -->
+                            <useUniqueVersions>false</useUniqueVersions>
                         </manifest>
                     </archive>
                 </configuration>
