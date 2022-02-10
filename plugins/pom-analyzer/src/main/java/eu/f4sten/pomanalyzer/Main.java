@@ -17,6 +17,7 @@ package eu.f4sten.pomanalyzer;
 
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static eu.f4sten.infra.kafka.Lane.PRIORITY;
+import static java.lang.String.format;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -59,6 +60,9 @@ public class Main implements Plugin {
     private final MessageGenerator msgs;
     private final PackagingFixer fixer;
 
+    private final Set<String> ingested = new HashSet<>();
+    private MavenId curId;
+
     @Inject
     public Main(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor, DatabaseUtils db,
             Resolver resolver, Kafka kafka, PomAnalyzerArgs args, MessageGenerator msgs, PackagingFixer fixer) {
@@ -80,15 +84,18 @@ public class Main implements Plugin {
                 .notNull(a -> a.kafkaOut, "kafka output topic");
 
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
-        kafka.subscribe(args.kafkaIn, MavenId.class, (id, l) -> {
+        kafka.subscribe(args.kafkaIn, MavenId.class, (id, lane) -> {
+            ingested.clear();
+            curId = id;
+
             LOG.info("Consuming next record ...");
             LOG.debug("{}", id);
-            runAndCatch(id, () -> {
-                var artifact = bootstrapFirstResolutionResultFromInput(id);
+            var artifact = bootstrapFirstResolutionResultFromInput(id);
+            runAndCatch(artifact, lane, () -> {
                 if (!artifact.localPomFile.exists()) {
                     artifact.localPomFile = repo.downloadPomToTemp(artifact);
                 }
-                process(artifact, l, id, new HashSet<>());
+                process(artifact, lane);
             });
         });
         while (true) {
@@ -97,31 +104,31 @@ public class Main implements Plugin {
         }
     }
 
-    private void runAndCatch(MavenId id, Runnable r) {
+    private void runAndCatch(ResolutionResult artifact, Lane lane, Runnable r) {
         try {
+            if (shouldSkip(artifact.coordinate, lane)) {
+                LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
+                return;
+            }
             r.run();
         } catch (Throwable t) {
-            LOG.warn("Execution failed for input: {}", id, t);
+            // if execution crashes, prevent re-try for both lanes
+            memMarkAsIngestedPackage(artifact.coordinate, NORMAL);
+            memMarkAsIngestedPackage(artifact.coordinate, PRIORITY);
+
+            LOG.warn("Execution failed for (original) input: {}", curId, t);
 
             boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(t.getClass());
             boolean isWrapped = isRuntimeExceptionAndNoSubtype && t.getCause() != null;
 
-            var msg = msgs.getErr(id, isWrapped ? t.getCause() : t);
+            var msg = msgs.getErr(curId, isWrapped ? t.getCause() : t);
             kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
 
     private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
-        Asserts.assertNotNull(id.groupId);
-        Asserts.assertNotNull(id.artifactId);
-        Asserts.assertNotNull(id.version);
-
-        var groupId = id.groupId.strip();
-        var artifactId = id.artifactId.strip();
-        var version = id.version.strip();
-        var coord = asMavenCoordinate(groupId, artifactId, version);
-
-        String artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
+        var coord = asMavenCoordinate(id);
+        var artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
         if (id.artifactRepository != null) {
             var val = id.artifactRepository.strip();
             if (!val.isEmpty()) {
@@ -131,17 +138,19 @@ public class Main implements Plugin {
         return new ResolutionResult(coord, artifactRepository);
     }
 
-    private static String asMavenCoordinate(String groupId, String artifactId, String version) {
+    private static String asMavenCoordinate(MavenId id) {
+        Asserts.assertNotNull(id.groupId);
+        Asserts.assertNotNull(id.artifactId);
+        Asserts.assertNotNull(id.version);
+
+        var groupId = id.groupId.strip();
+        var artifactId = id.artifactId.strip();
+        var version = id.version.strip();
         // packing type is unknown
         return String.format("%s:%s:?:%s", groupId, artifactId, version);
     }
 
-    private void process(ResolutionResult artifact, Lane lane, MavenId originalInput, Set<String> ingested) {
-        var shouldSkip = ingested.contains(artifact.coordinate) || hasBeenIngested(artifact.coordinate, lane);
-        if (shouldSkip) {
-            LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
-            return;
-        }
+    private void process(ResolutionResult artifact, Lane lane) {
         LOG.info("Processing {} ...", artifact.coordinate);
         delayExecutionToPreventThrottling();
 
@@ -162,8 +171,8 @@ public class Main implements Plugin {
         store(result, lane, consumedAt);
 
         // for performance (and to prevent cycles), remember visited coordinates in-mem
-        ingested.add(artifact.coordinate);
-        ingested.add(result.toCoordinate());
+        memMarkAsIngestedPackage(artifact.coordinate, lane);
+        memMarkAsIngestedPackage(result.toCoordinate(), lane);
 
         // resolve dependencies to
         // 1) have dependencies
@@ -173,13 +182,8 @@ public class Main implements Plugin {
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {
-            if (ingested.contains(dep.coordinate)) {
-                LOG.warn("Detected cyclic dependency, skipping coordinate {}", dep.coordinate);
-                return;
-            }
-
-            runAndCatch(originalInput, () -> {
-                process(dep, lane, originalInput, new HashSet<>(ingested));
+            runAndCatch(dep, lane, () -> {
+                process(dep, lane);
             });
         });
 
@@ -190,7 +194,7 @@ public class Main implements Plugin {
 
     private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
         LOG.debug("Finished: {}", result);
-        if (hasBeenIngested(result.toCoordinate(), lane)) {
+        if (existsInDatabase(result.toCoordinate(), lane)) {
             // reduce the opportunity for race-conditions by re-checking before storing
             return;
         }
@@ -200,8 +204,26 @@ public class Main implements Plugin {
         kafka.publish(m, args.kafkaOut, lane);
     }
 
-    private boolean hasBeenIngested(String coordinate, Lane lane) {
-        return lane == Lane.NORMAL
+    private boolean shouldSkip(String coordinate, Lane lane) {
+        return existsInMemory(coordinate, lane) || existsInDatabase(coordinate, lane);
+    }
+
+    private void memMarkAsIngestedPackage(String coord, Lane lane) {
+        ingested.add(toKey(coord, lane));
+    }
+
+    private static String toKey(String coordinate, Lane lane) {
+        return format("%s-%s", coordinate, lane);
+    }
+
+    private boolean existsInMemory(String coordinate, Lane lane) {
+        return lane == NORMAL
+                ? ingested.contains(toKey(coordinate, NORMAL)) || ingested.contains(toKey(coordinate, PRIORITY))
+                : ingested.contains(toKey(coordinate, lane));
+    }
+
+    private boolean existsInDatabase(String coordinate, Lane lane) {
+        return lane == NORMAL
                 ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY)
                 : db.hasPackageBeenIngested(coordinate, lane);
     }
