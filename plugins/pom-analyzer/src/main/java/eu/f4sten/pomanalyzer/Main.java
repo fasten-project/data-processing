@@ -47,6 +47,7 @@ import eu.fasten.core.utils.Asserts;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final int EXEC_DELAY_MS = 2000;
 
     private final MavenRepositoryUtils repo;
     private final EffectiveModelBuilder modelBuilder;
@@ -142,6 +143,7 @@ public class Main implements Plugin {
             return;
         }
         LOG.info("Processing {} ...", artifact.coordinate);
+        delayExecutionToPreventThrottling();
 
         var consumedAt = new Date();
         kafka.sendHeartbeat();
@@ -202,5 +204,13 @@ public class Main implements Plugin {
         return lane == Lane.NORMAL
                 ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY)
                 : db.hasPackageBeenIngested(coordinate, lane);
+    }
+
+    private static void delayExecutionToPreventThrottling() {
+        try {
+            Thread.sleep(EXEC_DELAY_MS);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
