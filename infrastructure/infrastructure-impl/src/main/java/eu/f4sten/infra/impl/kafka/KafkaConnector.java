@@ -20,11 +20,14 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import java.security.InvalidParameterException;
@@ -50,6 +53,7 @@ public class KafkaConnector {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
+    private static final String MAX_POLL_INTERVAL = valueOf(1000 * 60 * 30); // 30min
 
     private final String activePlugin;
     private final InfraArgs args;
@@ -78,12 +82,17 @@ public class KafkaConnector {
         p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
         p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
 
+        // make sure to set group.{min, max}.session.timeout.ms for brokers
+        p.setProperty(SESSION_TIMEOUT_MS_CONFIG, MAX_POLL_INTERVAL);
+        p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL);
+
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
             if (instanceIds.contains(instanceId)) {
                 throw new InvalidParameterException("instance id already exists " + instanceId);
             }
             instanceIds.add(instanceId);
+            p.setProperty(CLIENT_ID_CONFIG, instanceId);
             p.setProperty(GROUP_INSTANCE_ID_CONFIG, instanceId);
             LOG.info("Enabling static membership (instance id: {})", instanceId);
         }
