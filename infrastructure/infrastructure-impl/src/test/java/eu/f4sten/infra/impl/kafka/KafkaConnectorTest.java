@@ -19,11 +19,14 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
@@ -116,6 +119,8 @@ public class KafkaConnectorTest {
             expected.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             expected.setProperty(FETCH_MAX_BYTES_CONFIG, Integer.toString(50 * 1024 * 1024));
             expected.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
+            expected.setProperty(SESSION_TIMEOUT_MS_CONFIG, Integer.toString(1000 * 60 * 30));
+            expected.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, Integer.toString(1000 * 60 * 30));
 
             assertEquals(expected, actual);
         }
@@ -125,9 +130,10 @@ public class KafkaConnectorTest {
     public void instanceIdIsSet() {
         infraArgs.instanceId = "X";
         for (var l : Lane.values()) {
-            var actual = sut.getConsumerProperties(l).get(GROUP_INSTANCE_ID_CONFIG);
             var expected = "p-X-" + l;
-            assertEquals(expected, actual);
+            var actual = sut.getConsumerProperties(l);
+            assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+            assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
         }
     }
 
