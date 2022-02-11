@@ -46,13 +46,11 @@ public class ResolverTest {
         fail("Suite is expensive and should only be run locally. Re-enable @Disabled annotation.");
     }
 
-    private Set<String> db;
     private Resolver sut;
 
     @BeforeEach
     public void setup() {
-        db = new HashSet<>();
-        sut = new Resolver(dep -> db.contains(dep));
+        sut = new Resolver();
     }
 
     @Test
@@ -72,23 +70,6 @@ public class ResolverTest {
         var expected = new HashSet<ResolutionResult>();
         expected.add(JSR305);
         expected.add(COMMONS_LANG3);
-        expected.add(REMLA);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void defaultConfigAddsEverything() {
-        sut = new Resolver();
-        resolveDirectDependencies();
-    }
-
-    @Test
-    public void ignoresExistingPackages() {
-        db.add(COMMONS_LANG3.coordinate);
-        var actual = resolveTestPom("basic.pom");
-        var expected = new HashSet<ResolutionResult>();
-        expected.add(JSR305);
         expected.add(REMLA);
 
         assertEquals(expected, actual);
