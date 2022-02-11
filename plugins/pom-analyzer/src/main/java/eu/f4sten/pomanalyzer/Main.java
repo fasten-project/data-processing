@@ -87,7 +87,7 @@ public class Main implements Plugin {
         kafka.subscribe(args.kafkaIn, MavenId.class, (id, lane) -> {
             curId = id;
 
-            LOG.info("Consuming next record {} ...", asMavenCoordinate(id));
+            LOG.info("Consuming next record {} ...", id.asCoordinate());
             LOG.debug("{}", id);
             var artifact = bootstrapFirstResolutionResultFromInput(id);
             runAndCatch(artifact, lane, () -> {
@@ -127,7 +127,6 @@ public class Main implements Plugin {
     }
 
     private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
-        var coord = asMavenCoordinate(id);
         var artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
         if (id.artifactRepository != null) {
             var val = id.artifactRepository.strip();
@@ -135,20 +134,10 @@ public class Main implements Plugin {
                 artifactRepository = val;
             }
         }
-        return new ResolutionResult(coord, artifactRepository);
+        return new ResolutionResult(id.asCoordinate(), artifactRepository);
     }
 
-    private static String asMavenCoordinate(MavenId id) {
-        Asserts.assertNotNull(id.groupId);
-        Asserts.assertNotNull(id.artifactId);
-        Asserts.assertNotNull(id.version);
 
-        var groupId = id.groupId.strip();
-        var artifactId = id.artifactId.strip();
-        var version = id.version.strip();
-        // packing type is unknown
-        return String.format("%s:%s:?:%s", groupId, artifactId, version);
-    }
 
     private void process(ResolutionResult artifact, Lane lane) {
         LOG.info("Processing {} ...", artifact.coordinate);

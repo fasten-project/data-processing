@@ -42,4 +42,12 @@ public class MavenId {
     public String toString() {
         return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
     }
+
+    public String asCoordinate() {
+        return String.format("%s:%s:?:%s", $(groupId), $(artifactId), $(version));
+    }
+
+    private static String $(String s) {
+        return s == null ? "?" : s;
+    }
 }

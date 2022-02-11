@@ -93,6 +93,20 @@ public class MavenIdTest {
         assertTrue(actual.contains("artifactRepository"));
     }
 
+    @Test
+    public void toCoordinateDefault() {
+        var actual = new MavenId().asCoordinate();
+        var expected = "?:?:?:?";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void toCoordinateWithValues() {
+        var actual = someId().asCoordinate();
+        var expected = "g:a:?:v";
+        assertEquals(expected, actual);
+    }
+
     private MavenId someId() {
         var id = new MavenId();
         id.groupId = "g";
