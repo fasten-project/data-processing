@@ -15,8 +15,6 @@
  */
 package eu.f4sten.pomanalyzer;
 
-import static eu.f4sten.infra.kafka.Lane.PRIORITY;
-
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
@@ -32,7 +30,6 @@ import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
 import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
-import eu.f4sten.pomanalyzer.utils.Resolver;
 
 @InjectorConfig
 public class PomAnalyzerInjectorConfig implements IInjectorConfig {
@@ -53,11 +50,6 @@ public class PomAnalyzerInjectorConfig implements IInjectorConfig {
         var c = pc.getNewConnection();
         var dslContext = DSL.using(c, SQLDialect.POSTGRES);
         return new DatabaseUtils(dslContext, json, version);
-    }
-
-    @Provides
-    public Resolver bindResolver(DatabaseUtils dbUtils) {
-        return new Resolver(gapv -> dbUtils.hasPackageBeenIngested(gapv, PRIORITY));
     }
 
     @ProvidesIntoSet
