@@ -75,7 +75,7 @@ public class KafkaConnector {
     public Properties getConsumerProperties(Lane l) {
         Properties p = new Properties();
         p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
-        p.setProperty(GROUP_ID_CONFIG, activePlugin);
+        p.setProperty(GROUP_ID_CONFIG, format("%s-%s", activePlugin, l));
         p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
         p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());

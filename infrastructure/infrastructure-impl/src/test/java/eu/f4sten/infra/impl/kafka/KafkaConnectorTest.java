@@ -18,6 +18,7 @@ package eu.f4sten.infra.impl.kafka;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static java.lang.String.format;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
@@ -54,6 +55,7 @@ import eu.f4sten.infra.kafka.Lane;
 public class KafkaConnectorTest {
 
     private static final String KAFKA_URL = "1.2.3.4:1234";
+    private static final String SOME_PLUGIN = "p";
 
     private LoaderArgs loaderArgs;
     private InfraArgs infraArgs;
@@ -62,7 +64,7 @@ public class KafkaConnectorTest {
     @BeforeEach
     public void setup() {
         loaderArgs = new LoaderArgs();
-        loaderArgs.plugin = "p";
+        loaderArgs.plugin = SOME_PLUGIN;
         infraArgs = new InfraArgs();
         infraArgs.kafkaUrl = KAFKA_URL;
         sut = new KafkaConnector(loaderArgs, infraArgs);
@@ -113,7 +115,7 @@ public class KafkaConnectorTest {
 
             Properties expected = new Properties();
             expected.setProperty(BOOTSTRAP_SERVERS_CONFIG, infraArgs.kafkaUrl);
-            expected.setProperty(GROUP_ID_CONFIG, loaderArgs.plugin);
+            expected.setProperty(GROUP_ID_CONFIG, format("%s-%s", SOME_PLUGIN, l));
             expected.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
             expected.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             expected.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
