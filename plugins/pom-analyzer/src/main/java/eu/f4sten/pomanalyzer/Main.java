@@ -85,14 +85,14 @@ public class Main implements Plugin {
 
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
         kafka.subscribe(args.kafkaIn, MavenId.class, (id, lane) -> {
-            ingested.clear();
             curId = id;
 
-            LOG.info("Consuming next record ...");
+            LOG.info("Consuming next record {} ...", asMavenCoordinate(id));
             LOG.debug("{}", id);
             var artifact = bootstrapFirstResolutionResultFromInput(id);
             runAndCatch(artifact, lane, () -> {
                 if (!artifact.localPomFile.exists()) {
+                    LOG.info("Downloading POM file ...");
                     artifact.localPomFile = repo.downloadPomToTemp(artifact);
                 }
                 process(artifact, lane);
@@ -188,8 +188,8 @@ public class Main implements Plugin {
         });
 
         // to stay crash resilient, only mark in DB once all deps have been processed
-        db.markAsIngestedPackage(artifact.coordinate, lane);
-        db.markAsIngestedPackage(result.toCoordinate(), lane);
+        moveIngestionMarkFromMemToDb(artifact.coordinate, lane);
+        moveIngestionMarkFromMemToDb(result.toCoordinate(), lane);
     }
 
     private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
@@ -210,6 +210,11 @@ public class Main implements Plugin {
 
     private void memMarkAsIngestedPackage(String coord, Lane lane) {
         ingested.add(toKey(coord, lane));
+    }
+
+    private void moveIngestionMarkFromMemToDb(String coord, Lane lane) {
+        db.markAsIngestedPackage(coord, lane);
+        ingested.remove(toKey(coord, lane));
     }
 
     private static String toKey(String coordinate, Lane lane) {
