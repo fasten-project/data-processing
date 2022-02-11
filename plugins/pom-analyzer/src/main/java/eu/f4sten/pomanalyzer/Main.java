@@ -48,7 +48,7 @@ import eu.fasten.core.utils.Asserts;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-    private static final int EXEC_DELAY_MS = 2000;
+    private static final int EXEC_DELAY_MS = 1000;
 
     private final MavenRepositoryUtils repo;
     private final EffectiveModelBuilder modelBuilder;
