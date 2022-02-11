@@ -15,7 +15,6 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static java.lang.String.format;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.COMPILE;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.PROVIDED;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.RUNTIME;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.impl.maven.MavenResolvedArtifactImpl;
 
+import eu.f4sten.pomanalyzer.data.NoArtifactRepositoryException;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
 
 public class Resolver {
@@ -46,9 +46,7 @@ public class Resolver {
                 coordToResult.put(res.coordinate, res);
                 return;
             }
-
-            String msg = "Cannot find artifactRepository for %s.";
-            throw new IllegalStateException(format(msg, res.coordinate));
+            throw new NoArtifactRepositoryException(res.coordinate);
         });
 
         return new HashSet<>(coordToResult.values());
