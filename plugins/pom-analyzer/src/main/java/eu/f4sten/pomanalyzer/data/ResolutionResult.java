@@ -18,10 +18,7 @@ package eu.f4sten.pomanalyzer.data;
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.security.InvalidParameterException;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -38,41 +35,30 @@ public class ResolutionResult {
     public File localPomFile;
 
     public ResolutionResult(String coordinate, String artifactRepository) {
+        validate(coordinate);
         this.localM2Repository = getLocalM2Repository();
         this.coordinate = coordinate;
         this.artifactRepository = artifactRepository;
         this.localPomFile = deriveLocalPomPath(localM2Repository, coordinate);
     }
 
-    public ResolutionResult(String coordinate, String artifactRepository, File localPkg) {
-        this(coordinate, artifactRepository);
-        // pkg can be .pom, .jar, .war, ... but all of them have a corresponding .pom
-        this.localPomFile = changeExtension(localPkg, ".pom");
+    private static void validate(String coordinate) {
+        var parts = coordinate.split(":");
+        if (parts.length != 4) {
+            throw new InvalidParameterException();
+        }
+        for (var i : new int[] { 0, 1, 3 }) {
+            if ("".equals(parts[i]) || "?".equals(parts[i])) {
+                throw new InvalidParameterException();
+            }
+        }
+        if ("".equals(parts[2])) {
+            throw new InvalidParameterException();
+        }
     }
 
     protected File getLocalM2Repository() {
         return MavenRepositoryUtils.getPathOfLocalRepository();
-    }
-
-    public String getPomUrl() {
-        var localPomUri = localPomFile.toURI();
-        var localM2Uri = localM2Repository.toURI();
-        if (!localPomUri.getPath().startsWith(localM2Uri.getPath())) {
-            var msg = "instead of local .m2 folder, file is contained in '%s'";
-            throw new IllegalStateException(String.format(msg, localPomUri));
-        }
-        try {
-            // The '/' in URIs is the correct path separator, no matter the platform.
-            var repoUri = new URI(artifactRepository);
-            var path = localM2Uri.relativize(localPomUri).getPath();
-            if (!repoUri.getPath().endsWith("/")) {
-                path = "/" + path;
-            }
-            return new URL(repoUri.getScheme(), repoUri.getHost(), repoUri.getPort(), repoUri.getPath() + path)
-                    .toString();
-        } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public File getLocalPackageFile() {

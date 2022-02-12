@@ -15,10 +15,6 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.fasten.core.utils.Asserts.assertNotNull;
-import static java.io.File.createTempFile;
-import static org.apache.commons.io.FileUtils.copyURLToFile;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -36,25 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.pomanalyzer.data.ResolutionResult;
 import eu.fasten.core.utils.Asserts;
 
 public class MavenRepositoryUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(MavenRepositoryUtils.class);
     private static final String[] ALLOWED_CLASSIFIERS = new String[] { null, "sources" };
-
-    public File downloadPomToTemp(ResolutionResult artifact) {
-        assertNotNull(artifact);
-        try {
-            var source = new URL(artifact.getPomUrl());
-            File target = createTempFile("pom-analyzer.", ".pom");
-            copyURLToFile(source, target);
-            return target;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * returns url of sources jar if it exists, null otherwise
@@ -77,7 +60,7 @@ public class MavenRepositoryUtils {
             var con = url.openConnection();
             var lastModified = con.getHeaderField("Last-Modified");
             if (lastModified == null) {
-                LOG.error("cannot infer release date, 'Last-Modified' header missing in response for '{}'", url);
+                LOG.error("Cannot infer release date, 'Last-Modified' header missing in response for '{}'", url);
                 return -1;
             }
             var releaseDate = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH).parse(lastModified);
@@ -96,7 +79,7 @@ public class MavenRepositoryUtils {
         }
         Asserts.assertContains(ALLOWED_CLASSIFIERS, classifier);
         var classifierStr = classifier != null ? "-" + classifier : "";
-        if(!r.artifactRepository.endsWith("/")) {
+        if (!r.artifactRepository.endsWith("/")) {
             r.artifactRepository += "/";
         }
         var url = r.artifactRepository + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/"

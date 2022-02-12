@@ -21,6 +21,7 @@ import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.RUNTIME;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.SYSTEM;
 
 import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,15 +29,20 @@ import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.impl.maven.MavenResolvedArtifactImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.f4sten.pomanalyzer.data.NoArtifactRepositoryException;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
+import eu.f4sten.pomanalyzer.data.UnresolvablePomFileException;
 
 public class Resolver {
 
     // Attention: Be aware that the test suite for this class is disabled by default
     // to avoid unnecessary downloads on every build. Make sure to re-enable the
     // tests and run them locally for every change in this class.
+
+    public static final Logger LOG = LoggerFactory.getLogger(Resolver.class);
 
     public Set<ResolutionResult> resolveDependenciesFromPom(File pom) {
         var coordToResult = new HashMap<String, ResolutionResult>();
@@ -77,8 +83,31 @@ public class Resolver {
                     if (!a[1].endsWith("/")) {
                         a[1] += "/";
                     }
-                    return new ResolutionResult(a[0], a[1], new File(a[2]));
+                    return new ResolutionResult(a[0], a[1]);
                 }) //
                 .collect(Collectors.toSet());
+    }
+
+    public void resolveIfNotExisting(ResolutionResult artifact) {
+        if (artifact.localPomFile.exists()) {
+            LOG.info("Found artifact in .m2 folder: {} ({})", artifact.coordinate, artifact.artifactRepository);
+            return;
+        }
+        LOG.info("Resolving/downloading POM file that does not exist in .m2 folder ...");
+        resolvePom(artifact);
+        if (!artifact.localPomFile.exists()) {
+            throw new UnresolvablePomFileException(artifact.toString());
+        }
+    }
+
+    private void resolvePom(ResolutionResult artifact) {
+        var repoName = String.format("%s.%d", Resolver.class.getName(), new Date().getTime());
+        Maven.configureResolver() //
+                .withClassPathResolution(false) //
+                .withMavenCentralRepo(false) //
+                .withRemoteRepo(repoName, artifact.artifactRepository, "default") //
+                .resolve(artifact.coordinate.replace("?", "pom")) //
+                .withoutTransitivity() //
+                .asResolvedArtifact();
     }
 }
