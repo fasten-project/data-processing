@@ -33,21 +33,26 @@ public class Main {
     }
 
     public static void main(String[] rawArgs) {
+        try {
+            // setup logging
+            var argsParser = new ArgsParser(rawArgs);
+            var args = argsParser.parse(LoaderArgs.class);
+            AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
+            new LoggingUtils(args.logLevel);
+            getLogger(Main.class).info("Starting plugin {} ...", args.plugin);
 
-        // setup logging
-        var argsParser = new ArgsParser(rawArgs);
-        var args = argsParser.parse(LoaderArgs.class);
-        AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
-        new LoggingUtils(args.logLevel);
-        getLogger(Main.class).info("Starting plugin {} ...", args.plugin);
+            // find classes
+            var ru = new ReflectionUtils("eu.f4sten", InjectorConfig.class, argsParser);
+            var modules = ru.loadModules();
+            var pluginClass = ru.findPluginClass(args.plugin);
 
-        // find classes
-        var ru = new ReflectionUtils("eu.f4sten", InjectorConfig.class, argsParser);
-        var modules = ru.loadModules();
-        var pluginClass = ru.findPluginClass(args.plugin);
-
-        // setup injector and run requested plugin
-        var injector = Guice.createInjector(modules);
-        injector.getInstance(pluginClass).run();
+            // setup injector and run requested plugin
+            var injector = Guice.createInjector(modules);
+            injector.getInstance(pluginClass).run();
+        } catch (Error e) {
+            e.printStackTrace();
+            // make sure to tear down VM, including all running threads
+            System.exit(1);
+        }
     }
 }
