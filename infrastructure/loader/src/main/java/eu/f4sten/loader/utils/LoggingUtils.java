@@ -30,6 +30,8 @@ public class LoggingUtils {
     public void setLogLevel(LogLevel level) {
         // slf4j-simple
         System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, level.slf4j);
+        System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_DATE_TIME_KEY, "true");
+        System.setProperty(org.slf4j.impl.SimpleLogger.DATE_TIME_FORMAT_KEY, "yyyy-MM-dd HH:mm:ss.SSS");
 
         // jul
         var lm = LogManager.getLogManager();
