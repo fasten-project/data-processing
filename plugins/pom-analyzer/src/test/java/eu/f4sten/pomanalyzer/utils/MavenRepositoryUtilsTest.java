@@ -16,9 +16,7 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
-import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -26,9 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.nio.file.Path;
 import java.util.Date;
 
@@ -42,13 +38,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.pomanalyzer.data.ResolutionResult;
-import io.github.artsok.RepeatedIfExceptionsTest;
 
 public class MavenRepositoryUtilsTest {
 
     private static final String ARTIFACT_REPO = "http://127.0.0.1:1234";
-    private static final String SOME_COORD = "gid:aid:jar:0.1.2";
     private static final String SOME_CONTENT = "<some content>";
 
     @TempDir
@@ -79,57 +72,6 @@ public class MavenRepositoryUtilsTest {
     public void teardown() {
         FileUtils.deleteQuietly(dirHttpd);
         dirHttpd.mkdir();
-    }
-
-    @Test
-    public void downloadPoms() {
-        webContent(SOME_CONTENT, "some", "coord.pom");
-
-        var f = inM2("some", "coord.pom");
-        var a = newResolutionResult(SOME_COORD, ARTIFACT_REPO, f);
-
-        String actual = downloadAndRead(a);
-        assertEquals(SOME_CONTENT, actual);
-    }
-
-    @Test
-    public void downloadPomsForJars() {
-        webContent(SOME_CONTENT, "some", "coord.pom");
-
-        var f = inM2("some", "coord.jar");
-        var a = newResolutionResult(SOME_COORD, ARTIFACT_REPO, f);
-
-        String actual = downloadAndRead(a);
-        assertEquals(SOME_CONTENT, actual);
-    }
-
-    // this test is flaky in Windows builds
-    @RepeatedIfExceptionsTest(repeats = 3, exceptions = ConnectException.class)
-    public void nonExistingPom() {
-        var e = assertThrows(RuntimeException.class, () -> {
-            var f = inM2("some", "coord.pom");
-            var a = newResolutionResult(SOME_COORD, ARTIFACT_REPO, f);
-            sut.downloadPomToTemp(a);
-        });
-        var isFlakyCrash = IS_OS_WINDOWS && e.getCause() instanceof ConnectException;
-        if (isFlakyCrash) {
-            System.err.println("[WARN] Flaky test on Windows was unable to connect");
-            return;
-        }
-        assertEquals(FileNotFoundException.class, e.getCause().getClass());
-    }
-
-    private File inM2(String... path) {
-        return Path.of(dirM2.getAbsolutePath(), path).toFile();
-    }
-
-    private ResolutionResult newResolutionResult(String someCoord, String artifactRepo, File f) {
-        return new ResolutionResult(someCoord, artifactRepo, f) {
-            @Override
-            protected File getLocalM2Repository() {
-                return dirM2;
-            }
-        };
     }
 
     @Test
@@ -269,17 +211,6 @@ public class MavenRepositoryUtilsTest {
         par.packagingType = "jar";
         par.version = "1.2.3";
         return par;
-    }
-
-    private String downloadAndRead(ResolutionResult a) {
-        try {
-            File out = sut.downloadPomToTemp(a);
-            assertTrue(out.exists());
-            assertTrue(out.isFile());
-            return readFileToString(out, UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void webContent(String content, String... path) {

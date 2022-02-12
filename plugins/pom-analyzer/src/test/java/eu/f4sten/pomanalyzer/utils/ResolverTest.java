@@ -15,9 +15,9 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -27,12 +27,14 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.shrinkwrap.resolver.api.NoResolvedResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
+import eu.f4sten.test.TestLoggerUtils;
 import eu.fasten.core.utils.TestUtils;
 
 // The artifact source resolution breaks caching mechanisms by deleting packages from the
@@ -40,6 +42,8 @@ import eu.fasten.core.utils.TestUtils;
 // dependencies over-and-over again on every build. Enable this test only for local tests.
 @Disabled
 public class ResolverTest {
+
+    private static final String MAVEN_CENTRAL = "https://repo.maven.apache.org/maven2/";
 
     @Test
     public void reminderToReenableDisabledAnnotationOnClass() {
@@ -51,6 +55,54 @@ public class ResolverTest {
     @BeforeEach
     public void setup() {
         sut = new Resolver();
+        TestLoggerUtils.clearLog();
+    }
+
+    @Test
+    public void pomResolution() {
+        var jar = new ResolutionResult("io.vertx:vertx-core:jar:4.2.4", MAVEN_CENTRAL);
+
+        for (var packaging : new String[] { "?", "pom", "jar" }) {
+            var gapv = format("io.vertx:vertx-core:%s:4.2.4", packaging);
+            var r = new ResolutionResult(gapv, MAVEN_CENTRAL);
+
+            FileUtils.deleteQuietly(r.localPomFile);
+            FileUtils.deleteQuietly(r.getLocalPackageFile());
+            assertFalse(r.localPomFile.exists());
+            assertFalse(r.getLocalPackageFile().exists());
+
+            sut.resolveIfNotExisting(r);
+            assertTrue(r.localPomFile.exists(), r.localPomFile.toString());
+            if (!"?".equals(packaging)) {
+                assertTrue(jar.getLocalPackageFile().exists());
+            }
+        }
+    }
+
+    @Test
+    public void pomResolutionFailureHandling() {
+        var r = new ResolutionResult("g:a:?:1", "http://non.existing.repo/m2/");
+        assertThrows(NoResolvedResultException.class, () -> sut.resolveIfNotExisting(r));
+    }
+
+    @Test
+    public void pomResolutionLogging_NeedResolution() {
+        var r = new ResolutionResult("io.vertx:vertx-core:jar:4.2.4", MAVEN_CENTRAL);
+        FileUtils.deleteQuietly(r.localPomFile);
+        FileUtils.deleteQuietly(r.getLocalPackageFile());
+        sut.resolveIfNotExisting(r);
+        TestLoggerUtils.assertLogsContain(Resolver.class,
+                "INFO Resolving/downloading POM file that does not exist in .m2 folder ...");
+    }
+
+    @Test
+    public void pomResolutionLogging_PreExists() {
+        var r = new ResolutionResult("io.vertx:vertx-core:jar:4.2.4", MAVEN_CENTRAL);
+        sut.resolveIfNotExisting(r);
+        TestLoggerUtils.clearLog();
+        sut.resolveIfNotExisting(r);
+        TestLoggerUtils.assertLogsContain(Resolver.class,
+                "INFO Found artifact in .m2 folder: io.vertx:vertx-core:jar:4.2.4 (%s)", MAVEN_CENTRAL);
     }
 
     @Test
@@ -118,65 +170,39 @@ public class ResolverTest {
 
     private static final ResolutionResult JSR305 = new ResolutionResult(//
             "com.google.code.findbugs:jsr305:jar:3.0.2", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult SLF4J = new ResolutionResult(//
             "org.slf4j:slf4j-api:jar:1.7.32", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult COMMONS_LANG3 = new ResolutionResult(//
             "org.apache.commons:commons-lang3:jar:3.9", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/org/apache/commons/commons-lang3/3.9/commons-lang3-3.9.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult COMMONS_TEXT = new ResolutionResult(//
             "org.apache.commons:commons-text:jar:1.8", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/org/apache/commons/commons-text/1.8/commons-text-1.8.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult OKIO = new ResolutionResult(//
             "com.squareup.okio:okio:jar:3.0.0", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/com/squareup/okio/okio/3.0.0/okio-3.0.0.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult OSS_PARENT = new ResolutionResult(//
             "org.sonatype.oss:oss-parent:jar:2.6.3", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/org/sonatype/oss/oss-parent/9/oss-parent-9.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult JUNIT = new ResolutionResult(//
             "org.junit.jupiter:junit-jupiter-api:jar:5.8.2", //
-            "https://repo.maven.apache.org/maven2/", //
-            new File("/org/junit/jupiter/junit-jupiter-api/5.8.2/junit-jupiter-api-5.8.2.pom"));
+            MAVEN_CENTRAL);
 
     private static final ResolutionResult REMLA = new ResolutionResult(//
             "remla:mylib:jar:0.0.5", //
-            "https://gitlab.com/api/v4/projects/26117144/packages/maven/", //
-            new File("/remla/mylib/0.0.5/mylib-0.0.5.pom"));
+            "https://gitlab.com/api/v4/projects/26117144/packages/maven/");
 
     private Set<ResolutionResult> resolveTestPom(String pathToPom) {
         var fullPath = Path.of(ResolverTest.class.getSimpleName(), pathToPom);
         File pom = TestUtils.getTestResource(fullPath.toString());
-        Set<ResolutionResult> actual = sut.resolveDependenciesFromPom(pom);
-        actual.forEach(rr -> {
-            rr.localPomFile = stripLocalBasePath(rr.localPomFile);
-        });
-        // make sure hash-buckets are updated after mutation
-        return new HashSet<>(actual);
-    }
-
-    private static File stripLocalBasePath(File f) {
-        assertNotNull(f);
-        assertTrue(f.exists());
-        assertTrue(f.isFile());
-
-        String p = f.getAbsolutePath();
-        String marker = File.separator + ".m2" + File.separator + "repository" + File.separator;
-        int idx = p.indexOf(marker);
-        assertTrue(idx > 0);
-
-        return new File(p.substring(idx + marker.length() - 1));
+        return sut.resolveDependenciesFromPom(pom);
     }
 }

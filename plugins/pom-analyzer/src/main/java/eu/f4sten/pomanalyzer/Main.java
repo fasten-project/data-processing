@@ -91,10 +91,7 @@ public class Main implements Plugin {
             LOG.debug("{}", id);
             var artifact = bootstrapFirstResolutionResultFromInput(id);
             runAndCatch(artifact, lane, () -> {
-                if (!artifact.localPomFile.exists()) {
-                    LOG.info("Downloading POM file ...");
-                    artifact.localPomFile = repo.downloadPomToTemp(artifact);
-                }
+                resolver.resolveIfNotExisting(artifact);
                 process(artifact, lane);
             });
         });
