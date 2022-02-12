@@ -19,6 +19,7 @@ import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static eu.f4sten.infra.kafka.Lane.PRIORITY;
 import static java.lang.String.format;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +60,9 @@ public class Main implements Plugin {
     private final MessageGenerator msgs;
     private final PackagingFixer fixer;
 
+    private final Date startedAt = new Date();
     private final Set<String> ingested = new HashSet<>();
+
     private MavenId curId;
 
     @Inject
@@ -134,7 +137,9 @@ public class Main implements Plugin {
     }
 
     private void process(ResolutionResult artifact, Lane lane) {
-        LOG.info("Processing {} ...  (dependency of: {})", artifact.coordinate, curId.asCoordinate());
+        var duration = Duration.between(startedAt.toInstant(), new Date().toInstant());
+        var msg = "Processing {} ... (dependency of: {}, started at: {}, duration: {})";
+        LOG.info(msg, artifact.coordinate, curId.asCoordinate(), startedAt, duration);
 
         delayExecutionToPreventThrottling();
 
