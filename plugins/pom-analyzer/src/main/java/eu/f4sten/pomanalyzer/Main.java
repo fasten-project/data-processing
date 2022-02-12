@@ -43,7 +43,6 @@ import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.fasten.core.maven.utils.MavenUtilities;
-import eu.fasten.core.utils.Asserts;
 
 public class Main implements Plugin {
 
@@ -134,10 +133,9 @@ public class Main implements Plugin {
         return new ResolutionResult(id.asCoordinate(), artifactRepository);
     }
 
-
-
     private void process(ResolutionResult artifact, Lane lane) {
-        LOG.info("Processing {} ...", artifact.coordinate);
+        LOG.info("Processing {} ...  (dependency of: {})", artifact.coordinate, curId.asCoordinate());
+
         delayExecutionToPreventThrottling();
 
         var consumedAt = new Date();
