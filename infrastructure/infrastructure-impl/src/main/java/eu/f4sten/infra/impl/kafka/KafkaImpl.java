@@ -207,10 +207,10 @@ public class KafkaImpl implements Kafka {
             try {
                 obj = deserializer.apply(json);
                 callback.accept(obj, lane);
-            } catch (Throwable t) {
-                LOG.error("Unhandled exception in callback", t);
+            } catch (Exception e) {
+                LOG.error("Unhandled exception in callback", e);
                 var baseTopic = baseTopics.get(combinedTopic);
-                var err = errors.apply(obj, t);
+                var err = errors.apply(obj, e);
                 // check instance equality!
                 if (err != NONE) {
                     publish(err, baseTopic, ERROR);

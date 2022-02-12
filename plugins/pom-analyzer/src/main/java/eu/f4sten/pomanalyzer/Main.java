@@ -107,17 +107,17 @@ public class Main implements Plugin {
                 return;
             }
             r.run();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             // if execution crashes, prevent re-try for both lanes
             memMarkAsIngestedPackage(artifact.coordinate, NORMAL);
             memMarkAsIngestedPackage(artifact.coordinate, PRIORITY);
 
-            LOG.warn("Execution failed for (original) input: {}", curId, t);
+            LOG.warn("Execution failed for (original) input: {}", curId, e);
 
-            boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(t.getClass());
-            boolean isWrapped = isRuntimeExceptionAndNoSubtype && t.getCause() != null;
+            boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(e.getClass());
+            boolean isWrapped = isRuntimeExceptionAndNoSubtype && e.getCause() != null;
 
-            var msg = msgs.getErr(curId, isWrapped ? t.getCause() : t);
+            var msg = msgs.getErr(curId, isWrapped ? e.getCause() : e);
             kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
