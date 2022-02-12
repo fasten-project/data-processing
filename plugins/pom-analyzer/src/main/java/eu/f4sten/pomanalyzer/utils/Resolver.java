@@ -64,6 +64,7 @@ public class Resolver {
             MavenResolvedArtifactImpl.artifactRepositories = res;
             Maven.configureResolver() //
                     .withClassPathResolution(false) //
+                    .withRemoteRepo(getRepo(artifactRepository)) //
                     .loadPomFromFile(f) //
                     .importDependencies(COMPILE, RUNTIME, PROVIDED, SYSTEM) //
                     .resolve() //
@@ -104,10 +105,21 @@ public class Resolver {
         var repoName = String.format("%s.%d", Resolver.class.getName(), new Date().getTime());
         Maven.configureResolver() //
                 .withClassPathResolution(false) //
-                .withMavenCentralRepo(false) //
-                .withRemoteRepo(repoName, artifact.artifactRepository, "default") //
+                .withRemoteRepo(getRepo(artifact.artifactRepository)) //
                 .resolve(artifact.coordinate.replace("?", "pom")) //
                 .withoutTransitivity() //
                 .asResolvedArtifact();
+    }
+
+    private static MavenRemoteRepository getRepo(String url) {
+        return MavenRemoteRepositories //
+                .createRemoteRepository(getRepoName(url), url, "default") //
+                .setChecksumPolicy(MavenChecksumPolicy.CHECKSUM_POLICY_WARN) //
+                .setUpdatePolicy(MavenUpdatePolicy.UPDATE_POLICY_NEVER);
+    }
+
+    private static String getRepoName(String url) {
+        var simplifiedUrl = url.replaceAll("[^a-zA-Z0-9-]+", "");
+        return format("%s-%s", Resolver.class.getName(), simplifiedUrl);
     }
 }
