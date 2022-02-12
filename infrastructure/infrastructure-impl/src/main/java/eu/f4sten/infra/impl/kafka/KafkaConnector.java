@@ -61,7 +61,10 @@ public class KafkaConnector {
 
     @Inject
     public KafkaConnector(LoaderArgs loaderArgs, InfraArgs infraArgs) {
-        this.activePlugin = loaderArgs.plugin;
+        var activePlugin = loaderArgs.plugin.replace("eu.f4sten.", "");
+        this.activePlugin = activePlugin.endsWith(".Main") //
+                ? activePlugin.replace(".Main", "") //
+                : activePlugin;
         this.args = infraArgs;
         assertFor(infraArgs) //
                 .notNull(a -> a.kafkaUrl, "kafka url") //
@@ -75,7 +78,7 @@ public class KafkaConnector {
     public Properties getConsumerProperties(Lane l) {
         Properties p = new Properties();
         p.setProperty(BOOTSTRAP_SERVERS_CONFIG, args.kafkaUrl);
-        p.setProperty(GROUP_ID_CONFIG, format("%s-%s", activePlugin, l));
+        p.setProperty(GROUP_ID_CONFIG, getGroupId(l));
         p.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
         p.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -99,11 +102,17 @@ public class KafkaConnector {
         return p;
     }
 
+    private String getGroupId(Lane lane) {
+        var suffix = lane == Lane.PRIORITY ? "-prio" : "";
+        return format("%s%s", activePlugin, suffix);
+    }
+
     private String getFullInstanceId(Lane lane) {
         if (args.instanceId == null) {
             return null;
         }
-        return format("%s-%s-%s", activePlugin, args.instanceId, lane);
+        var suffix = lane == Lane.PRIORITY ? "-prio" : "";
+        return format("%s-%s%s", activePlugin, args.instanceId, suffix);
     }
 
     public KafkaProducer<String, String> getProducerConnection() {

@@ -18,7 +18,7 @@ package eu.f4sten.infra.impl.kafka;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
-import static java.lang.String.format;
+import static eu.f4sten.infra.kafka.Lane.PRIORITY;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
@@ -115,7 +115,9 @@ public class KafkaConnectorTest {
 
             Properties expected = new Properties();
             expected.setProperty(BOOTSTRAP_SERVERS_CONFIG, infraArgs.kafkaUrl);
-            expected.setProperty(GROUP_ID_CONFIG, format("%s-%s", SOME_PLUGIN, l));
+            expected.setProperty(GROUP_ID_CONFIG, l == Lane.PRIORITY //
+                    ? SOME_PLUGIN + "-prio" //
+                    : SOME_PLUGIN);
             expected.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
             expected.setProperty(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             expected.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -129,14 +131,90 @@ public class KafkaConnectorTest {
     }
 
     @Test
-    public void instanceIdIsSet() {
+    public void groupIdRemovesPartialPackage() {
+
+        loaderArgs.plugin = "eu.f4sten.p";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        var actual = sut.getConsumerProperties(PRIORITY).getProperty(GROUP_ID_CONFIG);
+        var expected = "p-prio";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void groupIdRemovesMainClass() {
+
+        loaderArgs.plugin = "q.Main";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        var actual = sut.getConsumerProperties(PRIORITY).getProperty(GROUP_ID_CONFIG);
+        var expected = "q-prio";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void groupIdDoesNotRemoveMainInTheMiddle() {
+
+        loaderArgs.plugin = "q.Main.foo";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        var actual = sut.getConsumerProperties(PRIORITY).getProperty(GROUP_ID_CONFIG);
+        var expected = "q.Main.foo-prio";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void instanceIdIsSetNormal() {
         infraArgs.instanceId = "X";
-        for (var l : Lane.values()) {
-            var expected = "p-X-" + l;
-            var actual = sut.getConsumerProperties(l);
-            assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
-            assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
-        }
+        var expected = "p-X";
+        var actual = sut.getConsumerProperties(Lane.NORMAL);
+        assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+        assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
+    }
+
+    @Test
+    public void instanceIdIsSetPriority() {
+        infraArgs.instanceId = "X";
+        var expected = "p-X-prio";
+        var actual = sut.getConsumerProperties(Lane.PRIORITY);
+        assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+        assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
+    }
+
+    @Test
+    public void instanceIdRemovesPartialPackage() {
+        loaderArgs.plugin = "eu.f4sten.p";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        infraArgs.instanceId = "X";
+        var expected = "p-X-prio";
+        var actual = sut.getConsumerProperties(Lane.PRIORITY);
+        assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+        assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
+    }
+
+    @Test
+    public void instanceIdRemovesMainClass() {
+        loaderArgs.plugin = "q.Main";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        infraArgs.instanceId = "X";
+        var expected = "q-X-prio";
+        var actual = sut.getConsumerProperties(Lane.PRIORITY);
+        assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+        assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
+    }
+
+    @Test
+    public void instanceIdDoesNotRemoveMainInTheMiddle() {
+        loaderArgs.plugin = "q.Main.foo";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        infraArgs.instanceId = "X";
+        var expected = "q.Main.foo-X-prio";
+        var actual = sut.getConsumerProperties(Lane.PRIORITY);
+        assertEquals(expected, actual.get(CLIENT_ID_CONFIG));
+        assertEquals(expected, actual.get(GROUP_INSTANCE_ID_CONFIG));
     }
 
     @Test
@@ -151,6 +229,15 @@ public class KafkaConnectorTest {
     @Test
     public void smokeTestCanConstructProducerAndConsumer() {
         assertNotNull(sut.getConsumerConnection(NORMAL));
+        assertNotNull(sut.getConsumerConnection(PRIORITY));
+        assertNotNull(sut.getProducerConnection());
+    }
+
+    @Test
+    public void smokeTestCanConstructProducerAndConsumerWithInstanceId() {
+        infraArgs.instanceId = "X";
+        assertNotNull(sut.getConsumerConnection(NORMAL));
+        assertNotNull(sut.getConsumerConnection(PRIORITY));
         assertNotNull(sut.getProducerConnection());
     }
 }
