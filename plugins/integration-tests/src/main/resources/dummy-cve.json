@@ -1,0 +1,22 @@
+{
+  "id": "CVE-dummy",
+  "scoreCVSS2": 7.2,
+  "scoreCVSS3": 6.8,
+  "vectorCVSS2": "",
+  "vectorCVSS3": "",
+  "severity": "HIGH",
+  "description": "This is a dummy CVE entry for testing",
+  "references": [],
+  "exploits": [],
+  "vulnerable_purls": [
+    "cpe:2.3:o:dummy@v0.1"
+  ],
+  "base_cpe": "cpe:2.3:o:dummy",
+  "first_patched_purls": [],
+  "cwes": [],
+  "published_date": "2022-01-11",
+  "last_modified_date": "2022-01-19",
+  "patch_date": null,
+  "patch_links": [],
+  "vulnerable_fasten_uris": null
+}
