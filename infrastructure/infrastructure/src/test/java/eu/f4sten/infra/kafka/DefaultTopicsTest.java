@@ -25,5 +25,7 @@ public class DefaultTopicsTest {
     public void defaultValues() {
         assertEquals("fasten.mvn.releases", DefaultTopics.INGEST);
         assertEquals("fasten.POMAnalyzer", DefaultTopics.POM_ANALYZER);
+        assertEquals("fasten.CallableIndexFastenPlugin", DefaultTopics.CALLABLE_INDEXER);
+        assertEquals("fasten.VulChainFinder", DefaultTopics.VUL_CHAIN_FINDER);
     }
 }
