@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>vulnerable-chain-finder</module>
         <module>examples</module>
         <module>maven-crawler</module>
         <module>pom-analyzer</module>
