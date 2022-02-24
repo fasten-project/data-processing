@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import com.google.inject.Guice;
 
 import eu.f4sten.infra.AssertArgs;
+import eu.f4sten.infra.AssertArgsError;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.LoaderArgs;
 import eu.f4sten.loader.utils.ArgsParser;
@@ -49,6 +50,8 @@ public class Main {
             // setup injector and run requested plugin
             var injector = Guice.createInjector(modules);
             injector.getInstance(pluginClass).run();
+        } catch (AssertArgsError e) {
+            System.exit(1);
         } catch (Throwable t) {
             getLogger(Main.class).warn("Throwable caught in main loader class, shutting down VM ...");
             t.printStackTrace();

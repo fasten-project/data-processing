@@ -15,7 +15,6 @@
  */
 package eu.f4sten.infra.impl.kafka;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static eu.f4sten.infra.kafka.Lane.PRIORITY;
@@ -45,8 +44,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.stefanbirkner.systemlambda.SystemLambda;
-
+import eu.f4sten.infra.AssertArgsError;
 import eu.f4sten.infra.LoaderArgs;
 import eu.f4sten.infra.impl.InfraArgs;
 import eu.f4sten.infra.kafka.Lane;
@@ -73,7 +71,7 @@ public class KafkaConnectorTest {
     public void inputValidationKafkaUrlMustNotBeNull() throws Exception {
         var infraArgs = new InfraArgs();
         var out = tapSystemOut(() -> {
-            SystemLambda.catchSystemExit(() -> {
+            assertThrows(AssertArgsError.class, () -> {
                 new KafkaConnector(loaderArgs, infraArgs);
             });
         });
@@ -87,7 +85,7 @@ public class KafkaConnectorTest {
 
         infraArgs.instanceId = "";
         var out = tapSystemOut(() -> {
-            catchSystemExit(() -> {
+            assertThrows(AssertArgsError.class, () -> {
                 new KafkaConnector(loaderArgs, infraArgs);
             });
         });

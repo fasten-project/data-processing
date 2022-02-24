@@ -77,7 +77,7 @@ public class AssertArgs {
             var jc = new JCommander(defaultArgObj);
             jc.setUsageFormatter(new MyUsageFormatter(jc));
             jc.usage();
-            System.exit(1);
+            throw new AssertArgsError();
         }
 
         private static <T> Object newInstance(T obj) {
