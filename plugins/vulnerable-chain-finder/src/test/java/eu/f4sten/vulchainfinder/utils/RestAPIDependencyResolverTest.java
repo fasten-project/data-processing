@@ -117,6 +117,8 @@ class RestAPIDependencyResolverTest {
         try {
             RESOLVER_WITH_SLASH.sendOrThrow(any());
         } catch (RuntimeException ignored) {
+            // This catch is ignored. It only helps us check if the send method is called
+            System.out.println();
         }
         verify(MOCK_CLIENT, times(1)).send(any(), any());
     }
