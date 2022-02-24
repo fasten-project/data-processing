@@ -49,8 +49,9 @@ public class Main {
             // setup injector and run requested plugin
             var injector = Guice.createInjector(modules);
             injector.getInstance(pluginClass).run();
-        } catch (Error e) {
-            e.printStackTrace();
+        } catch (Throwable t) {
+            getLogger(Main.class).warn("Throwable caught in main loader class, shutting down VM ...");
+            t.printStackTrace();
             // make sure to tear down VM, including all running threads
             System.exit(1);
         }
