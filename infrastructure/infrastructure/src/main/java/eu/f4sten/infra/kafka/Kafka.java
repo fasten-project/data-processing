@@ -24,6 +24,8 @@ public interface Kafka {
 
     void sendHeartbeat();
 
+    void stop();
+
     <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback);
 
     <T> void subscribe(String topic, Class<T> type, BiConsumer<T, Lane> callback, BiFunction<T, Throwable, ?> errors);

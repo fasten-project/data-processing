@@ -95,45 +95,45 @@ public class KafkaImplTest {
     @Test
     public void subscribesEndUpAtConnection_Class() {
         sut.subscribe("t", String.class, SOME_CB);
-        verify(consumerNorm).subscribe(Set.of("t.out"));
-        verify(consumerPrio).subscribe(Set.of("t.priority.out"));
+        verifySubscribe(consumerNorm, "t.out");
+        verifySubscribe(consumerPrio, "t.priority.out");
 
         sut.subscribe("t2", String.class, SOME_CB);
-        verify(consumerNorm, times(2)).subscribe(Set.of("t.out", "t2.out"));
-        verify(consumerPrio, times(2)).subscribe(Set.of("t.priority.out", "t2.priority.out"));
+        verifySubscribe(consumerNorm, 2, "t.out", "t2.out");
+        verifySubscribe(consumerPrio, 2, "t.priority.out", "t2.priority.out");
     }
 
     @Test
     public void subscribesEndUpAtConnection_ClassErr() {
         sut.subscribe("t", String.class, SOME_CB, SOME_ERR_CB);
-        verify(consumerNorm).subscribe(Set.of("t.out"));
-        verify(consumerPrio).subscribe(Set.of("t.priority.out"));
+        verifySubscribe(consumerNorm, "t.out");
+        verifySubscribe(consumerPrio, "t.priority.out");
 
         sut.subscribe("t2", String.class, SOME_CB, SOME_ERR_CB);
-        verify(consumerNorm, times(2)).subscribe(Set.of("t.out", "t2.out"));
-        verify(consumerPrio, times(2)).subscribe(Set.of("t.priority.out", "t2.priority.out"));
+        verifySubscribe(consumerNorm, 2, "t.out", "t2.out");
+        verifySubscribe(consumerPrio, 2, "t.priority.out", "t2.priority.out");
     }
 
     @Test
     public void subscribesEndUpAtConnection_TRef() {
         sut.subscribe("t", T_STRING, SOME_CB);
-        verify(consumerNorm).subscribe(Set.of("t.out"));
-        verify(consumerPrio).subscribe(Set.of("t.priority.out"));
+        verifySubscribe(consumerNorm, "t.out");
+        verifySubscribe(consumerPrio, "t.priority.out");
 
         sut.subscribe("t2", T_STRING, SOME_CB, SOME_ERR_CB);
-        verify(consumerNorm, times(2)).subscribe(Set.of("t.out", "t2.out"));
-        verify(consumerPrio, times(2)).subscribe(Set.of("t.priority.out", "t2.priority.out"));
+        verifySubscribe(consumerNorm, 2, "t.out", "t2.out");
+        verifySubscribe(consumerPrio, 2, "t.priority.out", "t2.priority.out");
     }
 
     @Test
     public void subscribesEndUpAtConnection_TRefErr() {
         sut.subscribe("t", T_STRING, SOME_CB, SOME_ERR_CB);
-        verify(consumerNorm).subscribe(Set.of("t.out"));
-        verify(consumerPrio).subscribe(Set.of("t.priority.out"));
+        verifySubscribe(consumerNorm, "t.out");
+        verifySubscribe(consumerPrio, "t.priority.out");
 
         sut.subscribe("t2", T_STRING, SOME_CB, SOME_ERR_CB);
-        verify(consumerNorm, times(2)).subscribe(Set.of("t.out", "t2.out"));
-        verify(consumerPrio, times(2)).subscribe(Set.of("t.priority.out", "t2.priority.out"));
+        verifySubscribe(consumerNorm, 2, "t.out", "t2.out");
+        verifySubscribe(consumerPrio, 2, "t.priority.out", "t2.priority.out");
     }
 
     @Test
@@ -190,7 +190,7 @@ public class KafkaImplTest {
         verify(consumerPrio).commitSync();
 
         // heartbeat
-        verify(consumerNorm).subscribe(Set.of("t.out"));
+        verifySubscribe(consumerNorm, "t.out");
         verify(consumerNorm).assignment();
         verify(consumerNorm).pause(anySet());
         verify(consumerNorm).poll(Duration.ZERO);
@@ -289,5 +289,13 @@ public class KafkaImplTest {
         when(jsonUtils.toJson(eq(o))).thenReturn(rnd);
         when(jsonUtils.fromJson(eq(rnd), any(Class.class))).thenReturn(o);
         when(jsonUtils.fromJson(eq(rnd), any(TRef.class))).thenReturn(o);
+    }
+
+    private static void verifySubscribe(KafkaConsumer<String, String> con, String... topics) {
+        verifySubscribe(con, 1, topics);
+    }
+
+    private static void verifySubscribe(KafkaConsumer<String, String> con, int times, String... topics) {
+        verify(con, times(times)).subscribe(eq(Set.of(topics)));
     }
 }

@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
@@ -35,6 +34,8 @@ import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.LoaderConfig;
 import eu.f4sten.infra.impl.json.JsonUtilsImpl;
+import eu.f4sten.infra.impl.kafka.KafkaConnector;
+import eu.f4sten.infra.impl.kafka.KafkaGracefulShutdownThread;
 import eu.f4sten.infra.impl.kafka.KafkaImpl;
 import eu.f4sten.infra.impl.kafka.MessageGeneratorImpl;
 import eu.f4sten.infra.impl.utils.HostNameImpl;
@@ -65,7 +66,6 @@ public class InfraConfig implements IInjectorConfig {
     public void configure(Binder binder) {
         binder.bind(InfraArgs.class).toInstance(args);
         binder.bind(HostName.class).to(HostNameImpl.class);
-        binder.bind(Kafka.class).to(KafkaImpl.class).in(Scopes.SINGLETON);
         binder.bind(Version.class).to(VersionImpl.class);
         binder.bind(MessageGenerator.class).to(MessageGeneratorImpl.class);
     }
@@ -87,6 +87,14 @@ public class InfraConfig implements IInjectorConfig {
                 .that(a -> a.dbUrl.startsWith("jdbc:postgresql://"), "db url does not start with 'jdbc:postgresql://'");
 
         return new PostgresConnectorImpl(args.dbUrl, args.dbUser, true);
+    }
+
+    @Provides
+    @Singleton
+    public Kafka bindKafka(JsonUtils jsonUtils, KafkaConnector connector) {
+        var kafka = new KafkaImpl(jsonUtils, connector);
+        Runtime.getRuntime().addShutdownHook(new KafkaGracefulShutdownThread(kafka));
+        return kafka;
     }
 
     @Provides

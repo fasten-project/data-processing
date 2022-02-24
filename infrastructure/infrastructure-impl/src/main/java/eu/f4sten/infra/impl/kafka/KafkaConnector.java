@@ -27,7 +27,6 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import java.security.InvalidParameterException;
@@ -52,8 +51,11 @@ import eu.f4sten.infra.kafka.Lane;
 public class KafkaConnector {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
+
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
-    private static final String MAX_POLL_INTERVAL = valueOf(1000 * 60 * 30); // 30min
+    private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 30); // 30min
+    private static final String SESSION_TIMEOUT_MS = valueOf(1000 * 10); // 10s
+    private static final String HEARTBEAT_INTERVAL_MS = valueOf(1000 * 3); // 3s
 
     private final String activePlugin;
     private final InfraArgs args;
@@ -85,9 +87,7 @@ public class KafkaConnector {
         p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
         p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
 
-        // make sure to set group.{min, max}.session.timeout.ms for brokers
-        p.setProperty(SESSION_TIMEOUT_MS_CONFIG, MAX_POLL_INTERVAL);
-        p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL);
+        p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
 
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
