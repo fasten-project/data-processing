@@ -15,7 +15,6 @@
  */
 package eu.f4sten.infra;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.AssertArgs.TEXT_ERROR_INTRO;
 import static eu.f4sten.infra.AssertArgs.TEXT_GENERIC_ERROR;
@@ -98,7 +97,7 @@ public class AssertArgsTest {
     @Test
     public void noExceptionForNonJCommanderStructures() throws Exception {
         tapSystemOut(() -> {
-            catchSystemExit(() -> {
+            assertThrows(AssertArgsError.class, () -> {
                 AssertArgs.assertFor(new NoArgs()).that(o -> false, SOME_HINT);
             });
         });
@@ -120,9 +119,13 @@ public class AssertArgsTest {
 
     private static void assertErrorOutput(Statement s, String... expecteds) {
         assertOutput(() -> {
-            catchSystemExit(() -> {
+            var wasCalled = false;
+            try {
                 s.execute();
-            });
+            } catch (AssertArgsError e) {
+                wasCalled = true;
+            }
+            assertTrue(wasCalled);
         }, expecteds);
     }
 

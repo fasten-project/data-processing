@@ -15,7 +15,8 @@
  */
 package eu.f4sten.test;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.github.stefanbirkner.systemlambda.Statement;
@@ -31,7 +32,12 @@ public class AssertArgsUtils {
     public static void assertArgsValidation(String expectedHint, Statement s) {
         try {
             var out = SystemLambda.tapSystemOut(() -> {
-                catchSystemExit(s);
+                var e = assertThrows(Error.class, () -> {
+                    s.execute();
+                });
+                // type unreachable, so testing for name
+                boolean isAssertArgsError = "AssertArgsError".equals((e.getClass().getSimpleName()));
+                assertTrue(isAssertArgsError);
             });
 
             boolean hasBasicParts = out.contains(TEXT_ERROR_INTRO) //

@@ -15,10 +15,10 @@
  */
 package eu.f4sten.mavencrawler.utils;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import eu.f4sten.infra.AssertArgsError;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.mavencrawler.MavenCrawlerArgs;
 
@@ -87,7 +88,7 @@ public class LocalStoreTest {
         args.firstConsideredIndex = 0;
         new LocalStore(args, io);
         var out = tapSystemOut(() -> {
-            catchSystemExit(() -> {
+            assertThrows(AssertArgsError.class, () -> {
                 args.firstConsideredIndex = -1;
                 new LocalStore(args, io);
             });
