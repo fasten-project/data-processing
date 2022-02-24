@@ -167,7 +167,7 @@ public class Main implements Plugin {
         // 1) have dependencies
         // 2) identify artifact sources
         // 3) make sure all dependencies exist in local .m2 folder
-        var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile);
+        var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile, artifact.artifactRepository);
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {

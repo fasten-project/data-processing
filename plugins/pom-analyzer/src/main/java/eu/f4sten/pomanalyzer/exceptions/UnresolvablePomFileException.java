@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.pomanalyzer.data;
+package eu.f4sten.pomanalyzer.exceptions;
 
 public class UnresolvablePomFileException extends RuntimeException {
 

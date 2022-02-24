@@ -35,6 +35,7 @@ import org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import eu.fasten.core.maven.utils.MavenUtilities;
 import eu.fasten.core.utils.TestUtils;
 
 public class EffectiveModelBuilderTest {
@@ -118,7 +119,7 @@ public class EffectiveModelBuilderTest {
         var fullPath = Path.of(EffectiveModelBuilderTest.class.getSimpleName(), pathToPom);
         File pom = TestUtils.getTestResource(fullPath.toString());
         // resolve once to make sure all dependencies exist in local repo
-        new Resolver().resolveDependenciesFromPom(pom);
+        new Resolver().resolveDependenciesFromPom(pom, MavenUtilities.MAVEN_CENTRAL_REPO);
         var sut = new EffectiveModelBuilder();
         return sut.buildEffectiveModel(pom);
     }

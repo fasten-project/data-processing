@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -203,6 +204,6 @@ public class ResolverTest {
     private Set<ResolutionResult> resolveTestPom(String pathToPom) {
         var fullPath = Path.of(ResolverTest.class.getSimpleName(), pathToPom);
         File pom = TestUtils.getTestResource(fullPath.toString());
-        return sut.resolveDependenciesFromPom(pom);
+        return sut.resolveDependenciesFromPom(pom, MAVEN_CENTRAL_REPO);
     }
 }
