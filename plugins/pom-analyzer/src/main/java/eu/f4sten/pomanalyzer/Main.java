@@ -15,14 +15,15 @@
  */
 package eu.f4sten.pomanalyzer;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
-import static eu.f4sten.infra.kafka.Lane.PRIORITY;
 import static java.lang.String.format;
 
 import java.time.Duration;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
@@ -37,6 +38,7 @@ import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
+import eu.f4sten.pomanalyzer.exceptions.ExecutionTimeoutError;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
@@ -49,7 +51,10 @@ import eu.fasten.core.maven.utils.MavenUtilities;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
+
     private static final int EXEC_DELAY_MS = 1000;
+    private static final int EXECUTION_TIMEOUT_MS = 1000 * 60 * 10; // 10min
 
     private final ProgressTracker tracker;
     private final MavenRepositoryUtils repo;
@@ -63,9 +68,6 @@ public class Main implements Plugin {
     private final PackagingFixer fixer;
 
     private final Date startedAt = new Date();
-    private final Set<String> ingested = new HashSet<>();
-
-    private MavenId curId;
 
     @Inject
     public Main(ProgressTracker tracker, MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder,
@@ -85,47 +87,49 @@ public class Main implements Plugin {
 
     @Override
     public void run() {
-        AssertArgs.assertFor(args)//
-                .notNull(a -> a.kafkaIn, "kafka input topic") //
-                .notNull(a -> a.kafkaOut, "kafka output topic");
+        try {
+            AssertArgs.assertFor(args)//
+                    .notNull(a -> a.kafkaIn, "kafka input topic") //
+                    .notNull(a -> a.kafkaOut, "kafka output topic");
 
-        LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
-        kafka.subscribe(args.kafkaIn, MavenId.class, (id, lane) -> {
-            curId = id;
-
-            LOG.info("Consuming next record {} ...", id.asCoordinate());
-            LOG.debug("{}", id);
-            var artifact = bootstrapFirstResolutionResultFromInput(id);
-            runAndCatch(artifact, lane, () -> {
-                resolver.resolveIfNotExisting(artifact);
-                process(artifact, lane);
-            });
-        });
-        while (true) {
-            LOG.debug("Polling ...");
-            kafka.poll();
+            LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
+            kafka.subscribe(args.kafkaIn, MavenId.class, this::consumeWithTimeout);
+            while (true) {
+                LOG.debug("Polling ...");
+                kafka.poll();
+            }
+        } finally {
+            kafka.stop();
         }
     }
 
-    private void runAndCatch(ResolutionResult artifact, Lane lane, Runnable r) {
+    private void consumeWithTimeout(MavenId id, Lane lane) {
+        LOG.info("Consuming next {} record {} @ {} ...", lane, id.asCoordinate(), id.artifactRepository);
+        var artifact = bootstrapFirstResolutionResultFromInput(id);
+
+        var future = EXEC.submit(() -> {
+            tracker.startNextOriginal(id);
+            tracker.registerRetry(artifact, lane);
+            runAndCatch(artifact, lane);
+            tracker.pruneRetries(artifact, lane);
+        });
+
         try {
-            if (shouldSkip(artifact.coordinate, lane)) {
-                LOG.info("Coordinate {} has already been ingested. Skipping.", artifact.coordinate);
-                return;
+            future.get(EXECUTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            var msg = "Execution timeout after %dms: %s (%s)";
+            throw new ExecutionTimeoutError(
+                    format(msg, EXECUTION_TIMEOUT_MS, artifact.coordinate, artifact.artifactRepository));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            // this should not happen
+            var cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new RuntimeException(cause);
             }
-            r.run();
-        } catch (Exception e) {
-            // if execution crashes, prevent re-try for both lanes
-            memMarkAsIngestedPackage(artifact.coordinate, NORMAL);
-            memMarkAsIngestedPackage(artifact.coordinate, PRIORITY);
-
-            LOG.warn("Execution failed for (original) input: {}", curId, e);
-
-            boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(e.getClass());
-            boolean isWrapped = isRuntimeExceptionAndNoSubtype && e.getCause() != null;
-
-            var msg = msgs.getErr(curId, isWrapped ? e.getCause() : e);
-            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
 
@@ -140,15 +144,36 @@ public class Main implements Plugin {
         return new ResolutionResult(id.asCoordinate(), artifactRepository);
     }
 
+    private void runAndCatch(ResolutionResult artifact, Lane lane) {
+        try {
+            if (tracker.shouldSkip(artifact, lane)) {
+                LOG.info("Skipping coordinate {}", artifact.coordinate);
+                return;
+            }
+            process(artifact, lane);
+        } catch (Exception e) {
+            tracker.executionCrash(artifact, lane);
+
+            LOG.warn("Execution failed for {} (original: {})", artifact.coordinate,
+                    tracker.getCurrentOriginal().asCoordinate(), e);
+
+            boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(e.getClass());
+            boolean isWrapped = isRuntimeExceptionAndNoSubtype && e.getCause() != null;
+
+            var msg = msgs.getErr(tracker.getCurrentOriginal(), isWrapped ? e.getCause() : e);
+            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+        }
+    }
+
     private void process(ResolutionResult artifact, Lane lane) {
         var duration = Duration.between(startedAt.toInstant(), new Date().toInstant());
-        var msg = "Processing {} ... (dependency of: {}, started at: {}, duration: {})";
-        LOG.info(msg, artifact.coordinate, curId.asCoordinate(), startedAt, duration);
-
+        var msg = "Processing {} ... (dependency of: {}, started at: {}, running for: {})";
+        LOG.info(msg, artifact.coordinate, tracker.getCurrentOriginal().asCoordinate(), startedAt, duration);
         delayExecutionToPreventThrottling();
 
         var consumedAt = new Date();
         kafka.sendHeartbeat();
+        resolver.resolveIfNotExisting(artifact);
 
         // merge pom with all its parents and resolve properties
         var m = modelBuilder.buildEffectiveModel(artifact.localPomFile);
@@ -164,8 +189,8 @@ public class Main implements Plugin {
         store(result, lane, consumedAt);
 
         // for performance (and to prevent cycles), remember visited coordinates in-mem
-        memMarkAsIngestedPackage(artifact.coordinate, lane);
-        memMarkAsIngestedPackage(result.toCoordinate(), lane);
+        tracker.markCompletionInMem(artifact.coordinate, lane);
+        tracker.markCompletionInMem(result.toCoordinate(), lane);
 
         // resolve dependencies to
         // 1) have dependencies
@@ -175,19 +200,18 @@ public class Main implements Plugin {
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {
-            runAndCatch(dep, lane, () -> {
-                process(dep, lane);
-            });
+            runAndCatch(dep, lane);
         });
 
         // to stay crash resilient, only mark in DB once all deps have been processed
-        moveIngestionMarkFromMemToDb(artifact.coordinate, lane);
-        moveIngestionMarkFromMemToDb(result.toCoordinate(), lane);
+        tracker.markCompletionInDb(artifact.coordinate, lane);
+        tracker.markCompletionInDb(result.toCoordinate(), lane);
     }
 
     private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
+        LOG.info("Storing results for {} ...", result.toCoordinate());
         LOG.debug("Finished: {}", result);
-        if (existsInDatabase(result.toCoordinate(), lane)) {
+        if (tracker.existsInDatabase(result.toCoordinate(), lane)) {
             // reduce the opportunity for race-conditions by re-checking before storing
             return;
         }
@@ -195,35 +219,6 @@ public class Main implements Plugin {
         var m = msgs.getStd(result);
         m.consumedAt = consumedAt;
         kafka.publish(m, args.kafkaOut, lane);
-    }
-
-    private boolean shouldSkip(String coordinate, Lane lane) {
-        return existsInMemory(coordinate, lane) || existsInDatabase(coordinate, lane);
-    }
-
-    private void memMarkAsIngestedPackage(String coord, Lane lane) {
-        ingested.add(toKey(coord, lane));
-    }
-
-    private void moveIngestionMarkFromMemToDb(String coord, Lane lane) {
-        db.markAsIngestedPackage(coord, lane);
-        ingested.remove(toKey(coord, lane));
-    }
-
-    private static String toKey(String coordinate, Lane lane) {
-        return format("%s-%s", coordinate, lane);
-    }
-
-    private boolean existsInMemory(String coordinate, Lane lane) {
-        return lane == NORMAL
-                ? ingested.contains(toKey(coordinate, NORMAL)) || ingested.contains(toKey(coordinate, PRIORITY))
-                : ingested.contains(toKey(coordinate, lane));
-    }
-
-    private boolean existsInDatabase(String coordinate, Lane lane) {
-        return lane == NORMAL
-                ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY)
-                : db.hasPackageBeenIngested(coordinate, lane);
     }
 
     private static void delayExecutionToPreventThrottling() {

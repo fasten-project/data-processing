@@ -32,6 +32,7 @@ import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
+import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 
 public class MainTest {
@@ -47,9 +48,11 @@ public class MainTest {
     private PackagingFixer fixer;
 
     private Main sut;
+    private ProgressTracker tracker;
 
     @BeforeEach
     public void setup() {
+        tracker = mock(ProgressTracker.class);
         repo = mock(MavenRepositoryUtils.class);
         modelBuilder = mock(EffectiveModelBuilder.class);
         extractor = mock(PomExtractor.class);
@@ -60,7 +63,7 @@ public class MainTest {
         msgs = mock(MessageGenerator.class);
         fixer = mock(PackagingFixer.class);
 
-        sut = new Main(repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
+        sut = new Main(tracker, repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
 
         when(extractor.process(eq(null))).thenReturn(new PomAnalysisResult());
         when(extractor.process(any(Model.class))).thenReturn(new PomAnalysisResult());
@@ -68,7 +71,7 @@ public class MainTest {
     }
 
     @Test
-    public void asd() {
+    public void basicSmokeTest() {
         sut.hashCode();
         // sut.consume("{\"groupId\":\"log4j\",\"artifactId\":\"log4j\",\"version\":\"1.2.17\"}",
         // NORMAL);
