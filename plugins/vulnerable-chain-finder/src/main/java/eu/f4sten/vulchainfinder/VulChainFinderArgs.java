@@ -25,4 +25,7 @@ public class VulChainFinderArgs {
 
     @Parameter(names = "--vulchainfinder.kafkaOut", arity = 1)
     public String kafkaOut = DefaultTopics.VUL_CHAIN_FINDER;
+
+    @Parameter(names = "--vulchainfinder.restApiBaseUrl", arity = 1)
+    public String restApiBaseURL = DefaultTopics.VUL_CHAIN_FINDER;
 }
