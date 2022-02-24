@@ -88,14 +88,17 @@ public class DatabaseUtils {
 
     public void markAsIngestedPackage(String gapv, Lane lane) {
         if (!hasPackageBeenIngested(gapv, lane)) {
-            var key = String.format("%s-%s", gapv, lane);
             var dao = getDao(context);
-            dao.insertIngestedArtifact(key, version.get());
+            dao.insertIngestedArtifact(toKey(gapv, lane), version.get());
         }
     }
 
+    private static String toKey(String gapv, Lane lane) {
+        return String.format("%s-%s", gapv, lane);
+    }
+
     public boolean hasPackageBeenIngested(String gapv, Lane lane) {
-        var key = String.format("%s-%s", gapv, lane);
+        var key = toKey(gapv, lane);
         var dao = getDao(context);
         return dao.isArtifactIngested(key);
     }
@@ -112,5 +115,17 @@ public class DatabaseUtils {
             }
             return new Timestamp(timestamp);
         }
+    }
+
+    public int getRetryCount(String key) {
+        return getDao(context).getIngestionRetryCount(key);
+    }
+
+    public void registerRetry(String key) {
+        getDao(context).registerIngestionRetry(key);
+    }
+
+    public void pruneRetries(String key) {
+        getDao(context).pruneIngestionRetries(key);
     }
 }

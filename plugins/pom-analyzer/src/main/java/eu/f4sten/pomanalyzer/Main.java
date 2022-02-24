@@ -42,6 +42,7 @@ import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
+import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
@@ -50,6 +51,7 @@ public class Main implements Plugin {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final int EXEC_DELAY_MS = 1000;
 
+    private final ProgressTracker tracker;
     private final MavenRepositoryUtils repo;
     private final EffectiveModelBuilder modelBuilder;
     private final PomExtractor extractor;
@@ -66,8 +68,10 @@ public class Main implements Plugin {
     private MavenId curId;
 
     @Inject
-    public Main(MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor, DatabaseUtils db,
-            Resolver resolver, Kafka kafka, PomAnalyzerArgs args, MessageGenerator msgs, PackagingFixer fixer) {
+    public Main(ProgressTracker tracker, MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder,
+            PomExtractor extractor, DatabaseUtils db, Resolver resolver, Kafka kafka, PomAnalyzerArgs args,
+            MessageGenerator msgs, PackagingFixer fixer) {
+        this.tracker = tracker;
         this.repo = repo;
         this.modelBuilder = modelBuilder;
         this.extractor = extractor;
