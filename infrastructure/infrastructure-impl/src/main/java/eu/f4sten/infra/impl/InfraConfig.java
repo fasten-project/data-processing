@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
@@ -33,6 +34,9 @@ import com.google.inject.multibindings.ProvidesIntoSet;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.LoaderConfig;
+import eu.f4sten.infra.http.HttpServer;
+import eu.f4sten.infra.impl.http.HttpServerGracefulShutdownThread;
+import eu.f4sten.infra.impl.http.HttpServerImpl;
 import eu.f4sten.infra.impl.json.JsonUtilsImpl;
 import eu.f4sten.infra.impl.kafka.KafkaConnector;
 import eu.f4sten.infra.impl.kafka.KafkaGracefulShutdownThread;
@@ -68,6 +72,13 @@ public class InfraConfig implements IInjectorConfig {
         binder.bind(HostName.class).to(HostNameImpl.class);
         binder.bind(Version.class).to(VersionImpl.class);
         binder.bind(MessageGenerator.class).to(MessageGeneratorImpl.class);
+    }
+
+    @Provides
+    public HttpServer bindHttpServer(Injector injector) {
+        var server = new HttpServerImpl(injector, args);
+        Runtime.getRuntime().addShutdownHook(new HttpServerGracefulShutdownThread(server));
+        return server;
     }
 
     @Provides
