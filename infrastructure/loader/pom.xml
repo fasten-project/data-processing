@@ -57,6 +57,11 @@
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
+            <artifactId>dependency-graph-resolver</artifactId>
+            <version>0.0.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
             <artifactId>integration-tests</artifactId>
             <version>0.0.7-SNAPSHOT</version>
         </dependency>
