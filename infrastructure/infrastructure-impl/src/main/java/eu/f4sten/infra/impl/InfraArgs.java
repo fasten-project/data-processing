@@ -35,4 +35,10 @@ public class InfraArgs {
 
     @Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this application instance across re-starts")
     public String instanceId = null;
+
+    @Parameter(names = "--http.port", arity = 1, description = "port used for http server")
+    public int httpPort = 8080;
+
+    @Parameter(names = "--http.baseUrl", arity = 1, description = "base url of http servlets")
+    public String httpBaseUrl = "/";
 }
