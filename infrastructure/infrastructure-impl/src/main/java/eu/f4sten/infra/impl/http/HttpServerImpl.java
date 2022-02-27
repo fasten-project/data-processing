@@ -85,6 +85,10 @@ public class HttpServerImpl implements HttpServer {
         }
     }
 
+    public boolean isStarting() {
+        return server.isStarting();
+    }
+
     @Override
     public void stop() {
         LOG.info("Stopping HTTP Server ...");
