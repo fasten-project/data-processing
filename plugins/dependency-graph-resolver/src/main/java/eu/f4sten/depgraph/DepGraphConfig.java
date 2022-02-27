@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
+import eu.f4sten.depgraph.data.Coordinates;
 import eu.f4sten.depgraph.data.JsonSerializationModule;
 import eu.f4sten.depgraph.data.Naming;
 import eu.f4sten.infra.IInjectorConfig;
@@ -37,6 +38,7 @@ public class DepGraphConfig implements IInjectorConfig {
     public void configure(Binder binder) {
         binder.bind(DepGraphArgs.class).toInstance(args);
         binder.bind(Naming.class).toInstance(new Naming("seb"));
+        binder.bind(Coordinates.class).toInstance(new Coordinates());
     }
 
     @ProvidesIntoSet

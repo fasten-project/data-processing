@@ -45,7 +45,8 @@ public class JsonSerializationModule extends SimpleModule {
             @Override
             public Hello deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
                 String name = p.getValueAsString();
-                return new Hello(new Naming(name));
+                // bad example, Hello is not a data structure and has dependencies
+                return new Hello(new Naming(name), null);
             }
         });
     }

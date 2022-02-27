@@ -9,4 +9,12 @@
     </parent>
     <artifactId>dependency-graph-resolver</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>pom-analyzer</artifactId>
+            <version>0.0.6-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 </project>
