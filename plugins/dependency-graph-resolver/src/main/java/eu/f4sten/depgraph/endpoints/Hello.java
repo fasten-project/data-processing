@@ -1,10 +1,13 @@
 package eu.f4sten.depgraph.endpoints;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.f4sten.depgraph.data.Coordinates;
 import eu.f4sten.depgraph.data.Naming;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -17,9 +20,11 @@ public class Hello {
     private static final Logger LOG = LoggerFactory.getLogger(Hello.class);
 
     public final String name;
+    private final Coordinates coords;
 
     @Inject
-    public Hello(Naming n) {
+    public Hello(Naming n, Coordinates coords) {
+        this.coords = coords;
         LOG.info("init");
         this.name = n.name;
     }
@@ -40,6 +45,13 @@ public class Hello {
     @Produces(MediaType.APPLICATION_JSON)
     public Hello sayJSonHello() {
         return this;
+    }
+
+    @GET
+    @Path("/coords")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getProcessedCoordinates() {
+        return coords.processed;
     }
 
     @GET
