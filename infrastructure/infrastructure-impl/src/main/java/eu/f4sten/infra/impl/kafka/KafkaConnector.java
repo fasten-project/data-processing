@@ -54,8 +54,6 @@ public class KafkaConnector {
 
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
     private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 30); // 30min
-    private static final String SESSION_TIMEOUT_MS = valueOf(1000 * 10); // 10s
-    private static final String HEARTBEAT_INTERVAL_MS = valueOf(1000 * 3); // 3s
 
     private final String activePlugin;
     private final InfraArgs args;
