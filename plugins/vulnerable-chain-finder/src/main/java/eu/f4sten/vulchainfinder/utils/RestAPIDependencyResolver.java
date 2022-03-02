@@ -8,8 +8,8 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import kotlin.collections.ArrayDeque;
+import java.util.HashSet;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -28,15 +28,15 @@ public class RestAPIDependencyResolver {
         this.client = client;
     }
 
-    public List<Long> resolveDependencyIds(final MavenId id) {
+    public Set<Long> resolveDependencyIds(final MavenId id) {
         final var uri = createDepResolverUri(id);
         final var request = HttpRequest.newBuilder().uri(uri).GET().build();
         final var response = sendOrThrow(request);
         return extractPackageIdsFromResponse(response);
     }
 
-    public List<Long> extractPackageIdsFromResponse(final HttpResponse<String> response) {
-        final List<Long> result = new ArrayDeque<>();
+    public Set<Long> extractPackageIdsFromResponse(final HttpResponse<String> response) {
+        final Set<Long> result = new HashSet<>();
 
         final var deps = new JSONArray(response.body());
         for (final var dep : deps) {

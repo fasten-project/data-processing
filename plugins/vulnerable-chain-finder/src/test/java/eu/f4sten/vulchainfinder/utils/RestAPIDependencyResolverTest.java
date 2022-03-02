@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,7 +91,7 @@ class RestAPIDependencyResolverTest {
     void testExtractPackageIdsFromResponse() {
         when(MOCK_RESPONSE.body()).thenReturn(DEPS_JSON_ARRAY.toString());
         var actual = RESOLVER_WITH_SLASH.extractPackageIdsFromResponse(MOCK_RESPONSE);
-        assertEquals(List.of(2L), actual);
+        assertEquals(Set.of(2L), actual);
     }
 
     @Test
