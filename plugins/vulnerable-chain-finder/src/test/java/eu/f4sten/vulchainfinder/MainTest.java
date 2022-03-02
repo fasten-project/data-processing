@@ -16,30 +16,69 @@
 package eu.f4sten.vulchainfinder;
 
 import static eu.f4sten.vulchainfinder.Main.extractMavenIdFrom;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
+import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinder.utils.JsonUtils;
+import eu.fasten.core.data.callableindex.RocksDao;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.jooq.impl.DSL;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.rocksdb.RocksDBException;
 
 class MainTest {
 
-    public static final String G = "g";
-    public static final String A = "a";
-    public static final String V = "v";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/fasten_java";
+
+    private static final String PG_PWD = System.getenv("PG_PWD");
+    private static final String USR = "fasten";
+    private static final String G = "g";
+    private static final String A = "a";
+    private static final String V = "v";
+    private static final MavenId EXPECTED = new MavenId();
 
     @Test
-    public void testExtractMavenIdFrom(){
+    void testExtractMavenIdFrom(){
         var pomAR = new PomAnalysisResult();
         pomAR.groupId = G;
         pomAR.artifactId = A;
         pomAR.version = V;
         var actual = extractMavenIdFrom(pomAR);
-        var expected = new MavenId();
-        expected.groupId = G;
-        expected.artifactId = A;
-        expected.version = V;
-        Assertions.assertEquals(expected, actual);
+        EXPECTED.groupId = G;
+        EXPECTED.artifactId = A;
+        EXPECTED.version = V;
+        assertEquals(EXPECTED, actual);
     }
 
+    @Test
+    void testProcess() throws RocksDBException, IOException {
+        final String CI_URL = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/fasten-docker-deployment/docker-volumes/fasten/java/callable-index";
+        var dbContext = DSL.using(DB_URL, USR, PG_PWD);
+        var db = new DatabaseUtils(dbContext, new JsonUtils());
+        var ci = new CallableIndexUtils(new RocksDao(CI_URL, true));
+        var kafka = mock(Kafka.class);
+        var args = new VulChainFinderArgs();
+        args.vulnChainRepoUrl = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/dataProcessing/data-processing/plugins/vulnerable-chain-finder/src/test/resources/vulrepo";
+        args.restApiBaseURL = "https://api.fasten-project.eu";
+        var msg = mock(MessageGenerator.class);
+        var main = new Main(db, ci, kafka, args, msg);
+        main.setCurId(EXPECTED);
+
+        main.process();
+
+        var actual = Files.readString(Path.of(""));
+        var expected = "";
+
+        assertEquals(expected, actual);
+    }
 }
