@@ -31,8 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jooq.impl.DSL;
-import org.json.JSONObject;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
 
@@ -60,6 +59,7 @@ class MainTest {
         assertEquals(EXPECTED, actual);
     }
 
+    @Disabled
     @Test
     void testProcess() throws RocksDBException, IOException {
         final String CI_URL = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/fasten-docker-deployment/docker-volumes/fasten/java/callable-index";
