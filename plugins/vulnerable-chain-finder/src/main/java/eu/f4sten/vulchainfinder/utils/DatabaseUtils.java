@@ -18,6 +18,7 @@ package eu.f4sten.vulchainfinder.utils;
 
 import com.google.gson.reflect.TypeToken;
 import eu.fasten.core.data.FastenURI;
+import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.metadatadb.codegen.tables.Modules;
 import eu.fasten.core.data.vulnerability.Vulnerability;
 import java.util.ArrayList;
@@ -44,6 +45,10 @@ public class DatabaseUtils {
         return context;
     }
 
+    protected MetadataDao getDao(DSLContext ctx) {
+        return new MetadataDao(ctx);
+    }
+
     public Map<FastenURI, List<Vulnerability>> selectVulCallablesOf(final Set<Long> depIds) {
         Map<FastenURI, List<Vulnerability>> vulCallables = new HashMap<>();
         for (Long depId : depIds) {
@@ -65,31 +70,32 @@ public class DatabaseUtils {
         final Set<Long> moduleIds) {
         Map<FastenURI, List<Vulnerability>> result = new ConcurrentHashMap<>();
         moduleIds.parallelStream().forEach(moduleId ->
-            context.fetch(selectVulCallablesWhereModuleIdIs(moduleId))
+            context.fetch(createStrForSelectVulCallablesWhereModuleIdIs(moduleId))
                 .forEach(record -> {
                     final var vulField = record.get(3);
                     if (vulField == null) {
                         return;
                     }
-                    
                     final var setType =
-                        new TypeToken<HashMap<String, Vulnerability>>() {}.getType();
+                        new TypeToken<HashMap<String, Vulnerability>>() {
+                        }.getType();
                     Map<String, Vulnerability> vulIdVulObject =
                         jsonUtils.fromJson(vulField.toString(), setType);
 
-                    result.put(createFastenUri(record), new ArrayList<>(vulIdVulObject.values()));
+                    result.put(createFastenUriFromPckgVersionUriFields(record),
+                        new ArrayList<>(vulIdVulObject.values()));
                 }));
         return result;
     }
 
-    public FastenURI createFastenUri(final Record record) {
+    public static FastenURI createFastenUriFromPckgVersionUriFields(final Record record) {
         final var uriString =
             String.format("%s%s$%s%s",
                 "fasten://mvn!", record.get(0), record.get(1), record.get(2));
         return FastenURI.create(uriString);
     }
 
-    public String selectVulCallablesWhereModuleIdIs(final Long moduleId) {
+    public static String createStrForSelectVulCallablesWhereModuleIdIs(final Long moduleId) {
         return "SELECT packages.package_name, package_versions.version, callables.fasten_uri, " +
             "callables.metadata -> 'vulnerabilities' " +
             "FROM callables, modules, package_versions, packages " +
@@ -104,5 +110,9 @@ public class DatabaseUtils {
         return context.select(Modules.MODULES.ID).from(Modules.MODULES)
             .where(Modules.MODULES.PACKAGE_VERSION_ID.eq(depId)).fetch()
             .intoSet(Modules.MODULES.ID);
+    }
+
+    public Set<Long> selectVulnerablePackagesExistingIn(final Set<Long> depIds) {
+        return getDao(context).findVulnerablePackageVersions(depIds);
     }
 }
