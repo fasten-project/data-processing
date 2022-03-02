@@ -21,13 +21,15 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
-import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
-import eu.f4sten.infra.utils.Version;
 import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
+import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinder.utils.JsonUtils;
+import eu.fasten.core.data.callableindex.RocksDao;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.rocksdb.RocksDBException;
 
 @InjectorConfig
 public class VulChainFinderInjectorConfig implements IInjectorConfig {
@@ -44,10 +46,22 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     }
 
     @Provides
-    public DatabaseUtils bindDatabaseUtils(PostgresConnector pc, JsonUtils json, Version version) {
+    public DatabaseUtils bindDatabaseUtils(PostgresConnector pc, JsonUtils json) {
         var c = pc.getNewConnection();
         var dslContext = DSL.using(c, SQLDialect.POSTGRES);
-        return new DatabaseUtils(dslContext, json, version);
+        return new DatabaseUtils(dslContext, json);
+    }
+
+    @Provides
+    public CallableIndexUtils bindCallableIndexUtils(){
+        //TODO add this to loader and get rid of extra arg in the plugin
+        RocksDao rocksDao;
+        try {
+            rocksDao = new RocksDao(args.callableIndexPath, false);
+        } catch (RocksDBException e) {
+            throw new RuntimeException(e);
+        }
+        return new CallableIndexUtils(rocksDao);
     }
 
     @ProvidesIntoSet
