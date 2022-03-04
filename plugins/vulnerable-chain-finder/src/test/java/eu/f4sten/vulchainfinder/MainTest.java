@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package eu.f4sten.vulchainfinder;
 
 import static eu.f4sten.vulchainfinder.Main.extractMavenIdFrom;
@@ -26,59 +27,95 @@ import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.JsonUtils;
+import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
+import eu.fasten.core.vulchains.VulnerableCallChainRepository;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 class MainTest {
 
+    public static final String CI_URL = "path-to-callable-index";
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/fasten_java";
-
     private static final String PG_PWD = System.getenv("PG_PWD");
     private static final String USR = "fasten";
-    private static final String G = "g";
-    private static final String A = "a";
-    private static final String V = "v";
-    private static final MavenId EXPECTED = new MavenId();
+
+    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().build();
+    public static final String LOCAL_REST = "http://localhost:9080/";
+    public static final Path VUL_REPO =
+        Paths.get("src", "test", "resources", "vulnrepo");
 
     @Test
-    void testExtractMavenIdFrom(){
+    void testExtractMavenIdFrom() {
+        final String g = "g";
+        final String a = "a";
+        final String v = "v";
         var pomAR = new PomAnalysisResult();
-        pomAR.groupId = G;
-        pomAR.artifactId = A;
-        pomAR.version = V;
+        pomAR.groupId = g;
+        pomAR.artifactId = a;
+        pomAR.version = v;
         var actual = extractMavenIdFrom(pomAR);
-        EXPECTED.groupId = G;
-        EXPECTED.artifactId = A;
-        EXPECTED.version = V;
-        assertEquals(EXPECTED, actual);
+        final MavenId expected = new MavenId();
+        expected.groupId = g;
+        expected.artifactId = a;
+        expected.version = v;
+        assertEquals(expected, actual);
     }
 
-    @Disabled
+    //TODO implement vulnerability inserter in the integration tests plugin and use that as a
+    // dependency to automate the vulnerability insertion
+    @Disabled("This is an integration test that checks if all the steps of vul-chain-finder work " +
+        "correctly. It is only for local development and debugging. It requires DC up and running" +
+        "with synthetic app:0.0.1 ingested, vulnerability inserted to wash method, and CI_URL " +
+        "constant available.")
     @Test
     void testProcess() throws RocksDBException, IOException {
-        final String CI_URL = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/fasten-docker-deployment/docker-volumes/fasten/java/callable-index";
-        var dbContext = DSL.using(DB_URL, USR, PG_PWD);
-        var db = new DatabaseUtils(dbContext, new JsonUtils());
-        var ci = new CallableIndexUtils(new RocksDao(CI_URL, true));
-        var kafka = mock(Kafka.class);
-        var args = new VulChainFinderArgs();
-        args.vulnChainRepoUrl = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/dataProcessing/data-processing/plugins/vulnerable-chain-finder/src/test/resources/vulrepo";
-        args.restApiBaseURL = "https://api.fasten-project.eu";
-        var msg = mock(MessageGenerator.class);
-        var main = new Main(db, ci, kafka, args, msg);
-        main.setCurId(EXPECTED);
+        final var id = getMavenId("eu.fasten-project.tests.syntheticjars", "app", "0.0.1");
+        final Main main = setUpMainFor(id);
 
         main.process();
 
-        var actual = Files.readString(Path.of(""));
-        var expected = "";
+        final var actual = readResourceIntoString(createResourceNameFromID(id));
+        final var expected = readResourceIntoString("expected.json");
+        JSONAssert.assertEquals(expected, actual, JSONCompareMode.LENIENT);
+    }
 
-        assertEquals(expected, actual);
+    private String createResourceNameFromID(final MavenId id) {
+        return id.groupId + "-" + id.artifactId + "-" + id.version + ".json";
+    }
+
+    private Main setUpMainFor(final MavenId id) throws RocksDBException, FileNotFoundException {
+        final var dbContext = DSL.using(DB_URL, USR, PG_PWD);
+        final var db = new DatabaseUtils(dbContext, new JsonUtils());
+        final var ci = new CallableIndexUtils(new RocksDao(CI_URL, true));
+        final var resolver = new RestAPIDependencyResolver(LOCAL_REST, HTTP_CLIENT);
+        final var repo = new VulnerableCallChainRepository(VUL_REPO.toString());
+        final var main = new Main(db, ci, mock(Kafka.class), new VulChainFinderArgs(),
+            mock(MessageGenerator.class), resolver, repo);
+        main.setCurId(id);
+        return main;
+    }
+
+    private String readResourceIntoString(final String name) throws IOException {
+        final var path = Paths.get(VUL_REPO.toAbsolutePath().toString(), name);
+        return Files.readString(path);
+    }
+
+    private MavenId getMavenId(final String g, final String a, final String v) {
+        final var id = new MavenId();
+        id.groupId = g;
+        id.artifactId = a;
+        id.version = v;
+        return id;
     }
 }
