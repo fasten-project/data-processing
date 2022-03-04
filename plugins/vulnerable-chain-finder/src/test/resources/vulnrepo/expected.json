@@ -1,0 +1,122 @@
+[
+  {
+    "vulnerabilities": [
+      {
+        "id": "CVE-2017-3164",
+        "purls": [],
+        "first_patched_purls": [],
+        "scoreCVSS2": 5.0,
+        "scoreCVSS3": 7.5,
+        "vectorCVSS2": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "vectorCVSS3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "cwe_ids": [
+          "CWE-918"
+        ],
+        "severity": "MEDIUM",
+        "published_date": "2019-03-08",
+        "last_modified_date": "2020-12-09",
+        "patch_date": "2019-01-15",
+        "description": "Server Side Request Forgery in Apache Solr, versions 1.3 until 7.6 (inclusive). Since the \"shards\" parameter does not have a corresponding whitelist mechanism, a remote attacker with access to the server could make Solr perform an HTTP GET request to any reachable URL.",
+        "references": [],
+        "patch_links": [],
+        "exploits": [],
+        "patches": []
+      }
+    ],
+    "chain": [
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/null/Main.main(%2Fjava.lang%2FString%5B%5D)%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/null/Main.doMotorCycleStuff()%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/app/RoadTrip.doRoadTrip(%2Flib%2FMotorVehicle)%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"
+    ]
+  },
+  {
+    "vulnerabilities": [
+      {
+        "id": "CVE-2017-3164",
+        "purls": [],
+        "first_patched_purls": [],
+        "scoreCVSS2": 5.0,
+        "scoreCVSS3": 7.5,
+        "vectorCVSS2": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "vectorCVSS3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "cwe_ids": [
+          "CWE-918"
+        ],
+        "severity": "MEDIUM",
+        "published_date": "2019-03-08",
+        "last_modified_date": "2020-12-09",
+        "patch_date": "2019-01-15",
+        "description": "Server Side Request Forgery in Apache Solr, versions 1.3 until 7.6 (inclusive). Since the \"shards\" parameter does not have a corresponding whitelist mechanism, a remote attacker with access to the server could make Solr perform an HTTP GET request to any reachable URL.",
+        "references": [],
+        "patch_links": [],
+        "exploits": [],
+        "patches": []
+      }
+    ],
+    "chain": [
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/app/RoadTrip.doRoadTrip(%2Flib%2FMotorVehicle)%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"
+    ]
+  },
+  {
+    "vulnerabilities": [
+      {
+        "id": "CVE-2017-3164",
+        "purls": [],
+        "first_patched_purls": [],
+        "scoreCVSS2": 5.0,
+        "scoreCVSS3": 7.5,
+        "vectorCVSS2": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "vectorCVSS3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "cwe_ids": [
+          "CWE-918"
+        ],
+        "severity": "MEDIUM",
+        "published_date": "2019-03-08",
+        "last_modified_date": "2020-12-09",
+        "patch_date": "2019-01-15",
+        "description": "Server Side Request Forgery in Apache Solr, versions 1.3 until 7.6 (inclusive). Since the \"shards\" parameter does not have a corresponding whitelist mechanism, a remote attacker with access to the server could make Solr perform an HTTP GET request to any reachable URL.",
+        "references": [],
+        "patch_links": [],
+        "exploits": [],
+        "patches": []
+      }
+    ],
+    "chain": [
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/null/Main.doMotorCycleStuff()%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/app/RoadTrip.doRoadTrip(%2Flib%2FMotorVehicle)%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"
+    ]
+  },
+  {
+    "vulnerabilities": [
+      {
+        "id": "CVE-2017-3164",
+        "purls": [],
+        "first_patched_purls": [],
+        "scoreCVSS2": 5.0,
+        "scoreCVSS3": 7.5,
+        "vectorCVSS2": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+        "vectorCVSS3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "cwe_ids": [
+          "CWE-918"
+        ],
+        "severity": "MEDIUM",
+        "published_date": "2019-03-08",
+        "last_modified_date": "2020-12-09",
+        "patch_date": "2019-01-15",
+        "description": "Server Side Request Forgery in Apache Solr, versions 1.3 until 7.6 (inclusive). Since the \"shards\" parameter does not have a corresponding whitelist mechanism, a remote attacker with access to the server could make Solr perform an HTTP GET request to any reachable URL.",
+        "references": [],
+        "patch_links": [],
+        "exploits": [],
+        "patches": []
+      }
+    ],
+    "chain": [
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/null/Main.doCarStuff()%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0.1/app/RoadTrip.doRoadTrip(%2Flib%2FMotorVehicle)%2Fjava.lang%2FVoidType",
+      "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"
+    ]
+  }
+]
