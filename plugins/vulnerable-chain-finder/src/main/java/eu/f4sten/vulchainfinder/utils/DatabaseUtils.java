@@ -45,7 +45,7 @@ public class DatabaseUtils {
         return context;
     }
 
-    protected MetadataDao getDao(DSLContext ctx) {
+    public MetadataDao getDao(DSLContext ctx) {
         return new MetadataDao(ctx);
     }
 
