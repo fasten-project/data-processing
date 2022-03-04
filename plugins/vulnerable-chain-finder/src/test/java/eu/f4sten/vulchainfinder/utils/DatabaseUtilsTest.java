@@ -52,41 +52,53 @@ class DatabaseUtilsTest {
 
     @BeforeEach
     void setUp() {
-        var vulString = "{\n" + "  \"vulnerabilities\": {\n" + "    \"CVE-2021-29262\": {\n" +
-            "      \"id\": \"CVE-2021-29262\",\n" + "      \"cwe_ids\": [\n" +
-            "        \"CWE-522\"\n" + "      ],\n" + "      \"severity\": \"MEDIUM\",\n" +
-            "      \"scoreCVSS2\": 4.3,\n" + "      \"scoreCVSS3\": 7.5,\n" +
-            "      \"vectorCVSS2\": \"AV:N/AC:M/Au:N/C:P/I:N/A:N\",\n" +
-            "      \"vectorCVSS3\": \"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N\"\n" +
-            "    }\n" + "  }\n" + "}";
+        var vulString ="{\n" +
+            "  \"vulnerabilities\": {\n" +
+            "    \"CVE-2017-3164\": {\n" +
+            "      \"id\": \"CVE-2017-3164\",\n" +
+            "      \"cwe_ids\": [\n" +
+            "        \"CWE-918\"\n" +
+            "      ],\n" +
+            "      \"severity\": \"MEDIUM\",\n" +
+            "      \"patch_date\": \"2019-01-15\",\n" +
+            "      \"scoreCVSS2\": 5,\n" +
+            "      \"scoreCVSS3\": 7.5,\n" +
+            "      \"description\": \"Server Side Request Forgery in Apache Solr, versions 1.3 until 7.6 (inclusive). Since the \\\"shards\\\" parameter does not have a corresponding whitelist mechanism, a remote attacker with access to the server could make Solr perform an HTTP GET request to any reachable URL.\",\n" +
+            "      \"vectorCVSS2\": \"AV:N/AC:L/Au:N/C:P/I:N/A:N\",\n" +
+            "      \"vectorCVSS3\": \"CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N\",\n" +
+            "      \"published_date\": \"2019-03-08\",\n" +
+            "      \"last_modified_date\": \"2020-12-09\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
         Type setType = new TypeToken<HashMap<String, HashMap<String, Vulnerability>>>() {
         }.getType();
         Map<String, Map<String, Vulnerability>> VUL_ID_VUL_OBJECT_MAP =
             new JsonUtils().fromJson(vulString, setType);
 
         EXPECTED_VULNERABILITY = Map.of(FastenURI.create(
-                "fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0" +
-                    ".1/app/RoadTrip.%3Cinit%3E(%2Flib%2FVehicleWash)%2Fjava.lang%2FVoidType"),
-            List.of(VUL_ID_VUL_OBJECT_MAP.get("vulnerabilities").get("CVE-2021-29262")));
+                "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"),
+            List.of(VUL_ID_VUL_OBJECT_MAP.get("vulnerabilities").get("CVE-2017-3164")));
 
     }
 
     @Test
     void testCreateFastenUri() {
         final var mockRecord = mock(Record.class);
-        when(mockRecord.get(0)).thenReturn("eu.fasten-project.tests.syntheticjars:app");
+        when(mockRecord.get(0)).thenReturn("eu.fasten-project.tests.syntheticjars:lib");
         when(mockRecord.get(1)).thenReturn("0.0.1");
         when(mockRecord.get(2)).thenReturn(
-            "/app/RoadTrip.%3Cinit%3E(%2Flib%2FVehicleWash)%2Fjava.lang%2FVoidType");
+            "/lib/BasicMotorVehicle.addDirt()%2Fjava.lang%2FVoidType");
         final var actual = DatabaseUtils.createFastenUriFromPckgVersionUriFields(mockRecord);
-        assertEquals(FastenURI.create("fasten://mvn!eu.fasten-project.tests.syntheticjars:app$0.0" +
-            ".1/app/RoadTrip.%3Cinit%3E(%2Flib%2FVehicleWash)%2Fjava.lang%2FVoidType"), actual);
+        assertEquals(FastenURI.create("fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0" +
+            ".1/lib/BasicMotorVehicle.addDirt()%2Fjava.lang%2FVoidType"), actual);
     }
 
     @Test
     void testSelectVulCallablesWhereModuleIdIs() {
-        final var actual = DatabaseUtils.createStrForSelectVulCallablesWhereModuleIdIs(1L);
-        assertTrue(actual.endsWith("and callables.module_id = 1"));
+        final var actual = DatabaseUtils.createStrForSelectVulCallablesWhereModuleIdIs(2L);
+        assertTrue(actual.endsWith("and callables.module_id = 2"));
     }
 
     @Disabled(SEE_WHY)
@@ -99,21 +111,21 @@ class DatabaseUtilsTest {
     @Disabled(SEE_WHY)
     @Test
     void testSelectConcurrentlyVulCallablesOf() {
-        final var actual = getDb().selectConcurrentlyVulCallablesOf(Set.of(1L));
+        final var actual = getDb().selectConcurrentlyVulCallablesOf(Set.of(6L));
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
     @Disabled(SEE_WHY)
     @Test
     void testSelectVulCallablesOf() {
-        final var actual = getDb().selectVulCallablesOf(1);
+        final var actual = getDb().selectVulCallablesOf(2);
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
     @Disabled(SEE_WHY)
     @Test
     void testSelectVulCallablesOf2() {
-        final var actual = getDb().selectVulCallablesOf(Set.of(1L));
+        final var actual = getDb().selectVulCallablesOf(Set.of(2L));
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
@@ -123,7 +135,7 @@ class DatabaseUtilsTest {
         var json = mock(JsonUtils.class);
         var dslContext = mock(DSLContext.class);
         var db = new DatabaseUtils(dslContext, json) {
-            protected MetadataDao getDao(DSLContext ctx) {
+            public MetadataDao getDao(DSLContext ctx) {
                 return dao;
             }
         };
