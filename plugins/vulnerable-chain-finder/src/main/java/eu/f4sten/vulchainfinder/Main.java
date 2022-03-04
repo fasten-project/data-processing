@@ -30,9 +30,11 @@ import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.merge.CGMerger;
+import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
 import java.io.FileNotFoundException;
-import java.net.http.HttpClient;
+import java.util.HashSet;
+import java.util.Set;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +42,27 @@ import org.slf4j.LoggerFactory;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().build();
-
+    public final RestAPIDependencyResolver resolver;
     private final DatabaseUtils db;
     private final CallableIndexUtils ci;
     private final Kafka kafka;
     private final VulChainFinderArgs args;
     private final MessageGenerator msgs;
+    private final VulnerableCallChainRepository repo;
 
     private MavenId curId;
 
     @Inject
     public Main(DatabaseUtils db, CallableIndexUtils ci, Kafka kafka, VulChainFinderArgs args,
-                MessageGenerator msgs) {
+                MessageGenerator msgs, RestAPIDependencyResolver resolver,
+                VulnerableCallChainRepository repo) {
         this.db = db;
         this.ci = ci;
         this.kafka = kafka;
         this.args = args;
         this.msgs = msgs;
+        this.resolver = resolver;
+        this.repo = repo;
     }
 
     @Override
@@ -86,33 +91,51 @@ public class Main implements Plugin {
 
     public void process() {
         LOG.info("Processing {}", curId.asCoordinate());
-        final var resolver = new RestAPIDependencyResolver(args.restApiBaseURL, HTTP_CLIENT);
-        final var depIds = resolver.resolveDependencyIds(curId);
-        final var vulDeps = db.selectVulnerablePackagesExistingIn(depIds);
-        if (vulDeps == null ||  vulDeps.isEmpty()) {
-            return;
-        }
-        final var merger = new CGMerger(depIds, db.getContext(), ci.getDao());
-        final var mergedCG = merger.mergeAllDeps();
-        final var idUriMap = merger.getAllUrisFromDB(mergedCG);
-        final var vulCallables = db.selectVulCallablesOf(vulDeps);
-        final var propagator = new ImpactPropagator(mergedCG, idUriMap);
-        propagator.propagateUrisImpacts(vulCallables.keySet());
-        LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
-        if (propagator.getImpacts().isEmpty()) {
-            return;
+        final var allDeps = resolver.resolveDependencyIds(curId);
+
+        final var vulDeps = db.selectVulnerablePackagesExistingIn(allDeps);
+
+        Set<VulnerableCallChain> vulChains = new HashSet<>();
+        if (curIdIsPackageLevelVulnerable(vulDeps)) {
+            vulChains = extractVulCallChains(allDeps, vulDeps);
         }
 
-        final var vulnerableCallChains =
-            propagator.extractApplicationVulChains(vulCallables, curId);
-        if (vulnerableCallChains.isEmpty()) {
-            return;
+        if (curIdIsMethodLevelVulnerable(vulChains)) {
+            storeInVulRepo(vulChains);
         }
+    }
 
+    private boolean curIdIsMethodLevelVulnerable(final Set<VulnerableCallChain> vulChains) {
+        return !vulChains.isEmpty();
+    }
+
+    private boolean curIdIsPackageLevelVulnerable(final Set<Long> vulDeps) {
+        return vulDeps != null && !vulDeps.isEmpty();
+    }
+
+    private void storeInVulRepo(final Set<VulnerableCallChain> vulnerableCallChains) {
         final var vulRepo = initializeVulRepo();
         final var productName = String.format("%s:%s", curId.groupId, curId.artifactId);
         vulRepo.store(productName, curId.version, vulnerableCallChains);
+    }
+
+    private Set<VulnerableCallChain> extractVulCallChains(final Set<Long> allDeps,
+                                                          final Set<Long> vulDeps) {
+        Set<VulnerableCallChain> result = new HashSet<>();
+
+        final var merger = new CGMerger(allDeps, db.getContext(), ci.getDao());
+        final var mergedCG = merger.mergeAllDeps();
+        final var vulCallables = db.selectVulCallablesOf(vulDeps);
+        final var propagator = new ImpactPropagator(mergedCG, merger.getAllUrisFromDB(mergedCG));
+        propagator.propagateUrisImpacts(vulCallables.keySet());
+        LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
+
+        if (!propagator.getImpacts().isEmpty()) {
+            result = propagator.extractApplicationVulChains(vulCallables, curId);
+        }
+
+        return result;
     }
 
     private VulnerableCallChainRepository initializeVulRepo() {
@@ -155,7 +178,7 @@ public class Main implements Plugin {
         return curId;
     }
 
-    public void setCurId(MavenId curId) {
+    public void setCurId(final MavenId curId) {
         this.curId = curId;
     }
 
