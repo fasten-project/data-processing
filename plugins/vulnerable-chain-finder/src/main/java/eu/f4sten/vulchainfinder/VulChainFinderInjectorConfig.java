@@ -22,11 +22,15 @@ import com.google.inject.multibindings.ProvidesIntoSet;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.utils.PostgresConnector;
-import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
+import eu.f4sten.vulchainfinder.json.CoreJacksonModule;
 import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.JsonUtils;
+import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
+import eu.fasten.core.vulchains.VulnerableCallChainRepository;
+import java.io.FileNotFoundException;
+import java.net.http.HttpClient;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.rocksdb.RocksDBException;
@@ -62,6 +66,20 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
             throw new RuntimeException(e);
         }
         return new CallableIndexUtils(rocksDao);
+    }
+
+    @Provides
+    public RestAPIDependencyResolver bindRestAPIDependencyResolver(){
+        return new RestAPIDependencyResolver(args.restApiBaseURL, HttpClient.newBuilder().build());
+    }
+
+    @Provides
+    public VulnerableCallChainRepository bindVulnerableCallChainRepository(){
+        try {
+            return new VulnerableCallChainRepository(args.restApiBaseURL);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @ProvidesIntoSet
