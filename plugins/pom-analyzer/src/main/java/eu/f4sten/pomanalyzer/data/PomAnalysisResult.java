@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -43,7 +44,8 @@ public class PomAnalysisResult implements Cloneable {
     public long releaseDate = -1L;
     public String projectName = null;
 
-    public final Set<Dependency> dependencies = new HashSet<>();
+    // used LinkedHashSet, because order is relevant for resolution
+    public final LinkedHashSet<Dependency> dependencies = new LinkedHashSet<>();
     public final Set<Dependency> dependencyManagement = new HashSet<>();
 
     public String repoUrl = null;
