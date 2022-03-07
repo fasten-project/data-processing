@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.data;
 
+import static java.util.stream.IntStream.range;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,6 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import eu.f4sten.infra.json.ObjectMapperBuilder;
+import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.maven.data.Dependency;
 
@@ -230,6 +237,26 @@ public class PomAnalysisResultTest {
     }
 
     @Test
+    public void dependencyOrderIsPreserved() throws JsonProcessingException {
+        var sut = new PomAnalysisResult();
+        range(0, 100).forEach(num -> {
+            sut.dependencies.add(new Dependency("g", "a", String.valueOf(num)));
+        });
+
+        var check = 0;
+        for (var d : sut.dependencies) {
+            var v = assertSingleVersionConstraint(d);
+            assertEquals(check++, Integer.valueOf(v));
+        }
+
+        check = 0;
+        for (var d : jsonRoundtrip(sut).dependencies) {
+            var v = assertSingleVersionConstraint(d);
+            assertEquals(check++, Integer.valueOf(v));
+        }
+    }
+
+    @Test
     public void toCoordinate() {
         var actual = somePomAnalysisResult().toCoordinate();
         var expected = "g:a:h:n";
@@ -257,5 +284,28 @@ public class PomAnalysisResultTest {
 
     private static Dependency someDependency(String name) {
         return new Dependency("dep", name, "0.0.1");
+    }
+
+    private static PomAnalysisResult jsonRoundtrip(PomAnalysisResult sut)
+            throws JsonProcessingException, JsonMappingException {
+        var om = new ObjectMapperBuilder() {
+            @Override
+            protected ObjectMapper addMapperOptions(ObjectMapper om) {
+                om.registerModule(new CoreJacksonModule());
+                return om;
+            }
+        }.build();
+        var json = om.writeValueAsString(sut);
+        // make sure custom serializers are registerd
+        assertTrue(json.contains("\"versionConstraints\":[\"0\"]"));
+        var sut2 = om.readValue(json, PomAnalysisResult.class);
+        assertEquals(sut, sut2);
+        return sut2;
+    }
+
+    private static String assertSingleVersionConstraint(Dependency d) {
+        var cs = d.versionConstraints;
+        assertEquals(1, cs.size());
+        return cs.iterator().next().spec;
     }
 }
