@@ -22,11 +22,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.f4sten.infra.impl.json.JsonUtilsImpl;
+import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.json.TRef;
+import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.vulnerability.Vulnerability;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +40,6 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class DatabaseUtilsTest {
@@ -46,13 +50,12 @@ class DatabaseUtilsTest {
     public static final String DB_URL = "jdbc:postgresql://localhost:5432/fasten_java";
     public static final String PG_PWD = System.getenv("PG_PWD");
     public static final String USR = "fasten";
-    public static final JsonUtils JSON_UTILS = new JsonUtils();
 
     public static Map<FastenURI, List<Vulnerability>> EXPECTED_VULNERABILITY;
 
     @BeforeEach
-    void setUp() {
-        var vulString ="{\n" +
+    void setUp() throws JsonProcessingException {
+        var vulString = "{\n" +
             "  \"vulnerabilities\": {\n" +
             "    \"CVE-2017-3164\": {\n" +
             "      \"id\": \"CVE-2017-3164\",\n" +
@@ -72,10 +75,13 @@ class DatabaseUtilsTest {
             "  }\n" +
             "}";
 
-        Type setType = new TypeToken<HashMap<String, HashMap<String, Vulnerability>>>() {
-        }.getType();
-        Map<String, Map<String, Vulnerability>> VUL_ID_VUL_OBJECT_MAP =
-            new JsonUtils().fromJson(vulString, setType);
+        final var setType = new TRef<HashMap<String, HashMap<String, Vulnerability>>>() {
+        };
+        var om = new ObjectMapper();
+        om.registerModule(new FastenURIJacksonModule());
+        om.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        HashMap<String, HashMap<String, Vulnerability>> VUL_ID_VUL_OBJECT_MAP =
+            om.readValue(vulString, setType);
 
         EXPECTED_VULNERABILITY = Map.of(FastenURI.create(
                 "fasten://mvn!eu.fasten-project.tests.syntheticjars:lib$0.0.1/lib/VehicleWash.wash(MotorVehicle)%2Fjava.lang%2FVoidType"),
@@ -101,28 +107,28 @@ class DatabaseUtilsTest {
         assertTrue(actual.endsWith("and callables.module_id = 2"));
     }
 
-    @Disabled(SEE_WHY)
+//    @Disabled(SEE_WHY)
     @Test
     void testSelectAllModulesOf() {
         var actual = getDb().selectAllModulesOf(1);
         assertEquals(Set.of(1L, 2L, 3L, 4L), actual);
     }
 
-    @Disabled(SEE_WHY)
+//    @Disabled(SEE_WHY)
     @Test
     void testSelectConcurrentlyVulCallablesOf() {
         final var actual = getDb().selectConcurrentlyVulCallablesOf(Set.of(6L));
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
-    @Disabled(SEE_WHY)
+//    @Disabled(SEE_WHY)
     @Test
     void testSelectVulCallablesOf() {
         final var actual = getDb().selectVulCallablesOf(2);
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
-    @Disabled(SEE_WHY)
+//    @Disabled(SEE_WHY)
     @Test
     void testSelectVulCallablesOf2() {
         final var actual = getDb().selectVulCallablesOf(Set.of(2L));
@@ -146,7 +152,10 @@ class DatabaseUtilsTest {
     }
 
     private DatabaseUtils getDb() {
-        return new DatabaseUtils(DSL.using(DB_URL, USR, PG_PWD), JSON_UTILS);
+        final var om = new ObjectMapper().registerModule(new FastenURIJacksonModule());
+        om.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        final var jsonUtils = new JsonUtilsImpl(om);
+        return new DatabaseUtils(DSL.using(DB_URL, USR, PG_PWD), jsonUtils);
     }
 
 }

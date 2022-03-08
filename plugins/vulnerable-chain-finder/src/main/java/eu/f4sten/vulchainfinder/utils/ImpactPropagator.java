@@ -2,19 +2,17 @@ package eu.f4sten.vulchainfinder.utils;
 
 import com.google.common.collect.BiMap;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.data.NodeImpacts;
+import eu.f4sten.vulchainfinder.data.NodeReachability;
 import eu.fasten.core.data.DirectedGraph;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.vulnerability.Vulnerability;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,7 +21,7 @@ public class ImpactPropagator {
     private final DirectedGraph graph;
     private final BiMap<Long, String> idUriMap;
 
-    private Set<NodeImpacts> impacts;
+    private Set<NodeReachability> impacts;
 
     public ImpactPropagator(DirectedGraph graph, BiMap<Long, String> idUriMap) {
         this.graph = graph;
@@ -38,7 +36,7 @@ public class ImpactPropagator {
         return idUriMap;
     }
 
-    public Set<NodeImpacts> getImpacts() {
+    public Set<NodeReachability> getImpacts() {
         return impacts;
     }
 
@@ -51,25 +49,27 @@ public class ImpactPropagator {
             .collect(Collectors.toSet());
     }
 
-    public NodeImpacts propagateNodeImpacts(final Long nodeId) {
+    public NodeReachability propagateNodeImpacts(final Long nodeId) {
 
-        final var edges = new HashMap<Long, Long>();
-        final Queue<Long> nodesToVisit = new LinkedList<>(Collections.singleton(nodeId));
+        final var res = new NodeReachability(nodeId);
+
+        final var nodesToVisit = new LinkedList<Long>();
+        nodesToVisit.add(nodeId);
 
         while (!nodesToVisit.isEmpty()) {
             final var currentTarget = nodesToVisit.poll();
 
-            for (final var longLongPair : graph.incomingEdgesOf(currentTarget)) {
-                final var source = longLongPair.firstLong();
-                if (edges.containsKey(source) || currentTarget.equals(source)) {
+            for (final var srcToTarget : graph.incomingEdgesOf(currentTarget)) {
+                final var source = srcToTarget.firstLong();
+                if (res.nextStepTowardsTarget.containsKey(source) || currentTarget.equals(source)) {
                     continue;
                 }
 
-                edges.put(source, currentTarget);
+                res.nextStepTowardsTarget.put(source, currentTarget);
                 nodesToVisit.add(source);
             }
         }
-        return new NodeImpacts(nodeId, edges);
+        return res;
     }
 
     private boolean nodeIdExists(final Long nodeId) {
@@ -88,7 +88,7 @@ public class ImpactPropagator {
                 }
 
                 final var currentVul =
-                    vulCallables.get(FastenURI.create(idUriMap.get(impact.impactingNode)));
+                    vulCallables.get(FastenURI.create(idUriMap.get(impact.targetNode)));
                 final var chains = extractUriChainsForNode(appNode, impact);
                 result.add(new VulnerableCallChain(currentVul, chains));
             }
@@ -97,12 +97,12 @@ public class ImpactPropagator {
         return result;
     }
 
-    private boolean thereIsNoImpactForNode(final Long appNode, final NodeImpacts impact) {
-        return !impact.impactMap.containsKey(appNode);
+    private boolean thereIsNoImpactForNode(final Long appNode, final NodeReachability impact) {
+        return !impact.nextStepTowardsTarget.containsKey(appNode);
     }
 
     private List<FastenURI> extractUriChainsForNode(final Long appNode,
-                                                    final NodeImpacts impact) {
+                                                    final NodeReachability impact) {
         final var result = new ArrayList<FastenURI>();
 
         final var appVulIdChains = extractChainFromAppNodeToVulNode(appNode, impact);
@@ -114,12 +114,12 @@ public class ImpactPropagator {
     }
 
     private ArrayList<Long> extractChainFromAppNodeToVulNode(final Long appNode,
-                                                             final NodeImpacts vulImpact) {
+                                                             final NodeReachability vulImpact) {
         final var result = new ArrayList<>(Collections.singletonList(appNode));
 
         var currentNode = appNode;
-        while (!currentNode.equals(vulImpact.impactingNode)) {
-            currentNode = vulImpact.impactMap.get(currentNode);
+        while (!currentNode.equals(vulImpact.targetNode)) {
+            currentNode = vulImpact.nextStepTowardsTarget.get(currentNode);
             result.add(currentNode);
         }
 

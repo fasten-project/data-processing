@@ -18,14 +18,14 @@ package eu.f4sten.vulchainfinder;
 import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
+import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
-import eu.f4sten.vulchainfinder.json.CoreJacksonModule;
-import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
+import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinder.utils.JsonUtils;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -57,15 +57,9 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     }
 
     @Provides
-    public CallableIndexUtils bindCallableIndexUtils(){
-        //TODO add this to loader and get rid of extra arg in the plugin
-        RocksDao rocksDao;
-        try {
-            rocksDao = new RocksDao(args.callableIndexPath, false);
-        } catch (RocksDBException e) {
-            throw new RuntimeException(e);
-        }
-        return new CallableIndexUtils(rocksDao);
+    @Singleton
+    public RocksDao bindRocksDao() throws RocksDBException {
+        return new RocksDao(args.callableIndexPath, false);
     }
 
     @Provides
@@ -84,6 +78,6 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
 
     @ProvidesIntoSet
     public Module bindJacksonModule() {
-        return new CoreJacksonModule();
+        return new FastenURIJacksonModule();
     }
 }

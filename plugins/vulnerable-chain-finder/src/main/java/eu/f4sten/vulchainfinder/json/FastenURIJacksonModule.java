@@ -26,30 +26,18 @@ import eu.fasten.core.data.FastenJavaURI;
 import eu.fasten.core.data.FastenURI;
 import java.io.IOException;
 
-public class CoreJacksonModule extends SimpleModule {
+public class FastenURIJacksonModule extends SimpleModule {
 
-    public CoreJacksonModule() {
-
-        addDependencyClasses();
-    }
-
-    @Override
-    public String getModuleName() {
-        return "Module for some core classes (FastenUri, FastenJavaUri)";
-    }
-
-    private void addDependencyClasses() {
-
-        // Dependency.class itself works out of the box
+    public FastenURIJacksonModule() {
 
         addSerializer(FastenURI.class, new JsonSerializer<>() {
             @Override
             public void serialize(FastenURI value, JsonGenerator gen,
                                   SerializerProvider serializer) throws IOException {
                 gen.writeString(value.toString());
-
             }
         });
+
         addDeserializer(FastenURI.class, new JsonDeserializer<>() {
             @Override
             public FastenURI deserialize(JsonParser p,
