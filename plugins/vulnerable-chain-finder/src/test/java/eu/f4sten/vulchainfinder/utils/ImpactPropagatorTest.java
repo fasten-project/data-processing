@@ -24,7 +24,7 @@ import static eu.fasten.core.utils.TestUtils.getTestResource;
 
 import com.google.common.collect.HashBiMap;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.data.NodeImpacts;
+import eu.f4sten.vulchainfinder.data.NodeReachability;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraphConstructor;
 import eu.fasten.analyzer.javacgopal.data.OPALPartialCallGraphConstructor;
 import eu.fasten.core.data.FastenURI;
@@ -63,22 +63,21 @@ class ImpactPropagatorTest {
         Assertions.assertEquals(getExpected(), propagator.getImpacts());
     }
 
-    private Set<NodeImpacts> getExpected() {
-        return Set.of(
-            new NodeImpacts(2L,
-                Map.of(
-                    3L, 2L,
-                    5L, 2L
-                )
-            ),
-            new NodeImpacts(1L,
-                Map.of(
-                    5L, 6L,
-                    6L, 1L,
-                    7L, 1L
-                )
-            )
+    private Set<NodeReachability> getExpected() {
+        final var steps = Map.of(
+            3L, 2L,
+            5L, 2L
         );
+        final var nr1 = new NodeReachability(2L);
+        nr1.nextStepTowardsTarget.putAll(steps);
+        final var steps2 = Map.of(
+            5L, 6L,
+            6L, 1L,
+            7L, 1L
+        );
+        final var nr2 = new NodeReachability(1L);
+        nr2.nextStepTowardsTarget.putAll(steps2);
+        return Set.of(nr1, nr2);
     }
 
     private static MergedDirectedGraph createDg() {

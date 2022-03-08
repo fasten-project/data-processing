@@ -11,17 +11,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.fasten.core.data.metadatadb.codegen.tables.Dependencies;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.util.List;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class RestAPIDependencyResolverTest {
@@ -64,17 +63,17 @@ class RestAPIDependencyResolverTest {
         EXPECTED_URI_STRING = RESOLVER_WITHOUT_SLASH.getRestAPIBaseURL() + ENDPOINT_WITH_SLASH;
     }
 
-    @Disabled("Depends on the Rest Api and current state of the DB." +
-        "Run while development and adjust accordingly")
+//    @Disabled("Depends on the Rest Api and current state of the DB." +
+//        "Run while development and adjust accordingly")
     @Test
     void resolveServer() {
         var resolver = new RestAPIDependencyResolver(BASE_URL, HttpClient.newBuilder().build());
         var actual = resolver.resolveDependencyIds(ID);
-        assertEquals(List.of(4L, 8L, 42L, 53L, 55L, 56L, 59L, 70L, 71L, 159L), actual);
+        assertEquals(Set.of(4L, 8L, 42L, 53L, 55L, 56L, 59L, 70L, 71L, 159L, 10479L), actual);
     }
 
-    @Disabled("Works with Docker Compose, only when synthetic jar app is inserted!" +
-        "Run while development and adjust accordingly")
+//    @Disabled("Works with Docker Compose, only when synthetic jar app is inserted!" +
+//        "Run while development and adjust accordingly")
     @Test
     void resolveLocal() {
         var resolver =
@@ -84,7 +83,7 @@ class RestAPIDependencyResolverTest {
         id.artifactId = "app";
         id.version = "0.0.1";
         var actual = resolver.resolveDependencyIds(id);
-        assertEquals(List.of(2L), actual);
+        assertEquals(Set.of(2L, 1L), actual);
     }
 
     @Test
@@ -95,8 +94,9 @@ class RestAPIDependencyResolverTest {
     }
 
     @Test
-    void testExtractLongIdFromJsonObject() {
-        final var actual = RESOLVER_WITH_SLASH.extractLongIdFromJsonObject(DEP_JSON);
+    void testExtractLongFieldFromJSONObj() {
+        final var actual = RESOLVER_WITH_SLASH.extractLongFieldFromJSONObj(DEP_JSON,
+            Dependencies.DEPENDENCIES.DEPENDENCY_ID.getName());
         assertEquals(2L, actual);
     }
 
@@ -126,7 +126,7 @@ class RestAPIDependencyResolverTest {
 
     @Test
     void placeIDInEndpoint() {
-        var actual = RESOLVER_WITH_SLASH.placeIDInEndpoint(ID);
+        var actual = RESOLVER_WITH_SLASH.placeIDInEndpoint(ENDPOINT_WITH_SLASH, ID);
         assertEquals(ENDPOINT_WITH_SLASH, actual);
     }
 

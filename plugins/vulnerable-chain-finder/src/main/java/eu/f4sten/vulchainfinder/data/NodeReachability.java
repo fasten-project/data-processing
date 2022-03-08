@@ -1,25 +1,24 @@
 package eu.f4sten.vulchainfinder.data;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class NodeImpacts {
-    public Long impactingNode;
-    public Map<Long, Long> impactMap;
+public class NodeReachability {
 
-    public NodeImpacts(Long impactingNode,
-                       Map<Long, Long> impactMap) {
-        this.impactingNode = impactingNode;
-        this.impactMap = impactMap;
+    public Long targetNode;
+    public final Map<Long, Long> nextStepTowardsTarget = new HashMap<>();
+
+    public NodeReachability(Long impactingNode) {
+        this.targetNode = impactingNode;
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof NodeImpacts &&
-            EqualsBuilder.reflectionEquals(this, o);
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override

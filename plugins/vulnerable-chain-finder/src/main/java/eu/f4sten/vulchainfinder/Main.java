@@ -25,14 +25,13 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.vulchainfinder.utils.CallableIndexUtils;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
+import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.merge.CGMerger;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
-import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
@@ -44,7 +43,7 @@ public class Main implements Plugin {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     public final RestAPIDependencyResolver resolver;
     private final DatabaseUtils db;
-    private final CallableIndexUtils ci;
+    private final RocksDao dao;
     private final Kafka kafka;
     private final VulChainFinderArgs args;
     private final MessageGenerator msgs;
@@ -53,11 +52,11 @@ public class Main implements Plugin {
     private MavenId curId;
 
     @Inject
-    public Main(DatabaseUtils db, CallableIndexUtils ci, Kafka kafka, VulChainFinderArgs args,
+    public Main(DatabaseUtils db, RocksDao dao, Kafka kafka, VulChainFinderArgs args,
                 MessageGenerator msgs, RestAPIDependencyResolver resolver,
                 VulnerableCallChainRepository repo) {
         this.db = db;
-        this.ci = ci;
+        this.dao = dao;
         this.kafka = kafka;
         this.args = args;
         this.msgs = msgs;
@@ -115,16 +114,15 @@ public class Main implements Plugin {
     }
 
     private void storeInVulRepo(final Set<VulnerableCallChain> vulnerableCallChains) {
-        final var vulRepo = initializeVulRepo();
         final var productName = String.format("%s:%s", curId.groupId, curId.artifactId);
-        vulRepo.store(productName, curId.version, vulnerableCallChains);
+        repo.store(productName, curId.version, vulnerableCallChains);
     }
 
     private Set<VulnerableCallChain> extractVulCallChains(final Set<Long> allDeps,
                                                           final Set<Long> vulDeps) {
         Set<VulnerableCallChain> result = new HashSet<>();
 
-        final var merger = new CGMerger(allDeps, db.getContext(), ci.getDao());
+        final var merger = new CGMerger(allDeps, db.getContext(), dao);
         final var mergedCG = merger.mergeAllDeps();
         final var vulCallables = db.selectVulCallablesOf(vulDeps);
         final var propagator = new ImpactPropagator(mergedCG, merger.getAllUrisFromDB(mergedCG));
@@ -136,14 +134,6 @@ public class Main implements Plugin {
         }
 
         return result;
-    }
-
-    private VulnerableCallChainRepository initializeVulRepo() {
-        try {
-            return new VulnerableCallChainRepository(args.vulnChainRepoUrl);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static MavenId extractMavenIdFrom(final PomAnalysisResult pomAnalysisResult) {

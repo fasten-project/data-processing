@@ -16,7 +16,8 @@
 
 package eu.f4sten.vulchainfinder.utils;
 
-import com.google.gson.reflect.TypeToken;
+import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.json.TRef;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.metadatadb.codegen.tables.Modules;
@@ -77,8 +78,7 @@ public class DatabaseUtils {
                         return;
                     }
                     final var setType =
-                        new TypeToken<HashMap<String, Vulnerability>>() {
-                        }.getType();
+                        new TRef<HashMap<String, Vulnerability>>() {};
                     Map<String, Vulnerability> vulIdVulObject =
                         jsonUtils.fromJson(vulField.toString(), setType);
 
