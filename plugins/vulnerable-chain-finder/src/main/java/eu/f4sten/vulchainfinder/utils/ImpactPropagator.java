@@ -105,24 +105,12 @@ public class ImpactPropagator {
                                                     final NodeReachability impact) {
         final var result = new ArrayList<FastenURI>();
 
-        final var appVulIdChains = extractChainFromAppNodeToVulNode(appNode, impact);
-        for (final var nodeId : appVulIdChains) {
-            result.add(FastenURI.create(idUriMap.get(nodeId)));
+        if (impact.isReachingTarget(appNode)) {
+            final var appVulIdChains = impact.getShortestPath(appNode);
+            for (final var nodeId : appVulIdChains) {
+                result.add(FastenURI.create(idUriMap.get(nodeId)));
+            }
         }
-
-        return result;
-    }
-
-    private ArrayList<Long> extractChainFromAppNodeToVulNode(final Long appNode,
-                                                             final NodeReachability vulImpact) {
-        final var result = new ArrayList<>(Collections.singletonList(appNode));
-
-        var currentNode = appNode;
-        while (!currentNode.equals(vulImpact.targetNode)) {
-            currentNode = vulImpact.nextStepTowardsTarget.get(currentNode);
-            result.add(currentNode);
-        }
-
         return result;
     }
 
