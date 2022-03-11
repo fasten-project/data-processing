@@ -8,7 +8,6 @@ import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.vulnerability.Vulnerability;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
