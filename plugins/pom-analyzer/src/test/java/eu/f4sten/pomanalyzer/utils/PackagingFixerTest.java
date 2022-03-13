@@ -36,7 +36,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class PackagingFixerTest {
 

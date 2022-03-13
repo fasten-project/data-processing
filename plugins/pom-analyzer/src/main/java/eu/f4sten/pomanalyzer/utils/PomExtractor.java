@@ -26,9 +26,10 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.ModelBase;
 import org.apache.maven.model.Profile;
 
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
+import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Scope;
 
 public class PomExtractor {
 
@@ -110,7 +111,7 @@ public class PomExtractor {
                 });
             });
 
-            var d = new Dependency(g, a, v, exclusions, s, o, p, c);
+            var d = new Dependency(g, a, v, exclusions, Scope.valueOf(s.toUpperCase()), o, p, c);
             depsOut.add(d);
         });
     }

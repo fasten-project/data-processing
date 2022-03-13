@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class MavenRepositoryUtilsTest {
 

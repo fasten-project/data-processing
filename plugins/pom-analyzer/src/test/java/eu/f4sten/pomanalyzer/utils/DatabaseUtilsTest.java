@@ -40,10 +40,10 @@ import org.mockito.stubbing.Answer;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.Version;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.maven.data.Dependency;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {

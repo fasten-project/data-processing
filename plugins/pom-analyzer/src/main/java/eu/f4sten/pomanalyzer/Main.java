@@ -36,7 +36,6 @@ import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
 import eu.f4sten.pomanalyzer.exceptions.ExecutionTimeoutError;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
@@ -46,6 +45,7 @@ import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class Main implements Plugin {

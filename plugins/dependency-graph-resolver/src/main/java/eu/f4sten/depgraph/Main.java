@@ -28,7 +28,7 @@ import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.DefaultTopics;
 import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Message;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class Main implements Plugin {
 
