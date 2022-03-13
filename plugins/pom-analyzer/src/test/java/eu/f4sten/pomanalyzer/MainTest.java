@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.MessageGenerator;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
@@ -34,6 +33,7 @@ import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class MainTest {
 

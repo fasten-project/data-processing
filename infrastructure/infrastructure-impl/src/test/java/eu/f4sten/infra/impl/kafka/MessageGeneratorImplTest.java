@@ -15,7 +15,6 @@
  */
 package eu.f4sten.infra.impl.kafka;
 
-import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -122,7 +121,6 @@ public class MessageGeneratorImplTest {
         assertTrue(stack.contains(SOME_ERROR));
         assertTrue(stack.contains("\n"));
         assertTrue(stack.contains("at " + MessageGeneratorImplTest.class.getName()));
-        assertTrue(stack.contains(format("(%s.java:", MessageGeneratorImplTest.class.getSimpleName())));
     }
 
     private static <T, U> Message<T, U> deleteCreatedAt(Message<T, U> m) {
@@ -136,8 +134,7 @@ public class MessageGeneratorImplTest {
     }
 
     private void assertEqualMsgs(Object e, Object a) {
-        // TODO Auto-generated method stub
-
+        assertEquals(e, a);
     }
 
     private static class TestHostName implements HostName {

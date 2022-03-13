@@ -47,13 +47,13 @@ import eu.f4sten.infra.impl.utils.IoUtilsImpl;
 import eu.f4sten.infra.impl.utils.PostgresConnectorImpl;
 import eu.f4sten.infra.impl.utils.VersionImpl;
 import eu.f4sten.infra.json.JsonUtils;
-import eu.f4sten.infra.json.ObjectMapperBuilder;
 import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.HostName;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
+import eu.fasten.core.json.ObjectMapperBuilder;
 
 @InjectorConfig
 public class InfraConfig implements IInjectorConfig {

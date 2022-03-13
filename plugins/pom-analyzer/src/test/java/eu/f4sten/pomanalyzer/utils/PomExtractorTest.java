@@ -31,9 +31,10 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
+import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Scope;
 import eu.fasten.core.maven.data.VersionConstraint;
 import eu.fasten.core.utils.TestUtils;
 
@@ -84,11 +85,11 @@ public class PomExtractorTest {
     public void dependencies() {
         var actual = extract("dependencies.pom");
         var expected = getMinimal();
-        expected.dependencies.add(dep("g1:a1:jar:1", "compile", false, ""));
-        expected.dependencies.add(dep("g2:a2:pom:2", "compile", false, ""));
-        expected.dependencies.add(dep("g3:a3:jar:3", "test", false, ""));
-        expected.dependencies.add(dep("g4:a4:jar:4", "compile", true, ""));
-        expected.dependencies.add(dep("g5:a5:jar:5", "compile", false, "c"));
+        expected.dependencies.add(dep("g1:a1:jar:1", Scope.COMPILE, false, ""));
+        expected.dependencies.add(dep("g2:a2:pom:2", Scope.COMPILE, false, ""));
+        expected.dependencies.add(dep("g3:a3:jar:3", Scope.TEST, false, ""));
+        expected.dependencies.add(dep("g4:a4:jar:4", Scope.COMPILE, true, ""));
+        expected.dependencies.add(dep("g5:a5:jar:5", Scope.COMPILE, false, "c"));
         assertEquals(expected, actual);
     }
 
@@ -252,10 +253,10 @@ public class PomExtractorTest {
 
     private static Dependency dep(String gav) {
         String[] parts = gav.split(":");
-        return new Dependency(parts[0], parts[1], parts[2], new HashSet<>(), "compile", false, "jar", "");
+        return new Dependency(parts[0], parts[1], parts[2], new HashSet<>(), Scope.COMPILE, false, "jar", "");
     }
 
-    private static Dependency dep(String gapv, String scope, boolean optional, String classifier) {
+    private static Dependency dep(String gapv, Scope scope, boolean optional, String classifier) {
         String[] parts = gapv.split(":");
         return new Dependency(parts[0], parts[1], parts[3], new HashSet<>(), scope, optional, parts[2], classifier);
     }
@@ -267,7 +268,7 @@ public class PomExtractorTest {
             String[] ga = excl.split(":");
             exclusions.add(new Exclusion(ga[0], ga[1]));
         }
-        return new Dependency(parts[0], parts[1], parts[2], exclusions, "compile", false, "jar", "");
+        return new Dependency(parts[0], parts[1], parts[2], exclusions, Scope.COMPILE, false, "jar", "");
     }
 
     private Dependency depC(int i, String... specs) {
@@ -275,6 +276,6 @@ public class PomExtractorTest {
         for (var spec : specs) {
             vcs.add(new VersionConstraint(spec));
         }
-        return new Dependency("g" + i, "a" + i, vcs, new HashSet<>(), "compile", false, "jar", "");
+        return new Dependency("g" + i, "a" + i, vcs, new HashSet<>(), Scope.COMPILE, false, "jar", "");
     }
 }

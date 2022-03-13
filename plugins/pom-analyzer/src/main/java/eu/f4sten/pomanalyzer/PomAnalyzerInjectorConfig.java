@@ -18,17 +18,14 @@ package eu.f4sten.pomanalyzer;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
-import com.google.inject.multibindings.ProvidesIntoSet;
 
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
-import eu.f4sten.pomanalyzer.json.CoreJacksonModule;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 
 @InjectorConfig
@@ -50,10 +47,5 @@ public class PomAnalyzerInjectorConfig implements IInjectorConfig {
         var c = pc.getNewConnection();
         var dslContext = DSL.using(c, SQLDialect.POSTGRES);
         return new DatabaseUtils(dslContext, json, version);
-    }
-
-    @ProvidesIntoSet
-    public Module bindJacksonModule() {
-        return new CoreJacksonModule();
     }
 }

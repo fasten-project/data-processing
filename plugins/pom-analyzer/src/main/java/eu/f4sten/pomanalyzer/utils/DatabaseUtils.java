@@ -26,9 +26,9 @@ import org.jooq.impl.DSL;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.utils.Version;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class DatabaseUtils {
 

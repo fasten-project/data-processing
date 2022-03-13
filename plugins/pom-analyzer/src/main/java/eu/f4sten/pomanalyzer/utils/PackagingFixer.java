@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class PackagingFixer {
 

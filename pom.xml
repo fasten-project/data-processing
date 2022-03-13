@@ -73,5 +73,20 @@
             <version>2.1.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.fasten</groupId>
+            <artifactId>core</artifactId>
+            <version>0.0.4-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 </project>
