@@ -38,17 +38,10 @@
             <systemPath>/absolute/path/to.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.2</version>
+            <groupId>org.opentest4j</groupId>
+            <artifactId>opentest4j</artifactId>
+            <version>1.2.0</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.sonatype.oss</groupId>
-            <artifactId>oss-parent</artifactId>
-            <version>9</version>
-            <type>pom</type>
-            <scope>import</scope>
         </dependency>
     </dependencies>
 </project>

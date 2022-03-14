@@ -22,6 +22,7 @@ import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.COMPILE;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.PROVIDED;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.RUNTIME;
 import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.SYSTEM;
+import static org.jboss.shrinkwrap.resolver.api.maven.ScopeType.TEST;
 
 import java.io.File;
 import java.util.HashMap;
@@ -97,7 +98,7 @@ public class Resolver {
                     .withClassPathResolution(false) //
                     .withRemoteRepo(getRepo(artifactRepository)) //
                     .loadPomFromFile(f) //
-                    .importDependencies(COMPILE, RUNTIME, PROVIDED, SYSTEM) //
+                    .importDependencies(COMPILE, RUNTIME, PROVIDED, SYSTEM, TEST) //
                     .resolve() //
                     .withTransitivity() //
                     .asResolvedArtifact();

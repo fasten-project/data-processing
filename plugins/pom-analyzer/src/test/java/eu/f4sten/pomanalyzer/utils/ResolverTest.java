@@ -139,20 +139,17 @@ public class ResolverTest {
     }
 
     @Test
-    public void ignoresTestAndImportScopes() {
+    public void ensureAllScopesAreIncluded() {
         var actual = resolveTestPom("scopes.pom");
         assertTrue(actual.contains(JSR305), "JSR305"); // default (none)
         assertTrue(actual.contains(SLF4J), "SLF4J"); // compile
         assertTrue(actual.contains(COMMONS_TEXT), "COMMONS_TEXT"); // runtime
         assertTrue(actual.contains(COMMONS_LANG3), "COMMONS_LANG3"); // provided
         assertTrue(actual.contains(OKIO), "OKIO"); // system
+        assertTrue(actual.contains(OPENTEST), "JUNIT"); // test
 
-        assertFalse(actual.contains(OSS_PARENT), "OSS_PARENT"); // import
-        assertFalse(actual.contains(JUNIT), "JUNIT"); // test
-
-        // direct and transitive dependencies
-        // TODO not clear where the Kotlin reference comes from?!
-        assertEquals(5 + 1, actual.size());
+        // direct deps + one (broken) system dep (not found via Maven)
+        assertEquals(6 + 1, actual.size());
     }
 
     @Test
@@ -189,12 +186,8 @@ public class ResolverTest {
             "com.squareup.okio:okio:jar:3.0.0", //
             MAVEN_CENTRAL);
 
-    private static final ResolutionResult OSS_PARENT = new ResolutionResult(//
-            "org.sonatype.oss:oss-parent:jar:2.6.3", //
-            MAVEN_CENTRAL);
-
-    private static final ResolutionResult JUNIT = new ResolutionResult(//
-            "org.junit.jupiter:junit-jupiter-api:jar:5.8.2", //
+    private static final ResolutionResult OPENTEST = new ResolutionResult(//
+            "org.opentest4j:opentest4j:jar:1.2.0", //
             MAVEN_CENTRAL);
 
     private static final ResolutionResult REMLA = new ResolutionResult(//
