@@ -37,6 +37,7 @@ public class EffectiveModelBuilder {
 
             var req = new DefaultModelBuildingRequest();
             req.setProcessPlugins(false);
+            req.setSystemProperties(System.getProperties());
             req.setModelResolver(new RepositoryModelResolver(LOCAL_M2));
             req.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
             req.setPomFile(pom);
