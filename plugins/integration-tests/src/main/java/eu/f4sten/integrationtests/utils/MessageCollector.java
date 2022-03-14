@@ -86,7 +86,7 @@ public class MessageCollector {
         });
         var hadMessages = true;
         while (hadMessages) {
-            var crs = con.poll(Duration.ZERO);
+            var crs = con.poll(Duration.ofMillis(100));
             hadMessages = registerMsgs.apply(crs);
         }
 
