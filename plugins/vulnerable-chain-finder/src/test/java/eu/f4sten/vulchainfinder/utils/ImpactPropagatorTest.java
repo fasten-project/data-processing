@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ImpactPropagatorTest {
@@ -53,14 +54,40 @@ class ImpactPropagatorTest {
         //            ▼         ▼    │
         //            8         1◄───┘
         //                      v1
-        HashBiMap<Long, String> uris = HashBiMap.create(Map.of(1L, "v1", 2L, "v2"));
-        final var vulUris = Set.of(FastenURI.create("v1"), FastenURI.create("v2"));
+        final ImpactPropagator propagator = propagageSyntheticGraph(
+            Set.of(FastenURI.create("v1"), FastenURI.create("v2")),
+            HashBiMap.create(Map.of(1L, "v1", 2L, "v2")));
+
+        Assertions.assertEquals(getExpected(), propagator.getImpacts());
+    }
+
+    private ImpactPropagator propagageSyntheticGraph(Set<FastenURI> vulUris,
+                                                     HashBiMap<Long, String> uris) {
         final var dg = createDg();
         final var propagator = new ImpactPropagator(dg, uris);
 
         propagator.propagateUrisImpacts(vulUris);
+        return propagator;
+    }
 
-        Assertions.assertEquals(getExpected(), propagator.getImpacts());
+    @Test
+    void testExtractAppVulChains(){
+        final var vulUriStr = "fasten://mvn!g1:a1$1/name.space/V1.v1()%2Fjava.lang%2FVoidType";
+        final var vulUri = FastenURI.create(vulUriStr);
+        final var appUriStr = "fasten://mvn!g:a$1/name.space/V6.v6()%2Fjava.lang%2FVoidType";
+        final var appUri = FastenURI.create(appUriStr);
+        final ImpactPropagator propagator = propagageSyntheticGraph(
+            Set.of(vulUri), HashBiMap.create(Map.of(1L, vulUriStr, 6L, appUriStr)));
+        final var vulList = List.of(new Vulnerability());
+        final var vulCallables = Map.of(vulUri, vulList);
+        final var id = new MavenId();
+        id.groupId = "g";
+        id.artifactId = "a";
+        id.version = "1";
+        final var actual =
+            propagator.extractApplicationVulChains(vulCallables, id);
+        final var expected = Set.of(new VulnerableCallChain(vulList, List.of(appUri, vulUri)));
+        Assertions.assertEquals(expected, actual);
     }
 
     private Set<NodeReachability> getExpected() {
@@ -92,9 +119,12 @@ class ImpactPropagatorTest {
         addEdge(dg, 6, 1);
         addEdge(dg, 6, 7);
         addEdge(dg, 7, 1);
+        // Self call to increase the coverage
+        addEdge(dg, 7,7);
         return dg;
     }
 
+    @Disabled("This test is slow.")
     @Test
     void testARealWorldExample() {
         final var propagator = instantiatePropagatorFromResources();
