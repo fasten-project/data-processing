@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jooq.impl.DSL;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -73,10 +74,10 @@ class MainTest {
 
     //TODO implement vulnerability inserter in the integration tests plugin and use that as a
     // dependency to automate the vulnerability insertion
-//    @Disabled("This is an integration test that checks if all the steps of vul-chain-finder work " +
-//        "correctly. It is only for local development and debugging. It requires DC up and running" +
-//        "with synthetic app:0.0.1 ingested, vulnerability inserted to wash method, and CI_URL " +
-//        "constant available.")
+    @Disabled("This is an integration test that checks if all the steps of vul-chain-finder work " +
+        "correctly. It is only for local development and debugging. It requires DC up and running" +
+        "with synthetic app:0.0.1 ingested, vulnerability inserted to wash method, and CI_URL " +
+        "constant available.")
     @Test
     void testProcess() throws RocksDBException, IOException {
         final var id = getMavenId("eu.fasten-project.tests.syntheticjars", "app", "0.0.1");
