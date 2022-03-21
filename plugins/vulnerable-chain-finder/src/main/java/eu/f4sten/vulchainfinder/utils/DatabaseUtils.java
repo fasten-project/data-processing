@@ -61,7 +61,7 @@ public class DatabaseUtils {
     public Map<FastenURI, List<Vulnerability>> selectVulCallablesOf(final long depId) {
 
         final var moduleIds = selectAllModulesOf(depId);
-        if (moduleIds.isEmpty()) {
+        if (moduleIds == null || moduleIds.isEmpty()) {
             return Collections.emptyMap();
         }
         return selectConcurrentlyVulCallablesOf(moduleIds);
@@ -73,19 +73,22 @@ public class DatabaseUtils {
         moduleIds.parallelStream().forEach(moduleId ->
             context.fetch(createStrForSelectVulCallablesWhereModuleIdIs(moduleId))
                 .forEach(record -> {
-                    final var vulField = record.get(3);
-                    if (vulField == null) {
-                        return;
+                    final var vulMap = convertRecordToVulMap(record);
+                    if (!vulMap.isEmpty()) {
+                        result.put(createFastenUriFromPckgVersionUriFields(record),
+                            new ArrayList<>(vulMap.values()));
                     }
-                    final var setType =
-                        new TRef<HashMap<String, Vulnerability>>() {};
-                    Map<String, Vulnerability> vulIdVulObject =
-                        jsonUtils.fromJson(vulField.toString(), setType);
-
-                    result.put(createFastenUriFromPckgVersionUriFields(record),
-                        new ArrayList<>(vulIdVulObject.values()));
                 }));
         return result;
+    }
+
+    private Map<String, Vulnerability> convertRecordToVulMap(final Record record) {
+        final var vulField = record.get(3);
+        if (vulField == null) {
+            return Collections.emptyMap();
+        }
+        final var setType = new TRef<HashMap<String, Vulnerability>>() {};
+        return jsonUtils.fromJson(vulField.toString(), setType);
     }
 
     public static FastenURI createFastenUriFromPckgVersionUriFields(final Record record) {
