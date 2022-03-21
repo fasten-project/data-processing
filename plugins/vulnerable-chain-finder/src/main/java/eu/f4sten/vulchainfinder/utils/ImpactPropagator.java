@@ -27,14 +27,6 @@ public class ImpactPropagator {
         this.idUriMap = idUriMap;
     }
 
-    public DirectedGraph getGraph() {
-        return graph;
-    }
-
-    public BiMap<Long, String> getIdUriMap() {
-        return idUriMap;
-    }
-
     public Set<NodeReachability> getImpacts() {
         return impacts;
     }
@@ -50,7 +42,7 @@ public class ImpactPropagator {
 
     public NodeReachability propagateNodeImpacts(final Long nodeId) {
 
-        final var res = new NodeReachability(nodeId);
+        final var result = new NodeReachability(nodeId);
 
         final var nodesToVisit = new LinkedList<Long>();
         nodesToVisit.add(nodeId);
@@ -60,15 +52,15 @@ public class ImpactPropagator {
 
             for (final var srcToTarget : graph.incomingEdgesOf(currentTarget)) {
                 final var source = srcToTarget.firstLong();
-                if (res.nextStepTowardsTarget.containsKey(source) || currentTarget.equals(source)) {
+                if (result.nextStepTowardsTarget.containsKey(source) || currentTarget.equals(source)) {
                     continue;
                 }
 
-                res.nextStepTowardsTarget.put(source, currentTarget);
+                result.nextStepTowardsTarget.put(source, currentTarget);
                 nodesToVisit.add(source);
             }
         }
-        return res;
+        return result;
     }
 
     private boolean nodeIdExists(final Long nodeId) {
