@@ -21,6 +21,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class RestAPIDependencyResolverTest {
@@ -63,8 +64,8 @@ class RestAPIDependencyResolverTest {
         EXPECTED_URI_STRING = RESOLVER_WITHOUT_SLASH.getRestAPIBaseURL() + ENDPOINT_WITH_SLASH;
     }
 
-//    @Disabled("Depends on the Rest Api and current state of the DB." +
-//        "Run while development and adjust accordingly")
+    @Disabled("Depends on the Rest Api and current state of the DB." +
+        "Run while development and adjust accordingly")
     @Test
     void resolveServer() {
         var resolver = new RestAPIDependencyResolver(BASE_URL, HttpClient.newBuilder().build());
@@ -72,8 +73,8 @@ class RestAPIDependencyResolverTest {
         assertEquals(Set.of(4L, 8L, 42L, 53L, 55L, 56L, 59L, 70L, 71L, 159L, 10479L), actual);
     }
 
-//    @Disabled("Works with Docker Compose, only when synthetic jar app is inserted!" +
-//        "Run while development and adjust accordingly")
+    @Disabled("Works with Docker Compose, only when synthetic jar app is inserted!" +
+        "Run while development and adjust accordingly")
     @Test
     void resolveLocal() {
         var resolver =
@@ -118,7 +119,6 @@ class RestAPIDependencyResolverTest {
         try {
             RESOLVER_WITH_SLASH.sendOrThrow(any());
         } catch (RuntimeException ignored) {
-            // This catch is ignored. It only helps us check if the send method is called
             System.out.println();
         }
         verify(MOCK_CLIENT, times(1)).send(any(), any());

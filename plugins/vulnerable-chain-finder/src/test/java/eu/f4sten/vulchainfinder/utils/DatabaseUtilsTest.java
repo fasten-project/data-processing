@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class DatabaseUtilsTest {
 
     public static final String SEE_WHY =
-        "Only for local development. It requires Docker Compose up and running and the " +
+        "This is an integration test. It requires Docker Compose up and running and the " +
             "synthetic jars ingested, with inserted vulnerability in callable table.";
     public static final String DB_URL = "jdbc:postgresql://localhost:5432/fasten_java";
     public static final String PG_PWD = System.getenv("PG_PWD");
@@ -131,7 +131,7 @@ class DatabaseUtilsTest {
 
     @Disabled(SEE_WHY)
     @Test
-    void testSelectAllModulesOfIntegration() {
+    void testIntegrationForSelectAllModulesOf() {
         var actual = getDb().selectAllModulesOf(1);
         assertEquals(Set.of(1L, 2L, 3L, 4L), actual);
     }
@@ -145,14 +145,14 @@ class DatabaseUtilsTest {
 
     @Disabled(SEE_WHY)
     @Test
-    void testSelectVulCallablesOfIntegration() {
+    void testSelectVulCallablesOfIn() {
         final var actual = getDb().selectVulCallablesOf(2);
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
 
     @Disabled(SEE_WHY)
     @Test
-    void testSelectVulCallablesOf2Integration() {
+    void testSelectVulCallablesOfWithSet() {
         final var actual = getDb().selectVulCallablesOf(Set.of(2L));
         assertEquals(EXPECTED_VULNERABILITY, actual);
     }
