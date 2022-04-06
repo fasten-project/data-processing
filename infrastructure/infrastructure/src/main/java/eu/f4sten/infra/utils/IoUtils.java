@@ -17,6 +17,8 @@ package eu.f4sten.infra.utils;
 
 import java.io.File;
 
+import eu.f4sten.infra.json.TRef;
+
 public interface IoUtils {
 
     File getTempFolder();
@@ -26,4 +28,8 @@ public interface IoUtils {
     <T> void writeToFile(T t, File file);
 
     <T> T readFromFile(File file, Class<T> typeOfContent);
+
+    <T> T readFromFile(File file, TRef<T> typeOfContent);
+
+    void move(File from, File to);
 }
