@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.maven.data.Scope;
 import eu.fasten.core.maven.data.VersionConstraint;
 import eu.fasten.core.utils.TestUtils;
@@ -230,8 +230,8 @@ public class PomExtractorTest {
         fail();
     }
 
-    private static PomAnalysisResult getMinimal() {
-        var expected = new PomAnalysisResult();
+    private static Pom getMinimal() {
+        var expected = new Pom();
         expected.groupId = "test";
         expected.artifactId = "PomAnalyzerTest";
         expected.packagingType = "jar";
@@ -239,7 +239,7 @@ public class PomExtractorTest {
         return expected;
     }
 
-    private static PomAnalysisResult extract(String pathToPom) {
+    private static Pom extract(String pathToPom) {
         var fullPath = Path.of(PomExtractorTest.class.getSimpleName(), pathToPom);
         File pom = TestUtils.getTestResource(fullPath.toString());
         try {

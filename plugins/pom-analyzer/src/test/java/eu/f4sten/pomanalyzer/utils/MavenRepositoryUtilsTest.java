@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 
 public class MavenRepositoryUtilsTest {
 
@@ -203,8 +203,8 @@ public class MavenRepositoryUtilsTest {
         assertEquals(expected, actual);
     }
 
-    private static PomAnalysisResult minimalPomAnalysisResult() {
-        var par = new PomAnalysisResult();
+    private static Pom minimalPomAnalysisResult() {
+        var par = new Pom();
         par.artifactRepository = ARTIFACT_REPO;
         par.groupId = "g";
         par.artifactId = "a";
@@ -222,9 +222,9 @@ public class MavenRepositoryUtilsTest {
         }
     }
 
-    private static PomAnalysisResult par(String gapt) {
+    private static Pom par(String gapt) {
         String[] parts = gapt.split(":");
-        var par = new PomAnalysisResult();
+        var par = new Pom();
         par.groupId = parts[0];
         par.artifactId = parts[1];
         par.packagingType = parts[2];

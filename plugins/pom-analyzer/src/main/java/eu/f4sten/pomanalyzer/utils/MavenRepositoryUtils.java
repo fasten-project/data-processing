@@ -31,7 +31,7 @@ import org.jboss.shrinkwrap.resolver.impl.maven.SettingsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.utils.Asserts;
 
 public class MavenRepositoryUtils {
@@ -42,7 +42,7 @@ public class MavenRepositoryUtils {
     /**
      * returns url of sources jar if it exists, null otherwise
      */
-    public String getSourceUrlIfExisting(PomAnalysisResult r) {
+    public String getSourceUrlIfExisting(Pom r) {
 
         var url = getUrl(r, "sources");
 
@@ -54,7 +54,7 @@ public class MavenRepositoryUtils {
         }
     }
 
-    public long getReleaseDate(PomAnalysisResult r) {
+    public long getReleaseDate(Pom r) {
         try {
             var url = new URL(getUrl(r, null));
             var con = url.openConnection();
@@ -71,7 +71,7 @@ public class MavenRepositoryUtils {
         }
     }
 
-    private static String getUrl(PomAnalysisResult r, String classifier) {
+    private static String getUrl(Pom r, String classifier) {
         if (isNullEmptyOrUnset(r.artifactRepository) || isNullEmptyOrUnset(r.groupId)
                 || isNullEmptyOrUnset(r.artifactId) || isNullEmptyOrUnset(r.packagingType)
                 || isNullEmptyOrUnset(r.version)) {
@@ -117,7 +117,7 @@ public class MavenRepositoryUtils {
         return new File(localRepository);
     }
 
-    public boolean doesExist(PomAnalysisResult r) {
+    public boolean doesExist(Pom r) {
         var url = getUrl(r, null);
         var status = sendGetRequest(url);
         return status == 200;

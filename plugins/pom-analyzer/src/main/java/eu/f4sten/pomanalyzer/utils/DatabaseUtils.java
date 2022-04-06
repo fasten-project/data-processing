@@ -28,7 +28,7 @@ import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.utils.Version;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 
 public class DatabaseUtils {
 
@@ -48,7 +48,7 @@ public class DatabaseUtils {
         return new MetadataDao(ctx);
     }
 
-    public void save(PomAnalysisResult result) {
+    public void save(Pom result) {
         processedRecord = false;
         int numTries = 0;
         while (!processedRecord && numTries < Constants.transactionRestartLimit) {
@@ -65,7 +65,7 @@ public class DatabaseUtils {
         }
     }
 
-    public void insertIntoDB(PomAnalysisResult r, MetadataDao dao) {
+    public void insertIntoDB(Pom r, MetadataDao dao) {
         String product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
         final var packageId = dao.insertPackage(product, Constants.mvnForge, r.projectName, r.repoUrl, null);
 

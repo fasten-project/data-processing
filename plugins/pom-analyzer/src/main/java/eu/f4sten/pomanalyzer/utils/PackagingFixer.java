@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 
 public class PackagingFixer {
 
@@ -35,7 +35,7 @@ public class PackagingFixer {
         this.repoUtils = repoUtils;
     }
 
-    public String checkPackage(PomAnalysisResult r) {
+    public String checkPackage(Pom r) {
 
         if (repoUtils.doesExist(r)) {
             return r.packagingType;
@@ -65,7 +65,7 @@ public class PackagingFixer {
         return r.packagingType;
     }
 
-    private boolean exists(PomAnalysisResult r, String packagingType, boolean shouldLog) {
+    private boolean exists(Pom r, String packagingType, boolean shouldLog) {
         var clone = r.clone();
         clone.packagingType = packagingType;
         boolean doesExist = repoUtils.doesExist(clone);
