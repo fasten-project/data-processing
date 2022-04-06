@@ -43,7 +43,7 @@ import eu.f4sten.infra.utils.Version;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.maven.data.Dependency;
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
@@ -171,8 +171,8 @@ public class DatabaseUtilsTest {
         verify(dao).isArtifactIngested("gapv-NORMAL");
     }
 
-    private PomAnalysisResult getSomeResult() {
-        PomAnalysisResult result = new PomAnalysisResult();
+    private Pom getSomeResult() {
+        Pom result = new Pom();
         result.artifactRepository = "...";
         result.groupId = "g";
         result.artifactId = "a";

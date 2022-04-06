@@ -28,13 +28,13 @@ import org.apache.maven.model.Profile;
 
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.maven.data.Scope;
 
 public class PomExtractor {
 
-    public PomAnalysisResult process(Model model) {
-        var r = new PomAnalysisResult();
+    public Pom process(Model model) {
+        var r = new Pom();
 
         r.version = model.getVersion();
         r.artifactId = model.getArtifactId();
@@ -82,7 +82,7 @@ public class PomExtractor {
         return r;
     }
 
-    public PomAnalysisResult process(ModelBase model, PomAnalysisResult r) {
+    public Pom process(ModelBase model, Pom r) {
 
         ifNotNull(model.getDependencies(), deps -> process(deps, r.dependencies));
         ifNotNull(model.getDependencyManagement(), dm -> {

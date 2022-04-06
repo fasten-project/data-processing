@@ -36,7 +36,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 
 public class PackagingFixerTest {
 
@@ -49,10 +49,10 @@ public class PackagingFixerTest {
         clearLog();
         existingPackaging = Set.of("<none>");
         repoUtils = mock(MavenRepositoryUtils.class);
-        when(repoUtils.doesExist(any(PomAnalysisResult.class))).then(new Answer<Boolean>() {
+        when(repoUtils.doesExist(any(Pom.class))).then(new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock i) throws Throwable {
-                PomAnalysisResult arg = i.getArgument(0);
+                Pom arg = i.getArgument(0);
                 return existingPackaging.contains(arg.packagingType);
             }
         });
@@ -135,7 +135,7 @@ public class PackagingFixerTest {
         existingPackaging = Set.of("pom");
         var orig = getPAR("Xxx");
         sut.checkPackage(orig);
-        var captor = ArgumentCaptor.forClass(PomAnalysisResult.class);
+        var captor = ArgumentCaptor.forClass(Pom.class);
         verify(repoUtils, times(8)).doesExist(captor.capture());
         var values = captor.getAllValues();
         assertSame(orig, values.get(0));
@@ -180,11 +180,11 @@ public class PackagingFixerTest {
     private void verifyNumberOfAdditionalDoesExistCalls(int numAdditional) {
         // 1) orig 2) pom 3) lowercase (not needed) 3) cycle through up to 5 types
         var numCalls = 2 + numAdditional;
-        verify(repoUtils, times(numCalls)).doesExist(any(PomAnalysisResult.class));
+        verify(repoUtils, times(numCalls)).doesExist(any(Pom.class));
     }
 
-    private PomAnalysisResult getPAR(String packaging) {
-        var par = new PomAnalysisResult();
+    private Pom getPAR(String packaging) {
+        var par = new Pom();
         par.packagingType = packaging;
         return par;
     }

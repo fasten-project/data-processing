@@ -42,6 +42,8 @@ public class DependencyGraphResolution {
         this.resolver = resolver;
     }
 
+    // TODO return a "Response" that allows us to add error information
+
     @GET
     @Path("/dependents/{groupId}/{artifactId}/{version}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -49,13 +51,13 @@ public class DependencyGraphResolution {
             @PathParam("groupId") String groupId, //
             @PathParam("artifactId") String artifactId, //
             @PathParam("version") String version, //
-            @QueryParam("timestamp") Long timestamp, //
+            @QueryParam("resolveAt") Long resolveAt, //
             @QueryParam("depth") ResolverDepth depth, //
             @QueryParam("scope") Scope scope, //
             @QueryParam("alwaysIncludeProvided") Boolean alwaysIncludeProvided, //
             @QueryParam("alwaysIncludeOptional") Boolean alwaysIncludeOptional) {
 
-        var config = getConfig(timestamp, depth, scope, alwaysIncludeProvided, alwaysIncludeOptional);
+        var config = getConfig(resolveAt, depth, scope, alwaysIncludeProvided, alwaysIncludeOptional);
         return resolver.resolveDependents(groupId, artifactId, version, config);
     }
 
@@ -64,21 +66,21 @@ public class DependencyGraphResolution {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<Revision> resolveDependencies( //
             Set<String> gavs, //
-            @QueryParam("timestamp") Long timestamp, //
+            @QueryParam("resolveAt") Long resolveAt, //
             @QueryParam("depth") ResolverDepth depth, //
             @QueryParam("scope") Scope scope, //
             @QueryParam("alwaysIncludeProvided") Boolean alwaysIncludeProvided, //
             @QueryParam("alwaysIncludeOptional") Boolean alwaysIncludeOptional) {
 
-        var config = getConfig(timestamp, depth, scope, alwaysIncludeProvided, alwaysIncludeOptional);
+        var config = getConfig(resolveAt, depth, scope, alwaysIncludeProvided, alwaysIncludeOptional);
         return resolver.resolveDependencies(gavs, config);
     }
 
-    private static ResolverConfig getConfig(Long timestamp, ResolverDepth depth, Scope scope,
+    private static ResolverConfig getConfig(Long resolveAt, ResolverDepth depth, Scope scope,
             Boolean alwaysIncludeProvided, Boolean alwaysIncludeOptional) {
         var cfg = new ResolverConfig();
-        if (timestamp != null) {
-            cfg.timestamp = timestamp;
+        if (resolveAt != null) {
+            cfg.resolveAt = resolveAt;
         }
         if (depth != null) {
             cfg.depth = depth;

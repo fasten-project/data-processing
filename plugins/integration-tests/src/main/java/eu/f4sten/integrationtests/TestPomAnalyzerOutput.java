@@ -30,7 +30,7 @@ import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.integrationtests.utils.Messages;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.fasten.core.maven.data.PomAnalysisResult;
+import eu.fasten.core.maven.data.Pom;
 
 public class TestPomAnalyzerOutput implements Plugin {
 
@@ -64,10 +64,10 @@ public class TestPomAnalyzerOutput implements Plugin {
 
         var counter = new int[] { 0 };
         System.out.println("### NORMAL ###");
-        msgs.get(POM_ANALYZER, NORMAL, new TRef<Message<Void, PomAnalysisResult>>() {}).stream() //
-                .sorted(new Comparator<Message<Void, PomAnalysisResult>>() {
+        msgs.get(POM_ANALYZER, NORMAL, new TRef<Message<Void, Pom>>() {}).stream() //
+                .sorted(new Comparator<Message<Void, Pom>>() {
                     @Override
-                    public int compare(Message<Void, PomAnalysisResult> a, Message<Void, PomAnalysisResult> b) {
+                    public int compare(Message<Void, Pom> a, Message<Void, Pom> b) {
                         return toCoord(a.payload).compareTo(toCoord(b.payload));
                     }
                 }).forEach(m -> {
@@ -77,10 +77,10 @@ public class TestPomAnalyzerOutput implements Plugin {
         System.out.println("### PRIO ###");
 
         counter[0] = 0;
-        msgs.get(POM_ANALYZER, PRIORITY, new TRef<Message<Void, PomAnalysisResult>>() {}).stream() //
-                .sorted(new Comparator<Message<Void, PomAnalysisResult>>() {
+        msgs.get(POM_ANALYZER, PRIORITY, new TRef<Message<Void, Pom>>() {}).stream() //
+                .sorted(new Comparator<Message<Void, Pom>>() {
                     @Override
-                    public int compare(Message<Void, PomAnalysisResult> a, Message<Void, PomAnalysisResult> b) {
+                    public int compare(Message<Void, Pom> a, Message<Void, Pom> b) {
                         return toCoord(a.payload).compareTo(toCoord(b.payload));
                     }
                 }).forEach(m -> {
@@ -88,7 +88,7 @@ public class TestPomAnalyzerOutput implements Plugin {
                 });
     }
 
-    private String toCoord(PomAnalysisResult res) {
+    private String toCoord(Pom res) {
         return String.format("%s:%s:%s:%s (%s)", res.groupId, res.artifactId, res.packagingType, res.version,
                 res.artifactRepository);
     }
