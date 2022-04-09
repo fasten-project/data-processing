@@ -103,7 +103,7 @@ public class InfraConfig implements IInjectorConfig {
     @Provides
     @Singleton
     public Kafka bindKafka(JsonUtils jsonUtils, KafkaConnector connector) {
-        var kafka = new KafkaImpl(jsonUtils, connector);
+        var kafka = new KafkaImpl(jsonUtils, connector, args.kafkaShouldAutoCommit);
         Runtime.getRuntime().addShutdownHook(new KafkaGracefulShutdownThread(kafka));
         return kafka;
     }

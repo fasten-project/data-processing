@@ -82,7 +82,7 @@ public class KafkaImplTest {
         when(connector.getConsumerConnection(PRIORITY)).thenReturn(consumerPrio);
         when(connector.getProducerConnection()).thenReturn(producer);
 
-        sut = new KafkaImpl(jsonUtils, connector);
+        sut = new KafkaImpl(jsonUtils, connector, true);
     }
 
     @Test
@@ -267,6 +267,34 @@ public class KafkaImplTest {
             throw new RuntimeException();
         });
         sut.poll();
+    }
+
+    @Test
+    public void commitIsAutoCalledWhenEnabled() {
+        sut = new KafkaImpl(jsonUtils, connector, true);
+        when(consumerPrio.poll(any(Duration.class))).thenReturn(ConsumerRecords.empty());
+        when(consumerNorm.poll(any(Duration.class))).thenReturn(ConsumerRecords.empty());
+        sut.poll();
+        verify(consumerPrio, times(1)).commitSync();
+        verify(consumerNorm, times(1)).commitSync();
+    }
+
+    @Test
+    public void commitIsNotCalledWhenDisabled() {
+        sut = new KafkaImpl(jsonUtils, connector, false);
+        when(consumerPrio.poll(any(Duration.class))).thenReturn(ConsumerRecords.empty());
+        when(consumerNorm.poll(any(Duration.class))).thenReturn(ConsumerRecords.empty());
+        sut.poll();
+        verify(consumerPrio, times(0)).commitSync();
+        verify(consumerNorm, times(0)).commitSync();
+    }
+
+    @Test
+    public void commitCanBeManuallyCalledForBothConsumers() {
+        sut = new KafkaImpl(jsonUtils, connector, true);
+        sut.commit();
+        verify(consumerPrio, times(1)).commitSync();
+        verify(consumerNorm, times(1)).commitSync();
     }
 
     // utils

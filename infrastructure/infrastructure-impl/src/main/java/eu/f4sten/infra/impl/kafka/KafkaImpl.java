@@ -52,6 +52,7 @@ public class KafkaImpl implements Kafka {
     private static final Object NONE = new Object();
 
     private final JsonUtils jsonUtils;
+    private final boolean shouldAutoCommit;
 
     private final KafkaConsumer<String, String> connNorm;
     private final KafkaConsumer<String, String> connPrio;
@@ -67,8 +68,9 @@ public class KafkaImpl implements Kafka {
     private boolean hadMessages = true;
 
     @Inject
-    public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector) {
+    public KafkaImpl(JsonUtils jsonUtils, KafkaConnector connector, boolean shouldAutoCommit) {
         this.jsonUtils = jsonUtils;
+        this.shouldAutoCommit = shouldAutoCommit;
         connNorm = connector.getConsumerConnection(NORMAL);
         connPrio = connector.getConsumerConnection(PRIORITY);
         producer = connector.getProducerConnection();
@@ -162,6 +164,13 @@ public class KafkaImpl implements Kafka {
         }
     }
 
+    @Override
+    public void commit() {
+        LOG.debug("Committing ...");
+        connPrio.commitSync();
+        connNorm.commitSync();
+    }
+
     private boolean process(KafkaConsumer<String, String> con, Lane lane, Duration timeout) {
         LOG.debug("Sending heartbeat ...");
         hadMessages = false;
@@ -175,7 +184,9 @@ public class KafkaImpl implements Kafka {
                     cb.exec(r.topic(), json, lane);
                 }
             }
-            con.commitSync();
+            if (shouldAutoCommit) {
+                con.commitSync();
+            }
         } catch (WakeupException e) {
             // used by Kafka to interrupt long polls, can be ignored
         } catch (CommitFailedException e) {
