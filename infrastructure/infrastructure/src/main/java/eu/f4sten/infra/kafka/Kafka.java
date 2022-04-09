@@ -37,4 +37,6 @@ public interface Kafka {
     <T> void publish(T obj, String topic, Lane lane);
 
     void poll();
+
+    void commit();
 }
