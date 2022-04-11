@@ -18,8 +18,10 @@ package eu.f4sten.infra.impl.kafka;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static eu.f4sten.infra.kafka.Lane.PRIORITY;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
@@ -121,6 +123,8 @@ public class KafkaConnectorTest {
             expected.setProperty(FETCH_MAX_BYTES_CONFIG, Integer.toString(50 * 1024 * 1024));
             expected.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
             expected.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, Integer.toString(1000 * 60 * 30));
+            expected.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
+            expected.setProperty(AUTO_COMMIT_INTERVAL_MS_CONFIG, "0");
 
             assertEquals(expected, actual);
         }

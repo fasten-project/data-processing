@@ -18,9 +18,11 @@ package eu.f4sten.infra.impl.kafka;
 import static eu.f4sten.infra.AssertArgs.assertFor;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
@@ -84,6 +86,8 @@ public class KafkaConnector {
         p.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         p.setProperty(FETCH_MAX_BYTES_CONFIG, MAX_REQUEST_SIZE);
         p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
+        p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
+        p.setProperty(AUTO_COMMIT_INTERVAL_MS_CONFIG, "0");
 
         p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
 
