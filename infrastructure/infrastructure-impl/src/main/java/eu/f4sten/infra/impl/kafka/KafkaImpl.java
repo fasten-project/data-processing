@@ -172,7 +172,7 @@ public class KafkaImpl implements Kafka {
     }
 
     private boolean process(KafkaConsumer<String, String> con, Lane lane, Duration timeout) {
-        LOG.debug("Sending heartbeat ...");
+        LOG.debug("Processing record ...");
         hadMessages = false;
         try {
             for (var r : con.poll(timeout)) {
