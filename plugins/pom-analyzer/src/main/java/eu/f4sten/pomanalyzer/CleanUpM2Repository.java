@@ -49,11 +49,22 @@ public class CleanUpM2Repository implements Plugin {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
 
-                    if (isPom(path) && !read(path).contains("<project")) {
-                        LOG.info("Deleting folder of invalid pom.xml: {}", path);
-                        var parent = path.getParent().toFile();
-                        FileUtils.deleteQuietly(parent);
-                        return FileVisitResult.SKIP_SIBLINGS;
+                    if (isPom(path)) {
+                        var content = read(path);
+
+                        if (!content.contains("<project")) {
+                            LOG.info("Deleting folder of invalid pom.xml: {}", path);
+                            var parent = path.getParent().toFile();
+                            FileUtils.deleteQuietly(parent);
+                            return FileVisitResult.SKIP_SIBLINGS;
+                        }
+
+                        var tag = findFirstNonCommentNonXmlTag(content);
+                        if (tag.startsWith("project.") || !tag.startsWith("project")) {
+                            System.out.println("%%% Weird POM syntax... please review: %%%%%%%%%");
+                            System.out.println(path);
+                            System.out.println(tag);
+                        }
                     }
 
                     return FileVisitResult.CONTINUE;
@@ -64,6 +75,24 @@ public class CleanUpM2Repository implements Plugin {
         }
 
         LOG.info("Clean-up is finished");
+    }
+
+    private static String findFirstNonCommentNonXmlTag(String content) {
+        var tagStart = 0;
+        var charAt = '?';
+        while (tagStart != -1 && (charAt == '?' || charAt == '!' || charAt == '-')) {
+
+            if (charAt == '!') {
+                tagStart = content.indexOf("-->", tagStart) + 1;
+                charAt = content.charAt(tagStart);
+                continue;
+            }
+
+            tagStart = content.indexOf('<', tagStart) + 1;
+            charAt = content.charAt(tagStart);
+        }
+        var tagEnd = content.indexOf('>', tagStart);
+        return content.substring(tagStart, tagEnd);
     }
 
     private static String read(Path path) throws IOException {
