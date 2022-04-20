@@ -21,49 +21,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.f4sten.depgraph.data.Coordinates;
-import eu.f4sten.depgraph.endpoints.Hello;
+import eu.f4sten.depgraph.endpoints.DependencyGraphResolution;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.http.HttpServer;
-import eu.f4sten.infra.json.TRef;
-import eu.f4sten.infra.kafka.DefaultTopics;
 import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Message;
-import eu.fasten.core.maven.data.PomAnalysisResult;
 
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     private final HttpServer server;
-    private final Kafka kafka;
-    private final Coordinates coords;
+//    private final Kafka kafka;
+//    private final Coordinates coords;
 
     @Inject
     public Main(HttpServer server, Kafka kafka, Coordinates coords) {
         this.server = server;
-        this.kafka = kafka;
-        this.coords = coords;
+//        this.kafka = kafka;
+//        this.coords = coords;
     }
 
     @Override
     public void run() {
 
-        server.register(Hello.class);
+//        server.register(Hello.class);
+        server.register(DependencyGraphResolution.class);
         server.start();
 
-        kafka.subscribe(DefaultTopics.POM_ANALYZER, new TRef<Message<Void, PomAnalysisResult>>() {}, (m, l) -> {
-            var res = m.payload;
-            LOG.info("Adding coordinate {} ...", res);
-            coords.processed.add(res.toCoordinate());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        });
-
-        while (!Thread.interrupted()) {
-            kafka.poll();
-        }
+//        kafka.subscribe(DefaultTopics.POM_ANALYZER, new TRef<Message<Void, PomAnalysisResult>>() {}, (m, l) -> {
+//            var res = m.payload;
+//            LOG.info("Adding coordinate {} ...", res);
+//            coords.processed.add(res.toCoordinate());
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//            }
+//        });
+//
+//        while (!Thread.interrupted()) {
+//            kafka.poll();
+//        }
     }
 }
