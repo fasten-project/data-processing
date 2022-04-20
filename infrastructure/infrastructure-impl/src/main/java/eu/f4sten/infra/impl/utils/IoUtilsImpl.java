@@ -16,12 +16,20 @@
 package eu.f4sten.infra.impl.utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;
@@ -31,12 +39,14 @@ public class IoUtilsImpl implements IoUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(IoUtilsImpl.class);
 
-    private File baseDir;
-    private JsonUtils jsonUtils;
+    private final File baseDir;
+    private final JsonUtils jsonUtils;
+    private final ObjectMapper om;
 
-    public IoUtilsImpl(File baseDir, JsonUtils jsonUtils) {
+    public IoUtilsImpl(File baseDir, JsonUtils jsonUtils, ObjectMapper om) {
         this.baseDir = baseDir;
         this.jsonUtils = jsonUtils;
+        this.om = om;
     }
 
     @Override
@@ -65,6 +75,27 @@ public class IoUtilsImpl implements IoUtils {
     }
 
     @Override
+    public <T> void writeToZip(T t, File file) {
+        try (//
+                var fos = new FileOutputStream(file); //
+                var zos = new ZipOutputStream(fos)) {
+
+            var name = file.getName();
+            if (name.endsWith(".zip")) {
+                name = name.substring(0, name.length() - 4);
+            }
+            name = name + ".json";
+
+            zos.putNextEntry(new ZipEntry(name));
+            om.writeValue(zos, t);
+            zos.closeEntry();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public <T> T readFromFile(File file, Class<T> typeOfContent) {
         try {
             String json = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
@@ -79,6 +110,44 @@ public class IoUtilsImpl implements IoUtils {
         try {
             String json = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
             return jsonUtils.fromJson(json, typeOfContent);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public <T> T readFromZip(File file, Class<T> type) {
+        return readFromZip(file, in -> {
+            try {
+                return om.readValue(in, type);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public <T> T readFromZip(File file, TRef<T> typeRef) {
+        return readFromZip(file, in -> {
+            try {
+                return om.readValue(in, typeRef);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private <T> T readFromZip(File file, Function<InputStream, T> c) {
+        try (var zf = new ZipFile(file)) {
+            var entries = zf.entries();
+            var next = entries.nextElement();
+            var in = zf.getInputStream(next);
+            var v = c.apply(in);
+            in.close();
+            if (entries.hasMoreElements()) {
+                LOG.warn("Only the first entry of .zip file is read, all other entries will be ignored: {}", file);
+            }
+            return v;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -29,9 +29,16 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -42,6 +49,7 @@ import org.junit.jupiter.api.io.TempDir;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.test.TestLoggerUtils;
+import eu.fasten.core.json.ObjectMapperBuilder;
 
 public class IoUtilsImplTest {
 
@@ -61,8 +69,8 @@ public class IoUtilsImplTest {
         when(jsonUtils.toJson(eq(SOME_IN))).thenReturn(SOME_OUT);
         when(jsonUtils.fromJson(eq(SOME_OUT), eq(String.class))).thenReturn(SOME_IN);
         when(jsonUtils.fromJson(eq(SOME_OUT), any(TRef.class))).thenReturn(SOME_IN);
-
-        sut = new IoUtilsImpl(dir, jsonUtils);
+        var om = new ObjectMapperBuilder().build();
+        sut = new IoUtilsImpl(dir, jsonUtils, om);
     }
 
     @Test
@@ -223,7 +231,7 @@ public class IoUtilsImplTest {
     @Test
     public void moveFileToExists() throws IOException {
         TestLoggerUtils.clearLog();
-        var from = new File(dir, "from.jspn");
+        var from = new File(dir, "from.json");
         var to = new File(dir, "to.json");
         FileUtils.write(from, SOME_IN, UTF_8);
         FileUtils.write(to, "...", UTF_8);
@@ -231,6 +239,117 @@ public class IoUtilsImplTest {
         var actual = FileUtils.readFileToString(to, UTF_8);
         assertEquals(SOME_IN, actual);
         assertLogsContain(IoUtilsImpl.class, "INFO Replacing existing file: %s", to.getAbsoluteFile());
+    }
+
+    @Test
+    public void zipRoundtrip_type() {
+        var expected = "e";
+        File f = new File(dir, "abc.zip");
+        sut.writeToZip(expected, f);
+        var actual = sut.readFromZip(f, String.class);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void zipRoundtrip_typeRef() {
+        var expecteds = Set.of("a", "b", "c");
+        File f = new File(dir, "abc.zip");
+        sut.writeToZip(expecteds, f);
+        var actuals = sut.readFromZip(f, new TRef<Set<String>>() {});
+        assertEquals(expecteds, actuals);
+    }
+
+    @Test
+    public void zipReadDirectory_type() {
+        File f = new File(dir, "folder");
+        f.mkdir();
+        var e = assertThrows(RuntimeException.class, () -> {
+            sut.readFromZip(f, String.class);
+        });
+        assertTrue(e.getCause() instanceof FileNotFoundException);
+        assertTrue(e.getMessage().contains(f.getAbsolutePath()));
+    }
+
+    @Test
+    public void zipReadDirectory_typeRef() {
+        File f = new File(dir, "folder");
+        f.mkdir();
+        var e = assertThrows(RuntimeException.class, () -> {
+            sut.readFromZip(f, new TRef<Set<String>>() {});
+        });
+        assertTrue(e.getCause() instanceof FileNotFoundException);
+        assertTrue(e.getMessage().contains(f.getAbsolutePath()));
+    }
+
+    @Test
+    public void readingNonExistingZip() {
+        var e = assertThrows(RuntimeException.class, () -> {
+            sut.readFromZip(new File("doesNotExist.zip"), String.class);
+        });
+        assertTrue(e.getCause() instanceof NoSuchFileException);
+        assertTrue(e.getMessage().contains("doesNotExist.zip"));
+    }
+
+    @Test
+    public void readingZipWarnsAboutMissedEntries() {
+        TestLoggerUtils.clearLog();
+        var f = new File(dir, "abc.zip");
+
+        try (//
+                var fos = new FileOutputStream(f); //
+                var zos = new ZipOutputStream(fos)) {
+
+            zos.putNextEntry(new ZipEntry("a"));
+            zos.write("\"abc\"".getBytes());
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("x"));
+            zos.write("\"xyz\"".getBytes());
+            zos.closeEntry();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        var actual = sut.readFromZip(f, String.class);
+        var expected = "abc";
+        assertEquals(expected, actual);
+
+        assertLogsContain(IoUtilsImpl.class,
+                "WARN Only the first entry of .zip file is read, all other entries will be ignored: %s",
+                f.getAbsolutePath());
+    }
+
+    @Test
+    public void writingZipRewritesContentFileNameZip() {
+        var expecteds = Set.of("a", "b", "c");
+        File f = new File(dir, "abc.zip");
+        sut.writeToZip(expecteds, f);
+        assertEntryNames(f, "abc.json");
+    }
+
+    @Test
+    public void writingZipRewritesContentFileNameOther() {
+        var expecteds = Set.of("a", "b", "c");
+        File f = new File(dir, "abc.zp");
+        sut.writeToZip(expecteds, f);
+        assertEntryNames(f, "abc.zp.json");
+    }
+
+    private static void assertEntryNames(File f, String... names) {
+        var expecteds = Set.of(names);
+        var actuals = new HashSet<>();
+        try (var zf = new ZipFile(f)) {
+            var entries = zf.entries();
+            while (entries.hasMoreElements()) {
+                var next = entries.nextElement();
+                actuals.add(next.getName());
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals(expecteds, actuals);
     }
 
     private static String getInaccessibleRoot() {

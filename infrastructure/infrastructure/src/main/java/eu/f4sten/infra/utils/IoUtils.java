@@ -27,9 +27,15 @@ public interface IoUtils {
 
     <T> void writeToFile(T t, File file);
 
+    <T> void writeToZip(T t, File file);
+
     <T> T readFromFile(File file, Class<T> typeOfContent);
 
     <T> T readFromFile(File file, TRef<T> typeOfContent);
+
+    <T> T readFromZip(File file, Class<T> typeOfContent);
+
+    <T> T readFromZip(File file, TRef<T> typeOfContent);
 
     void move(File from, File to);
 }

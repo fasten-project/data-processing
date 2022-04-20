@@ -82,11 +82,11 @@ public class InfraConfig implements IInjectorConfig {
     }
 
     @Provides
-    public IoUtils bindIoUtils(JsonUtils jsonUtils) {
+    public IoUtils bindIoUtils(JsonUtils jsonUtils, ObjectMapper om) {
         assertFor(args) //
                 .notNull(args -> args.baseDir, "base dir") //
                 .that(args -> args.baseDir.exists(), "base dir does not exist");
-        return new IoUtilsImpl(args.baseDir, jsonUtils);
+        return new IoUtilsImpl(args.baseDir, jsonUtils, om);
     }
 
     @Provides
