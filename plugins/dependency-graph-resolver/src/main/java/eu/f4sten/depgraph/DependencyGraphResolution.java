@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.depgraph.endpoints;
+package eu.f4sten.depgraph;
 
 import java.util.Set;
 
 import javax.inject.Inject;
 
-import eu.fasten.core.maven.data.Revision;
+import eu.fasten.core.maven.data.ResolvedRevision;
 import eu.fasten.core.maven.data.Scope;
 import eu.fasten.core.maven.resolution.IMavenResolver;
 import eu.fasten.core.maven.resolution.ResolverConfig;
@@ -47,7 +47,7 @@ public class DependencyGraphResolution {
     @GET
     @Path("/dependents/{groupId}/{artifactId}/{version}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<Revision> resolveDependents( //
+    public Set<ResolvedRevision> resolveDependents( //
             @PathParam("groupId") String groupId, //
             @PathParam("artifactId") String artifactId, //
             @PathParam("version") String version, //
@@ -64,7 +64,7 @@ public class DependencyGraphResolution {
     @POST
     @Path("/dependencies")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<Revision> resolveDependencies( //
+    public Set<ResolvedRevision> resolveDependencies( //
             Set<String> gavs, //
             @QueryParam("resolveAt") Long resolveAt, //
             @QueryParam("depth") ResolverDepth depth, //

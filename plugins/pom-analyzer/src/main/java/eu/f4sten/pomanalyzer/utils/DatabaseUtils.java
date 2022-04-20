@@ -79,10 +79,10 @@ public class DatabaseUtils {
                 artifactRepoId, null, getProperTimestamp(r.releaseDate), pvMeta);
 
         for (var dep : r.dependencies) {
-            var depProduct = dep.groupId + Constants.mvnCoordinateSeparator + dep.artifactId;
+            var depProduct = dep.toGA();
             final var depId = dao.insertPackage(depProduct, Constants.mvnForge);
             var json = jsonUtils.toJson(dep);
-            dao.insertDependency(packageVersionId, depId, dep.getVersionConstraints(), null, null, null, json);
+            dao.insertDependency(packageVersionId, depId, dep.getVersionConstraintsArr(), null, null, null, json);
         }
     }
 

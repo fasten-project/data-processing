@@ -197,9 +197,9 @@ public class HttpTestServer {
         public String mimeType = "text/plain";
         public String body = "n/a";
 
-        public Response() {}
+        private Response() {}
 
-        public Response(String mimeType, String body) {
+        private Response(String mimeType, String body) {
             this.mimeType = mimeType;
             this.body = body;
         }

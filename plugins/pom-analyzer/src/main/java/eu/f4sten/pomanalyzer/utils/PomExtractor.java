@@ -107,7 +107,7 @@ public class PomExtractor {
                 excls.forEach(excl -> {
                     var eg = $(excl.getGroupId(), "?");
                     var ea = $(excl.getArtifactId(), "?");
-                    exclusions.add(new Exclusion(eg, ea));
+                    exclusions.add(Exclusion.init(eg, ea));
                 });
             });
 
