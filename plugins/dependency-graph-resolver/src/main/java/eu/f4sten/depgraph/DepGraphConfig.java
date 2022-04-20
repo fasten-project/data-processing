@@ -15,15 +15,17 @@
  */
 package eu.f4sten.depgraph;
 
-import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
-import com.google.inject.multibindings.ProvidesIntoSet;
+import com.google.inject.Provides;
 
-import eu.f4sten.depgraph.data.Coordinates;
-import eu.f4sten.depgraph.data.JsonSerializationModule;
-import eu.f4sten.depgraph.data.Naming;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
+import eu.fasten.core.maven.resolution.IMavenResolver;
+import eu.fasten.core.maven.resolution.MavenDependencyData;
+import eu.fasten.core.maven.resolution.MavenDependencyResolver;
+import eu.fasten.core.maven.resolution.MavenDependentsData;
+import eu.fasten.core.maven.resolution.MavenDependentsResolver;
+import eu.fasten.core.maven.resolution.MavenResolver;
 
 @InjectorConfig
 public class DepGraphConfig implements IInjectorConfig {
@@ -37,12 +39,22 @@ public class DepGraphConfig implements IInjectorConfig {
     @Override
     public void configure(Binder binder) {
         binder.bind(DepGraphArgs.class).toInstance(args);
-        binder.bind(Naming.class).toInstance(new Naming("seb"));
-        binder.bind(Coordinates.class).toInstance(new Coordinates());
+        binder.bind(IMavenResolver.class).to(MavenResolver.class);
+        binder.bind(MavenDependencyData.class).toInstance(new MavenDependencyData());
+        binder.bind(MavenDependentsData.class).toInstance(new MavenDependentsData());
     }
 
-    @ProvidesIntoSet
-    public Module bindModule() {
-        return new JsonSerializationModule();
+    @Provides
+    public MavenDependencyResolver provideDependencyResolver(MavenDependencyData data) {
+        var r = new MavenDependencyResolver();
+        r.setData(data);
+        return r;
+    }
+
+    @Provides
+    public MavenDependentsResolver provideDependentsResolver(MavenDependentsData data) {
+        var r = new MavenDependentsResolver();
+        r.setData(data);
+        return r;
     }
 }

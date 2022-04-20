@@ -266,7 +266,7 @@ public class PomExtractorTest {
         var exclusions = new HashSet<Exclusion>();
         for (var excl : excls) {
             String[] ga = excl.split(":");
-            exclusions.add(new Exclusion(ga[0], ga[1]));
+            exclusions.add(Exclusion.init(ga[0], ga[1]));
         }
         return new Dependency(parts[0], parts[1], parts[2], exclusions, Scope.COMPILE, false, "jar", "");
     }
@@ -274,7 +274,7 @@ public class PomExtractorTest {
     private Dependency depC(int i, String... specs) {
         var vcs = new LinkedHashSet<VersionConstraint>();
         for (var spec : specs) {
-            vcs.add(new VersionConstraint(spec));
+            vcs.add(VersionConstraint.init(spec));
         }
         return new Dependency("g" + i, "a" + i, vcs, new HashSet<>(), Scope.COMPILE, false, "jar", "");
     }
