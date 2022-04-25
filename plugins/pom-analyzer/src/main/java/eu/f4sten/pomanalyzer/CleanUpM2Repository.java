@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +33,19 @@ import eu.f4sten.infra.Plugin;
 public class CleanUpM2Repository implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CleanUpM2Repository.class);
+    private final CleanUpM2RepositoryArgs args;
 
-    private static final String BASE_DIR = "~/.m2/repository";
+    @Inject
+    public CleanUpM2Repository(CleanUpM2RepositoryArgs args) {
+        this.args = args;
+    }
 
     @Override
     public void run() {
-        LOG.info("Searching for invalid pom.xml files in: {}", BASE_DIR);
+        LOG.info("Searching for invalid pom.xml files in: {}", this.args.m2RepositoryPath);
 
         try {
-            Files.walkFileTree(Path.of(BASE_DIR), new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(Path.of(this.args.m2RepositoryPath), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
 
