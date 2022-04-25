@@ -9,7 +9,9 @@ public class CleanUpM2RepositoryInjectorConfig implements IInjectorConfig {
 
     private CleanUpM2RepositoryArgs args;
 
-    public CleanUpM2RepositoryInjectorConfig(CleanUpM2RepositoryArgs args) {this.args = args;}
+    public CleanUpM2RepositoryInjectorConfig(CleanUpM2RepositoryArgs args) {
+        this.args = args;
+    }
 
     @Override
     public void configure(Binder binder) {
