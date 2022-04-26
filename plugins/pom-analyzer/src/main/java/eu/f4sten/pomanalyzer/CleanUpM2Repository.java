@@ -42,10 +42,10 @@ public class CleanUpM2Repository implements Plugin {
 
     @Override
     public void run() {
-        LOG.info("Searching for invalid pom.xml files in: {}", this.args.m2RepositoryPath);
+        LOG.info("Searching for invalid pom.xml files in: {}", args.pathM2);
 
         try {
-            Files.walkFileTree(Path.of(this.args.m2RepositoryPath), new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(Path.of(args.pathM2), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
 

@@ -4,7 +4,7 @@ import com.beust.jcommander.Parameter;
 
 public class CleanUpM2RepositoryArgs {
 
-    @Parameter(names= "--m2repo.path", arity = 1)
-    public String m2RepositoryPath = "~/.m2/repository";
+    @Parameter(names= "--path.m2", arity = 1)
+    public String pathM2 = "~/.m2/repository";
 
 }
