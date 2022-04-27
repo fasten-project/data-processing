@@ -2,25 +2,13 @@ name: Deploy
 
 on:
   push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    tags: ["release"]
 
 jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-
-      - name: Parse version info from tag
-        run: |
-          # GITHUB_REF is like refs/tags/v2.3.5, so strip the first 11 chars
-          VERSION=${GITHUB_REF:11}
-          MAJOR=`echo "$VERSION" | cut -d . -f 1`
-          MINOR=`echo "$VERSION" | cut -d . -f 2`
-          PATCH=`echo "$VERSION" | cut -d . -f 3`
-          echo "version=$VERSION" >> $GITHUB_ENV
-          echo "version_major=$MAJOR" >> $GITHUB_ENV
-          echo "version_minor=$MINOR" >> $GITHUB_ENV
-          echo "version_patch=$PATCH" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v2
         with:
@@ -29,23 +17,55 @@ jobs:
           server-id: github # Value of distributionManagement/repository/id
           settings-path: ${{ github.workspace }} # location of settings.xml
 
-      - name: Updating versions in all projects
+      - name: Configure git
+        run: |
+          git config --global committer.email "noreply@github.com"
+          git config --global committer.name "GitHub"
+          git config --global author.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global author.name "Build Server"
+
+      - name: Parse and provide version info
+        run: |
+          cd releng
+          VERSION_RAW=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+          VERSION=`echo $VERSION_RAW | cut -d"-" -f1` # get rid of -SNAPSHOT
+          MAJOR=`echo "$VERSION" | cut -d . -f 1`
+          MINOR=`echo "$VERSION" | cut -d . -f 2`
+          PATCH=`echo "$VERSION" | cut -d . -f 3`
+          PATCH_NEXT=`expr $PATCH + 1`
+          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "version_major=$MAJOR" >> $GITHUB_ENV
+          echo "version_minor=$MINOR" >> $GITHUB_ENV
+          echo "version_patch=$PATCH" >> $GITHUB_ENV
+          echo "version_patch_next=$PATCH_NEXT" >> $GITHUB_ENV
+          echo "version_next=${MAJOR}.${MINOR}.${PATCH_NEXT}-SNAPSHOT" >> $GITHUB_ENV
+
+      - name: Update all projects to release version
         run: |
           cd releng
           mvn -B -ntp versions:set -DnewVersion=${{ env.version }}
 
-      - name: Update version.txt in infrastructure-impl
+      - name: Update version.txt in infrastructure-impl to release version
         run: |
           cd infrastructure/infrastructure-impl
           echo "${{ env.version }}" > src/main/resources/version.txt
-          # disable test for default version
-          TEST=`find . -name "VersionImplTest.java"`
-          sed -i 's/\(public void getDefault()\)/@Disabled \1/' $TEST
+          ../../releng/set_VersionImplTest_constant.sh ${{ env.version }}
 
-      - name: Deploy Maven packages
-        run: mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
+      - name: Build and deploy Maven packages
+        run: |
+          cd releng
+          mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Commit and tag the release version
+        run: |
+          rm settings.xml
+          git add .
+          git commit -m "Release of version ${{ env.version }}"
+          git push origin HEAD:main
+          git tag "v${{ env.version }}"
+          git push origin "v${{ env.version }}"
 
       - name: Build Docker image and push to ghcr.io
         run: |
@@ -61,3 +81,20 @@ jobs:
             --tag $IMG:latest \
             .
           docker push --all-tags $IMG
+
+      - name: Update all projects to next snapshot release
+        run: |
+          cd releng
+          mvn -B -ntp versions:set -DnewVersion=${{ env.version_next }}
+
+      - name: Update version.txt in infrastructure-impl to next snapshot release
+        run: |
+          cd infrastructure/infrastructure-impl
+          echo "${{ env.version_next }}" > src/main/resources/version.txt
+          ../../releng/set_VersionImplTest_constant.sh ${{ env.version_next }}
+
+      - name: Commit the next snapshot release
+        run: |
+          git add .
+          git commit -m "Bump version to ${{ env.version_next }}"
+          git push origin HEAD:main
