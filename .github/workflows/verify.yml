@@ -26,7 +26,9 @@ jobs:
           server-id: github # Value of distributionManagement/repository/id
           settings-path: ${{ github.workspace }} # location of settings.xml
 
-      - run: mvn -B -ntp clean verify -s ${{ github.workspace }}/settings.xml
+      - run: |
+          cd releng
+          mvn -B -ntp clean verify -s ${{ github.workspace }}/settings.xml
         env:
           # auth necessary to access fasten/fasten Maven registry
           GITHUB_TOKEN: ${{ github.token }}
