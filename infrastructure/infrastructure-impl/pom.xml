@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.7</version>
+        <version>0.0.8-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>infrastructure-impl</artifactId>
@@ -13,7 +13,7 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure</artifactId>
-            <version>0.0.7</version>
+            <version>0.0.8-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
