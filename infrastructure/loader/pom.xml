@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.7-SNAPSHOT</version>
+        <version>0.0.7</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>loader</artifactId>
@@ -33,37 +33,37 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure-impl</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>examples</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>maven-crawler</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>pom-analyzer</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>callable-indexer</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>dependency-graph-resolver</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>integration-tests</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.7</version>
         </dependency>
 
         <!-- actual dependencies -->
