@@ -41,6 +41,7 @@ import eu.fasten.core.maven.resolution.MavenDependentsData;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final int NUM_TO_REPORT = 200;
 
     // TODO this thresholds still need tweaking
     private static final int MIN_STORAGE_NUMBER = 1000; // 1000;
@@ -79,10 +80,10 @@ public class Main implements Plugin {
         initPoms();
 
         kafka.subscribe(DefaultTopics.POM_ANALYZER, new TRef<Message<Void, Pom>>() {}, (m, l) -> {
-            LOG.info("Adding coordinate {} ...", m.payload.toCoordinate());
+            numPomsAddedSinceLastStore++;
+            logProgress(m.payload);
             var pom = simplify(m.payload);
             poms.add(pom);
-            numPomsAddedSinceLastStore++;
 
             register(pom);
 
@@ -92,6 +93,15 @@ public class Main implements Plugin {
         });
         while (!Thread.interrupted()) {
             kafka.poll();
+        }
+    }
+
+    private void logProgress(Pom pom) {
+        LOG.debug("Adding coordinate {} ...", pom.toCoordinate());
+        var wasSomethingAdded = numPomsAddedSinceLastStore > 0;
+        var isHittingProgressThreshold = (numPomsAddedSinceLastStore % NUM_TO_REPORT) == 0;
+        if (wasSomethingAdded && isHittingProgressThreshold) {
+            LOG.info("Added {} more coordinates ...", NUM_TO_REPORT);
         }
     }
 
