@@ -81,9 +81,23 @@ public class CleanUpM2Repository implements Plugin {
     private static String findFirstNonCommentNonXmlTag(String content) {
         var tagStart = 0;
         var charAt = '?';
-        while (tagStart != -1 && (charAt == '?' || charAt == '!' || charAt == '-')) {
+        while (tagStart != -1 && (charAt == '<' || charAt == '?' || charAt == '!' || charAt == '-')
+                || isWhitespace(charAt)) {
+            if (isWhitespace(charAt)) {
+                tagStart++;
+                charAt = content.charAt(tagStart);
+                continue;
+            }
 
             if (charAt == '!') {
+                var rest = content.substring(tagStart + 1, tagStart + 10).trim();
+
+                if (rest.startsWith("DOCTYPE")) {
+                    tagStart = content.indexOf(">", tagStart) + 1;
+                    charAt = content.charAt(tagStart);
+                    continue;
+                }
+
                 tagStart = content.indexOf("-->", tagStart) + 1;
                 charAt = content.charAt(tagStart);
                 continue;
@@ -94,6 +108,10 @@ public class CleanUpM2Repository implements Plugin {
         }
         var tagEnd = content.indexOf('>', tagStart);
         return content.substring(tagStart, tagEnd);
+    }
+
+    private static boolean isWhitespace(char c) {
+        return c == '\n' || c == '\t' || c == ' ';
     }
 
     private static String read(Path path) throws IOException {
