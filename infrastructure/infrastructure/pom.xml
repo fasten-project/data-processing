@@ -24,7 +24,7 @@
             <!-- please note that extensions (e.g., the Java 8 Module) only need to be added to the infrastructure-impl project -->
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.13.1</version>
+            <version>2.13.2.1</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
