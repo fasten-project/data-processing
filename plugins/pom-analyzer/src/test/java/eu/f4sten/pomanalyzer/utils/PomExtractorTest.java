@@ -15,10 +15,10 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static eu.fasten.core.maven.data.VersionConstraint.parseVersionSpec;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
 import eu.fasten.core.maven.data.Pom;
+import eu.fasten.core.maven.data.PomBuilder;
 import eu.fasten.core.maven.data.Scope;
 import eu.fasten.core.maven.data.VersionConstraint;
 import eu.fasten.core.utils.TestUtils;
@@ -46,7 +47,7 @@ public class PomExtractorTest {
     public void minimal() {
         var actual = extract("minimal.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -54,7 +55,7 @@ public class PomExtractorTest {
         var actual = extract("packaging.pom");
         var expected = getMinimal();
         expected.packagingType = "war";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -62,7 +63,7 @@ public class PomExtractorTest {
         var actual = extract("name.pom");
         var expected = getMinimal();
         expected.projectName = "SOMENAME";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class PomExtractorTest {
         var actual = extract("parent.pom");
         var expected = getMinimal();
         expected.parentCoordinate = "pgid:paid:pom:1.2.3";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -78,7 +79,7 @@ public class PomExtractorTest {
         var actual = extract("parent-malformed.pom");
         var expected = getMinimal();
         expected.parentCoordinate = "?:?:pom:?";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -90,14 +91,14 @@ public class PomExtractorTest {
         expected.dependencies.add(dep("g3:a3:jar:3", Scope.TEST, false, ""));
         expected.dependencies.add(dep("g4:a4:jar:4", Scope.COMPILE, true, ""));
         expected.dependencies.add(dep("g5:a5:jar:5", Scope.COMPILE, false, "c"));
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
     public void dependenciesEmpty() {
         var actual = extract("dependencies-empty.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -108,7 +109,7 @@ public class PomExtractorTest {
         expected.dependencies.add(depE("g2:a2:2", "eg1:ea1"));
         expected.dependencies.add(depE("g3:a3:3", "eg1:ea1", "eg2:ea2"));
         expected.dependencies.add(depE("g4:a4:4", "*:*"));
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -123,21 +124,21 @@ public class PomExtractorTest {
         expected.dependencies.add(depC(6, "[1.5,)"));
         expected.dependencies.add(depC(7, "(,1.0]", "[1.2)"));
         expected.dependencies.add(depC(8, "(,1.1)", "(1.1,)"));
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
     public void dependencyManagementEmpty() {
         var actual = extract("dependency-management-empty.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
     public void dependencyManagementEmptyDependencies() {
         var actual = extract("dependency-management-empty-deps.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -145,14 +146,14 @@ public class PomExtractorTest {
         var actual = extract("dependency-management.pom");
         var expected = getMinimal();
         expected.dependencyManagement.add(dep("g1:a1:1"));
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
     public void profileEmpty() {
         var actual = extract("profiles-empty.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -162,7 +163,7 @@ public class PomExtractorTest {
         var expected = getMinimal();
         expected.dependencies.add(dep("g1:a1:1"));
         expected.dependencyManagement.add(dep("g2:a2:2"));
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -170,7 +171,7 @@ public class PomExtractorTest {
         // make sure that no info is copied from unactivated profiles
         var actual = extract("profiles-no-activation.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -179,14 +180,14 @@ public class PomExtractorTest {
         var expected = getMinimal();
         expected.repoUrl = "scmcon";
         expected.commitTag = "scmtag";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
     public void scmEmpty() {
         var actual = extract("scm-empty.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -195,7 +196,7 @@ public class PomExtractorTest {
         var expected = getMinimal();
         expected.repoUrl = "scmdevcon";
         expected.commitTag = "scmtag";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -204,7 +205,7 @@ public class PomExtractorTest {
         var expected = getMinimal();
         expected.repoUrl = "scmurl";
         expected.commitTag = "scmtag";
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -213,7 +214,7 @@ public class PomExtractorTest {
         var expected = getMinimal();
         expected.repoUrl = "scmcon";
         expected.commitTag = "HEAD"; // default value
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -221,7 +222,7 @@ public class PomExtractorTest {
         // without any url, the tag is irrelevant
         var actual = extract("scm-no-url.pom");
         var expected = getMinimal();
-        assertEquals(expected, actual);
+        assertEquals(expected.pom(), actual);
     }
 
     @Test
@@ -230,8 +231,8 @@ public class PomExtractorTest {
         fail();
     }
 
-    private static Pom getMinimal() {
-        var expected = new Pom();
+    private static PomBuilder getMinimal() {
+        var expected = new PomBuilder();
         expected.groupId = "test";
         expected.artifactId = "PomAnalyzerTest";
         expected.packagingType = "jar";
@@ -241,11 +242,11 @@ public class PomExtractorTest {
 
     private static Pom extract(String pathToPom) {
         var fullPath = Path.of(PomExtractorTest.class.getSimpleName(), pathToPom);
-        File pom = TestUtils.getTestResource(fullPath.toString());
+        var pom = TestUtils.getTestResource(fullPath.toString());
         try {
             var reader = new MavenXpp3Reader();
             Model model = reader.read(new FileReader(pom));
-            return new PomExtractor().process(model);
+            return new PomExtractor().process(model).pom();
         } catch (IOException | XmlPullParserException e) {
             throw new RuntimeException(e);
         }
@@ -253,12 +254,14 @@ public class PomExtractorTest {
 
     private static Dependency dep(String gav) {
         String[] parts = gav.split(":");
-        return new Dependency(parts[0], parts[1], parts[2], new HashSet<>(), Scope.COMPILE, false, "jar", "");
+        return new Dependency(parts[0], parts[1], parseVersionSpec(parts[2]), new HashSet<>(), Scope.COMPILE, false,
+                "jar", "");
     }
 
     private static Dependency dep(String gapv, Scope scope, boolean optional, String classifier) {
         String[] parts = gapv.split(":");
-        return new Dependency(parts[0], parts[1], parts[3], new HashSet<>(), scope, optional, parts[2], classifier);
+        return new Dependency(parts[0], parts[1], parseVersionSpec(parts[3]), new HashSet<>(), scope, optional,
+                parts[2], classifier);
     }
 
     private static Dependency depE(String gav, String... excls) {
@@ -268,7 +271,8 @@ public class PomExtractorTest {
             String[] ga = excl.split(":");
             exclusions.add(new Exclusion(ga[0], ga[1]));
         }
-        return new Dependency(parts[0], parts[1], parts[2], exclusions, Scope.COMPILE, false, "jar", "");
+        return new Dependency(parts[0], parts[1], parseVersionSpec(parts[2]), exclusions, Scope.COMPILE, false, "jar",
+                "");
     }
 
     private Dependency depC(int i, String... specs) {

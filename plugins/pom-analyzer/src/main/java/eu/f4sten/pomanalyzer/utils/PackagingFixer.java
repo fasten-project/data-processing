@@ -66,8 +66,7 @@ public class PackagingFixer {
     }
 
     private boolean exists(Pom r, String packagingType, boolean shouldLog) {
-        var clone = r.clone();
-        clone.packagingType = packagingType;
+        var clone = r.clone().packagingType(packagingType).pom();
         boolean doesExist = repoUtils.doesExist(clone);
         if (shouldLog && doesExist) {
             LOG.warn("Coordinate found after fixing packagingType: {} -> {}", r.packagingType, packagingType);

@@ -37,6 +37,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import eu.fasten.core.maven.data.Pom;
+import eu.fasten.core.maven.data.PomBuilder;
 
 public class PackagingFixerTest {
 
@@ -184,8 +185,8 @@ public class PackagingFixerTest {
     }
 
     private Pom getPAR(String packaging) {
-        var par = new Pom();
+        var par = new PomBuilder();
         par.packagingType = packaging;
-        return par;
+        return par.pom();
     }
 }
