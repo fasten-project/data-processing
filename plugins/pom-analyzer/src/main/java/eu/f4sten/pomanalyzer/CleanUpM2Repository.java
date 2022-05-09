@@ -81,8 +81,7 @@ public class CleanUpM2Repository implements Plugin {
     private static String findFirstNonCommentNonXmlTag(String content) {
         var tagStart = 0;
         var charAt = '?';
-        while (tagStart != -1 && (charAt == '<' || charAt == '?' || charAt == '!' || charAt == '-')
-                || isWhitespace(charAt)) {
+        while (tagStart != -1 && shouldSkipChar(charAt)) {
             if (isWhitespace(charAt)) {
                 tagStart++;
                 charAt = content.charAt(tagStart);
@@ -90,10 +89,8 @@ public class CleanUpM2Repository implements Plugin {
             }
 
             if (charAt == '!') {
-                var rest = content.substring(tagStart + 1, tagStart + 10).trim();
-
-                if (rest.startsWith("DOCTYPE")) {
-                    tagStart = content.indexOf(">", tagStart) + 1;
+                if (shouldLookForNextBracket(content, tagStart)) {
+                    tagStart = content.indexOf("<", tagStart) + 1;
                     charAt = content.charAt(tagStart);
                     continue;
                 }
@@ -110,8 +107,19 @@ public class CleanUpM2Repository implements Plugin {
         return content.substring(tagStart, tagEnd);
     }
 
+    private static boolean shouldLookForNextBracket(String content, int tagStart) {
+        var rest = content.substring(tagStart + 1, tagStart + 10).trim();
+        var isDoctype = rest.startsWith("DOCTYPE");
+        var isEntity = rest.startsWith("ENTITY");
+        return isDoctype || isEntity;
+    }
+
+    private static boolean shouldSkipChar(char charAt) {
+        return charAt == '<' || charAt == '?' || charAt == '!' || charAt == '-' || isWhitespace(charAt);
+    }
+
     private static boolean isWhitespace(char c) {
-        return c == '\n' || c == '\t' || c == ' ';
+        return c == '\n' || c == '\r' || c == '\t' || c == ' ';
     }
 
     private static String read(Path path) throws IOException {
