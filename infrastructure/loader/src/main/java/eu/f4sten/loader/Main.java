@@ -15,7 +15,10 @@
  */
 package eu.f4sten.loader;
 
+import static eu.fasten.core.utils.MemoryUsageUtils.logMaxMemory;
 import static org.slf4j.LoggerFactory.getLogger;
+
+import org.slf4j.Logger;
 
 import com.google.inject.Guice;
 
@@ -40,7 +43,8 @@ public class Main {
             var args = argsParser.parse(LoaderArgs.class);
             AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
             new LoggingUtils(args.logLevel);
-            getLogger(Main.class).info("Starting plugin {} ...", args.plugin);
+            logger().info("Starting plugin {} ...", args.plugin);
+            logMaxMemory();
 
             // find classes
             var ru = new ReflectionUtils("eu.f4sten", InjectorConfig.class, argsParser);
@@ -53,10 +57,14 @@ public class Main {
         } catch (AssertArgsError e) {
             System.exit(1);
         } catch (Throwable t) {
-            getLogger(Main.class).warn("Throwable caught in main loader class, shutting down VM ...");
+            logger().warn("Throwable caught in main loader class, shutting down VM ...");
             t.printStackTrace();
             // make sure to tear down VM, including all running threads
             System.exit(1);
         }
+    }
+
+    private static Logger logger() {
+        return getLogger(Main.class);
     }
 }
