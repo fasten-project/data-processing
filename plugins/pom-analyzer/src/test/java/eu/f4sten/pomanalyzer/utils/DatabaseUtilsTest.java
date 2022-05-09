@@ -43,7 +43,7 @@ import eu.f4sten.infra.utils.Version;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.maven.data.Dependency;
-import eu.fasten.core.maven.data.Pom;
+import eu.fasten.core.maven.data.PomBuilder;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
@@ -82,7 +82,7 @@ public class DatabaseUtilsTest {
     @Test
     public void transactionIsStarted() {
         var result = getSomeResult();
-        sut.save(result);
+        sut.save(result.pom());
         verify(dslContext).transaction(any(TransactionalRunnable.class));
 
     }
@@ -91,7 +91,7 @@ public class DatabaseUtilsTest {
     public void storePackage() {
         var result = getSomeResult();
         result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-        sut.save(result);
+        sut.save(result.pom());
         verify(dao).insertPackage("g:a", Constants.mvnForge, result.projectName, result.repoUrl, null);
     }
 
@@ -99,7 +99,7 @@ public class DatabaseUtilsTest {
     public void doNotStoreMavenCentralRepo() {
         var result = getSomeResult();
         result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-        sut.save(result);
+        sut.save(result.pom());
         verify(dao, times(0)).insertArtifactRepository(anyString());
     }
 
@@ -107,18 +107,18 @@ public class DatabaseUtilsTest {
     public void storeNonMavenCentralRepo() {
         var result = getSomeResult();
         result.artifactRepository = "Non Maven Central";
-        sut.save(result);
+        sut.save(result.pom());
         verify(dao).insertArtifactRepository(result.artifactRepository);
     }
 
     @Test
     public void storePackageVersion() {
         var result = getSomeResult();
-        when(json.toJson(eq(result))).thenReturn("<some json>");
+        when(json.toJson(eq(result.pom()))).thenReturn("<some json>");
 
         when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
         when(dao.insertArtifactRepository(anyString())).thenReturn(234L);
-        sut.save(result);
+        sut.save(result.pom());
 
         var captor = ArgumentCaptor.forClass(String.class);
 
@@ -134,14 +134,15 @@ public class DatabaseUtilsTest {
     public void storeDependency() {
         var result = getSomeResult();
 
-        when(json.toJson(eq(result))).thenReturn("<some json>");
+        when(json.toJson(eq(result.pom()))).thenReturn("<some json>");
         when(json.toJson(eq(result.dependencies.iterator().next()))).thenReturn("<some dep json>");
 
+        when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
         when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
         when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),
                 any(String.class))).thenReturn(234L);
 
-        sut.save(result);
+        sut.save(result.pom());
 
         var arrCaptor = ArgumentCaptor.forClass(String[].class);
         var jsonCaptor = ArgumentCaptor.forClass(String.class);
@@ -171,8 +172,8 @@ public class DatabaseUtilsTest {
         verify(dao).isArtifactIngested("gapv-NORMAL");
     }
 
-    private Pom getSomeResult() {
-        Pom result = new Pom();
+    private PomBuilder getSomeResult() {
+        var result = new PomBuilder();
         result.artifactRepository = "...";
         result.groupId = "g";
         result.artifactId = "a";
@@ -186,7 +187,6 @@ public class DatabaseUtilsTest {
         result.dependencyManagement.add(new Dependency("dmg1", "dma1", "dmv1"));
 
         result.releaseDate = new Date().getTime();
-        result.forge = Constants.mvnForge;
         result.parentCoordinate = "pg:pa:pom:2.3.4";
         result.sourcesUrl = "soruceUrl";
         return result;

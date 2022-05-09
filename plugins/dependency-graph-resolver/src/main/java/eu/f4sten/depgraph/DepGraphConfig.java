@@ -21,11 +21,10 @@ import com.google.inject.Provides;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.fasten.core.maven.resolution.IMavenResolver;
-import eu.fasten.core.maven.resolution.MavenDependencyData;
 import eu.fasten.core.maven.resolution.MavenDependencyResolver;
-import eu.fasten.core.maven.resolution.MavenDependentsData;
 import eu.fasten.core.maven.resolution.MavenDependentsResolver;
 import eu.fasten.core.maven.resolution.MavenResolver;
+import eu.fasten.core.maven.resolution.MavenResolverData;
 
 @InjectorConfig
 public class DepGraphConfig implements IInjectorConfig {
@@ -40,19 +39,18 @@ public class DepGraphConfig implements IInjectorConfig {
     public void configure(Binder binder) {
         binder.bind(DepGraphArgs.class).toInstance(args);
         binder.bind(IMavenResolver.class).to(MavenResolver.class);
-        binder.bind(MavenDependencyData.class).toInstance(new MavenDependencyData());
-        binder.bind(MavenDependentsData.class).toInstance(new MavenDependentsData());
+        binder.bind(MavenResolverData.class).toInstance(new MavenResolverData());
     }
 
     @Provides
-    public MavenDependencyResolver provideDependencyResolver(MavenDependencyData data) {
+    public MavenDependencyResolver provideDependencyResolver(MavenResolverData data) {
         var r = new MavenDependencyResolver();
         r.setData(data);
         return r;
     }
 
     @Provides
-    public MavenDependentsResolver provideDependentsResolver(MavenDependentsData data) {
+    public MavenDependentsResolver provideDependentsResolver(MavenResolverData data) {
         var r = new MavenDependentsResolver();
         r.setData(data);
         return r;

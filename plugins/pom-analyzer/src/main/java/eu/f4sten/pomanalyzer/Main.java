@@ -182,15 +182,15 @@ public class Main implements Plugin {
         var result = extractor.process(m);
         result.artifactRepository = artifact.artifactRepository;
         // packaging often bogus, check and possibly fix
-        result.packagingType = fixer.checkPackage(result);
-        result.sourcesUrl = repo.getSourceUrlIfExisting(result);
-        result.releaseDate = repo.getReleaseDate(result);
+        result.packagingType = fixer.checkPackage(result.pom());
+        result.sourcesUrl = repo.getSourceUrlIfExisting(result.pom());
+        result.releaseDate = repo.getReleaseDate(result.pom());
 
-        store(result, lane, consumedAt);
+        store(result.pom(), lane, consumedAt);
 
         // for performance (and to prevent cycles), remember visited coordinates in-mem
         tracker.markCompletionInMem(artifact.coordinate, lane);
-        tracker.markCompletionInMem(result.toCoordinate(), lane);
+        tracker.markCompletionInMem(result.pom().toCoordinate(), lane);
 
         // resolve dependencies to
         // 1) have dependencies
@@ -204,10 +204,8 @@ public class Main implements Plugin {
         });
 
         // to stay crash resilient, only mark in DB once all deps have been processed
-        if (lane == Lane.PRIORITY) {
-            tracker.markCompletionInDb(artifact.coordinate, lane);
-            tracker.markCompletionInDb(result.toCoordinate(), lane);
-        }
+        tracker.markCompletionInDb(artifact.coordinate, lane);
+        tracker.markCompletionInDb(result.pom().toCoordinate(), lane);
     }
 
     private void store(Pom result, Lane lane, Date consumedAt) {

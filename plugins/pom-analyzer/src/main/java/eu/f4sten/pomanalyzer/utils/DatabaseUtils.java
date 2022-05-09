@@ -66,7 +66,7 @@ public class DatabaseUtils {
     }
 
     public void insertIntoDB(Pom r, MetadataDao dao) {
-        String product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
+        var product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
         final var packageId = dao.insertPackage(product, Constants.mvnForge, r.projectName, r.repoUrl, null);
 
         var pvMeta = jsonUtils.toJson(r);
@@ -79,7 +79,7 @@ public class DatabaseUtils {
                 artifactRepoId, null, getProperTimestamp(r.releaseDate), pvMeta);
 
         for (var dep : r.dependencies) {
-            var depProduct = dep.toGA();
+            var depProduct = dep.groupId + Constants.mvnCoordinateSeparator + dep.artifactId;
             final var depId = dao.insertPackage(depProduct, Constants.mvnForge);
             var json = jsonUtils.toJson(dep);
             dao.insertDependency(packageVersionId, depId, dep.getVersionConstraintsArr(), null, null, null, json);

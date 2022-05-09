@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static eu.fasten.core.maven.data.VersionConstraint.parseVersionSpec;
 import static java.lang.String.format;
 
 import java.util.HashSet;
@@ -28,13 +29,13 @@ import org.apache.maven.model.Profile;
 
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
-import eu.fasten.core.maven.data.Pom;
+import eu.fasten.core.maven.data.PomBuilder;
 import eu.fasten.core.maven.data.Scope;
 
 public class PomExtractor {
 
-    public Pom process(Model model) {
-        var r = new Pom();
+    public PomBuilder process(Model model) {
+        var r = new PomBuilder();
 
         r.version = model.getVersion();
         r.artifactId = model.getArtifactId();
@@ -82,7 +83,7 @@ public class PomExtractor {
         return r;
     }
 
-    public Pom process(ModelBase model, Pom r) {
+    public PomBuilder process(ModelBase model, PomBuilder r) {
 
         ifNotNull(model.getDependencies(), deps -> process(deps, r.dependencies));
         ifNotNull(model.getDependencyManagement(), dm -> {
@@ -111,7 +112,7 @@ public class PomExtractor {
                 });
             });
 
-            var d = new Dependency(g, a, v, exclusions, Scope.valueOf(s.toUpperCase()), o, p, c);
+            var d = new Dependency(g, a, parseVersionSpec(v), exclusions, Scope.valueOf(s.toUpperCase()), o, p, c);
             depsOut.add(d);
         });
     }

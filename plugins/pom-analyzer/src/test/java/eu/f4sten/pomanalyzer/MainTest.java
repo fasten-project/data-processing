@@ -15,12 +15,8 @@
  */
 package eu.f4sten.pomanalyzer;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import org.apache.maven.model.Model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +29,6 @@ import eu.f4sten.pomanalyzer.utils.PackagingFixer;
 import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.fasten.core.maven.data.Pom;
 
 public class MainTest {
 
@@ -65,9 +60,9 @@ public class MainTest {
 
         sut = new Main(tracker, repo, modelBuilder, extractor, db, resolver, kafka, args, msgs, fixer);
 
-        when(extractor.process(eq(null))).thenReturn(new Pom());
-        when(extractor.process(any(Model.class))).thenReturn(new Pom());
-        when(fixer.checkPackage(any(Pom.class))).thenReturn("jar");
+//        when(extractor.process(eq(null))).thenReturn(new Pom());
+//        when(extractor.process(any(Model.class))).thenReturn(new Pom());
+//        when(fixer.checkPackage(any(Pom.class))).thenReturn("jar");
     }
 
     @Test

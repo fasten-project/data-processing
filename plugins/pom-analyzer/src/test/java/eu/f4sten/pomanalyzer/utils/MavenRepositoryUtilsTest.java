@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import eu.fasten.core.maven.data.Pom;
+import eu.fasten.core.maven.data.PomBuilder;
 
 public class MavenRepositoryUtilsTest {
 
@@ -87,7 +87,7 @@ public class MavenRepositoryUtilsTest {
         var par = minimalPomAnalysisResult();
         webContent(SOME_CONTENT, "g", "a", "1.2.3", "a-1.2.3-sources.jar");
         String expected = ARTIFACT_REPO + "/g/a/1.2.3/a-1.2.3-sources.jar";
-        String actual = sut.getSourceUrlIfExisting(par);
+        String actual = sut.getSourceUrlIfExisting(par.pom());
         assertEquals(expected, actual);
     }
 
@@ -97,7 +97,7 @@ public class MavenRepositoryUtilsTest {
         par.groupId = "g.h.i";
         webContent(SOME_CONTENT, "g", "h", "i", "a", "1.2.3", "a-1.2.3-sources.jar");
         String expected = ARTIFACT_REPO + "/g/h/i/a/1.2.3/a-1.2.3-sources.jar";
-        String actual = sut.getSourceUrlIfExisting(par);
+        String actual = sut.getSourceUrlIfExisting(par.pom());
         assertEquals(expected, actual);
     }
 
@@ -107,14 +107,14 @@ public class MavenRepositoryUtilsTest {
         par.packagingType = "war";
         webContent(SOME_CONTENT, "g", "a", "1.2.3", "a-1.2.3-sources.war");
         String expected = ARTIFACT_REPO + "/g/a/1.2.3/a-1.2.3-sources.war";
-        String actual = sut.getSourceUrlIfExisting(par);
+        String actual = sut.getSourceUrlIfExisting(par.pom());
         assertEquals(expected, actual);
     }
 
     @Test
     public void getSourcesUrlDoesNotExist() {
         var par = minimalPomAnalysisResult();
-        assertNull(sut.getSourceUrlIfExisting(par));
+        assertNull(sut.getSourceUrlIfExisting(par.pom()));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class MavenRepositoryUtilsTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 var par = minimalPomAnalysisResult();
                 par.groupId = invalid;
-                sut.getSourceUrlIfExisting(par);
+                sut.getSourceUrlIfExisting(par.pom());
             });
         }
     }
@@ -134,7 +134,7 @@ public class MavenRepositoryUtilsTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 var par = minimalPomAnalysisResult();
                 par.artifactId = invalid;
-                sut.getSourceUrlIfExisting(par);
+                sut.getSourceUrlIfExisting(par.pom());
             });
         }
     }
@@ -145,7 +145,7 @@ public class MavenRepositoryUtilsTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 var par = minimalPomAnalysisResult();
                 par.packagingType = invalid;
-                sut.getSourceUrlIfExisting(par);
+                sut.getSourceUrlIfExisting(par.pom());
             });
         }
     }
@@ -156,7 +156,7 @@ public class MavenRepositoryUtilsTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 var par = minimalPomAnalysisResult();
                 par.version = invalid;
-                sut.getSourceUrlIfExisting(par);
+                sut.getSourceUrlIfExisting(par.pom());
             });
         }
     }
@@ -167,7 +167,7 @@ public class MavenRepositoryUtilsTest {
             assertThrows(IllegalArgumentException.class, () -> {
                 var par = minimalPomAnalysisResult();
                 par.artifactRepository = invalid;
-                sut.getSourceUrlIfExisting(par);
+                sut.getSourceUrlIfExisting(par.pom());
             });
         }
     }
@@ -175,21 +175,21 @@ public class MavenRepositoryUtilsTest {
     @Test
     public void doesNotExist() {
         var res = par("g1.g2:a:pt:1");
-        assertFalse(sut.doesExist(res));
+        assertFalse(sut.doesExist(res.pom()));
     }
 
     @Test
     public void doesExist() {
         var res = par("g1.g2:a:pt:1");
         webContent("<content>", "g1", "g2", "a", "1", "a-1.pt");
-        assertTrue(sut.doesExist(res));
+        assertTrue(sut.doesExist(res.pom()));
     }
 
     @Test
     public void getReleaseDate() {
         var par = minimalPomAnalysisResult();
         webContent(SOME_CONTENT, "g", "a", "1.2.3", "a-1.2.3.jar");
-        var actual = sut.getReleaseDate(par);
+        var actual = sut.getReleaseDate(par.pom());
         var expected = new Date().getTime();
         var diff = expected - actual;
         assertTrue(diff < 10 * 1000, String.format("difference must be <10s, was %dms", diff));
@@ -198,13 +198,13 @@ public class MavenRepositoryUtilsTest {
     @Test
     public void getReleaseDateNonExisting() {
         var par = minimalPomAnalysisResult();
-        var actual = sut.getReleaseDate(par);
+        var actual = sut.getReleaseDate(par.pom());
         var expected = -1;
         assertEquals(expected, actual);
     }
 
-    private static Pom minimalPomAnalysisResult() {
-        var par = new Pom();
+    private static PomBuilder minimalPomAnalysisResult() {
+        var par = new PomBuilder();
         par.artifactRepository = ARTIFACT_REPO;
         par.groupId = "g";
         par.artifactId = "a";
@@ -222,9 +222,9 @@ public class MavenRepositoryUtilsTest {
         }
     }
 
-    private static Pom par(String gapt) {
+    private static PomBuilder par(String gapt) {
         String[] parts = gapt.split(":");
-        var par = new Pom();
+        var par = new PomBuilder();
         par.groupId = parts[0];
         par.artifactId = parts[1];
         par.packagingType = parts[2];
