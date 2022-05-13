@@ -67,7 +67,7 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
         assertFor(args) //
                 .notNull(args -> args.callableIndexPath, "Provide path to the callable indexer, RocksDB folder!") //
                 .that(args -> args.callableIndexPath.exists(), "Path to the callable indexer does not exist!");
-        return new RocksDao(args.callableIndexPath.getPath(), false);
+        return new RocksDao(args.callableIndexPath.getPath(), true);
     }
 
     @Provides
