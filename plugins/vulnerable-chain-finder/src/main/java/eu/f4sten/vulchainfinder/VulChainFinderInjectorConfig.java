@@ -35,6 +35,8 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.rocksdb.RocksDBException;
 
+import static eu.f4sten.infra.AssertArgs.assertFor;
+
 @InjectorConfig
 public class VulChainFinderInjectorConfig implements IInjectorConfig {
 
@@ -59,18 +61,25 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     @Provides
     @Singleton
     public RocksDao bindRocksDao() throws RocksDBException {
-        return new RocksDao(args.callableIndexPath, false);
+        assertFor(args) //
+                .notNull(args -> args.callableIndexPath, "Provide path to the callable indexer, RocksDB folder!") //
+                .that(args -> args.callableIndexPath.exists(), "Path to the callable indexer does not exist!");
+        return new RocksDao(args.callableIndexPath.getPath(), false);
     }
 
     @Provides
     public RestAPIDependencyResolver bindRestAPIDependencyResolver(){
+        assertFor(args) //
+                .notNull(args -> args.restApiBaseURL, "Provide the REST API address!");
         return new RestAPIDependencyResolver(args.restApiBaseURL, HttpClient.newBuilder().build());
     }
 
     @Provides
     public VulnerableCallChainRepository bindVulnerableCallChainRepository(){
         try {
-            return new VulnerableCallChainRepository(args.restApiBaseURL);
+            assertFor(args) //
+                    .notNull(args -> args.vulnChainRepoPath, "Provide a path to store vulnerable chain repos!");
+            return new VulnerableCallChainRepository(args.vulnChainRepoPath.getPath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
