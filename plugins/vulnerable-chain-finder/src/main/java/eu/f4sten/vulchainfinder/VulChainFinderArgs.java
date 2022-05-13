@@ -18,6 +18,8 @@ package eu.f4sten.vulchainfinder;
 import com.beust.jcommander.Parameter;
 import eu.f4sten.infra.kafka.DefaultTopics;
 
+import java.io.File;
+
 public class VulChainFinderArgs {
 
     @Parameter(names = "--vulchainfinder.kafkaIn", arity = 1)
@@ -26,12 +28,12 @@ public class VulChainFinderArgs {
     @Parameter(names = "--vulchainfinder.kafkaOut", arity = 1)
     public String kafkaOut = DefaultTopics.VUL_CHAIN_FINDER;
 
-    @Parameter(names = "--vulchainfinder.restApiBaseUrl", arity = 1)
+    @Parameter(names = "--restApiBaseUrl", arity = 1)
     public String restApiBaseURL;
 
-    @Parameter(names = "--vulchainfinder.callableIndexPath", arity = 1)
-    public String callableIndexPath;
+    @Parameter(names = "--callableIndexPath", arity = 1)
+    public File callableIndexPath;
 
-    @Parameter(names = "--vulchainfinder.vulnChainRepoUrl", arity = 1)
-    public String vulnChainRepoUrl;
+    @Parameter(names = "--vulnChainRepoPath", arity = 1)
+    public File vulnChainRepoPath;
 }
