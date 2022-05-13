@@ -23,6 +23,7 @@ import com.google.inject.multibindings.ProvidesIntoSet;
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.json.JsonUtils;
+import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
@@ -31,6 +32,8 @@ import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
 import java.io.FileNotFoundException;
 import java.net.http.HttpClient;
+import java.nio.file.Paths;
+
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.rocksdb.RocksDBException;
@@ -75,11 +78,11 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     }
 
     @Provides
-    public VulnerableCallChainRepository bindVulnerableCallChainRepository(){
+    public VulnerableCallChainRepository bindVulnerableCallChainRepository(IoUtils io){
         try {
             assertFor(args) //
                     .notNull(args -> args.vulnChainRepoPath, "Provide a path to store vulnerable chain repos!");
-            return new VulnerableCallChainRepository(args.vulnChainRepoPath.getPath());
+            return new VulnerableCallChainRepository(Paths.get(io.getBaseFolder().toString(), args.vulnChainRepoPath.getPath()).toString());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
