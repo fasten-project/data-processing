@@ -20,7 +20,6 @@ import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
