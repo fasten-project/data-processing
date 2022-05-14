@@ -17,7 +17,7 @@ import org.json.JSONObject;
 public class RestAPIDependencyResolver {
     private static final String DEPS_ENDPOINT;
     public static final String PACKAGE_VERSION_ENDPOINT =
-        "/api/mvn/packages/{groupId}:{artifactId}/{version}";
+        "/packages/{groupId}:{artifactId}/{version}";
 
     static {
         DEPS_ENDPOINT = PACKAGE_VERSION_ENDPOINT + "/deps";
