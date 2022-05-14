@@ -145,14 +145,14 @@ public class Main implements Plugin {
     }
 
     private void runOrPublishErr(final Runnable r) {
-        try {
-            r.run();
-        } catch (Exception e) {
-            LOG.warn("Execution failed for input: {}", curId, e);
-
-            var msg = msgs.getErr(curId, returnCause(e));
-            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
-        }
+//        try {
+        r.run();
+//        } catch (Exception e) {
+//            LOG.warn("Execution failed for input: {}", curId, e);
+//
+//            var msg = msgs.getErr(curId, returnCause(e));
+//            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+//        }
     }
 
     private Throwable returnCause(final Exception e) {
