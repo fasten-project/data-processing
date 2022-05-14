@@ -20,6 +20,7 @@ import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
@@ -144,14 +145,14 @@ public class Main implements Plugin {
     }
 
     private void runOrPublishErr(final Runnable r) {
-//        try {
-        r.run();
-//        } catch (Exception e) {
-//            LOG.warn("Execution failed for input: {}", curId, e);
-//
-//            var msg = msgs.getErr(curId, returnCause(e));
-//            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
-//        }
+        try {
+            r.run();
+        } catch (Exception e) {
+            LOG.warn("Execution failed for input: {}", curId, e);
+
+            var msg = msgs.getErr(curId, returnCause(e));
+            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+        }
     }
 
     private Throwable returnCause(final Exception e) {
