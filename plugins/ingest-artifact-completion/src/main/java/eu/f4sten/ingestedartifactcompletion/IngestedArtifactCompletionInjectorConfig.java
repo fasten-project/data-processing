@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package eu.f4sten.ingestartifactcompletion;
+package eu.f4sten.ingestedartifactcompletion;
 
-import com.beust.jcommander.Parameter;
-import eu.f4sten.infra.kafka.DefaultTopics;
+import com.google.inject.Binder;
+import eu.f4sten.infra.IInjectorConfig;
+import eu.f4sten.infra.InjectorConfig;
 
-public class IngestArtifactCompletionArgs {
+@InjectorConfig
+public class IngestedArtifactCompletionInjectorConfig implements IInjectorConfig {
+    private IngestedArtifactCompletionArgs args;
 
-    @Parameter(names = "--kafkaIn", arity = 1)
-    public String kafkaIn = DefaultTopics.CALLABLE_INDEXER;
+    public void IngestedArtifactCompletionArgs(IngestedArtifactCompletionArgs args) {
+        this.args = args;
+    }
+
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(IngestedArtifactCompletionArgs.class).toInstance(args);
+    }
 }
