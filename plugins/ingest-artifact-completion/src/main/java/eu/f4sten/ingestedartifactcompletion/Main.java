@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.ingestartifactcompletion;
+package eu.f4sten.ingestedartifactcompletion;
 
 import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
@@ -37,14 +37,14 @@ public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    private final IngestArtifactCompletionArgs args;
+    private final IngestedArtifactCompletionArgs args;
     private final Kafka kafka;
     private final DatabaseUtils db;
 
     private MavenId currMavenId;
 
     @Inject
-    public Main(IngestArtifactCompletionArgs args, Kafka kafka, DatabaseUtils db) {
+    public Main(IngestedArtifactCompletionArgs args, Kafka kafka, DatabaseUtils db) {
         this.args = args;
         this.kafka = kafka;
         this.db = db;
@@ -66,7 +66,7 @@ public class Main implements Plugin {
                 final var pomAnalysisResult = msg.input.input.input.payload;
                 currMavenId = extractMavenIdFrom(pomAnalysisResult);
                 LOG.info("Consuming next record ...");
-                ingestCompletedArtifact();
+                ingestCompletedArtifact(l);
             });
             while (true) {
                 LOG.debug("Polling ...");
@@ -77,9 +77,11 @@ public class Main implements Plugin {
         }
     }
 
-    public void ingestCompletedArtifact() {
-        db.markAsIngestedPackage(currMavenId.asCoordinate(), Lane.NORMAL);
-        LOG.info("Marked normal artifact {} as completed", currMavenId.asCoordinate());
+    public void ingestCompletedArtifact(Lane lane) {
+        if (lane == Lane.NORMAL) {
+            db.markAsIngestedPackage(currMavenId.asCoordinate(), Lane.PRIORITY);
+            LOG.info("Marked normal artifact {} as completed", currMavenId.asCoordinate());
+        }
     }
 
     private MavenId extractMavenIdFrom(final PomAnalysisResult pomAnalysisResult) {
