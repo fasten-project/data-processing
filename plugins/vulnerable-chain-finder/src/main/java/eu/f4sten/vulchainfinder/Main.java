@@ -32,6 +32,8 @@ import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.merge.CGMerger;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
+
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
@@ -89,6 +91,12 @@ public class Main implements Plugin {
     }
 
     public void process() {
+        // NOTE: this can be a temporary FS-based check and can be replaced with a better approach or removed at all.
+        if (isCurIdProcessed()) {
+            LOG.info("Coordinate {} already processed!", curId.asCoordinate());
+            return;
+        }
+
         LOG.info("Processing {}", curId.asCoordinate());
 
         final var allDeps = resolver.resolveDependencyIds(curId);
@@ -170,6 +178,10 @@ public class Main implements Plugin {
 
     public void setCurId(final MavenId curId) {
         this.curId = curId;
+    }
+
+    private boolean isCurIdProcessed() {
+        return new File(repo.getFilePath(String.format("%s:%s", curId.groupId, curId.artifactId), curId.version)).exists();
     }
 
 }
