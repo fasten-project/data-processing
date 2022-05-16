@@ -97,9 +97,9 @@ public class Main implements Plugin {
             vulChains = extractVulCallChains(allDeps, vulDeps);
         }
 
-        if (curIdIsMethodLevelVulnerable(vulChains)) {
-            storeInVulRepo(vulChains);
-        }
+        curIdIsMethodLevelVulnerable(vulChains);
+        // NOTE: it stores empty vuln. chains too to avoid re-processing records.
+        storeInVulRepo(vulChains);
     }
 
     private boolean curIdIsMethodLevelVulnerable(final Set<VulnerableCallChain> vulChains) {
