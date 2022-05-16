@@ -31,7 +31,7 @@
         <dependency>
             <groupId>eu.fasten</groupId>
             <artifactId>core</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.8-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
