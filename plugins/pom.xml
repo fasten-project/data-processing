@@ -16,6 +16,7 @@
         <module>callable-indexer</module>
         <module>dependency-graph-resolver</module>
         <module>integration-tests</module>
+        <module>ingest-artifact-completion</module>
     </modules>
 
     <dependencies>
