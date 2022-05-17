@@ -65,6 +65,11 @@
             <artifactId>integration-tests</artifactId>
             <version>0.0.8-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>ingested-artifact-completion</artifactId>
+            <version>0.0.8-SNAPSHOT</version>
+        </dependency>
 
         <!-- actual dependencies -->
         <dependency>
