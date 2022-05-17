@@ -24,7 +24,7 @@ import eu.f4sten.infra.InjectorConfig;
 public class IngestedArtifactCompletionInjectorConfig implements IInjectorConfig {
     private IngestedArtifactCompletionArgs args;
 
-    public void IngestedArtifactCompletionArgs(IngestedArtifactCompletionArgs args) {
+    public IngestedArtifactCompletionInjectorConfig(IngestedArtifactCompletionArgs args) {
         this.args = args;
     }
 

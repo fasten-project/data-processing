@@ -21,6 +21,6 @@ import eu.f4sten.infra.kafka.DefaultTopics;
 
 public class IngestedArtifactCompletionArgs {
 
-    @Parameter(names = "--kafkaIn", arity = 1)
+    @Parameter(names = "--ingestedartifactcompletion.kafkaIn", arity = 1)
     public String kafkaIn = DefaultTopics.CALLABLE_INDEXER;
 }

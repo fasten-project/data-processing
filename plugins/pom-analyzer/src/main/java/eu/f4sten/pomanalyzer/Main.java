@@ -204,8 +204,10 @@ public class Main implements Plugin {
         });
 
         // to stay crash resilient, only mark in DB once all deps have been processed
-        tracker.markCompletionInDb(artifact.coordinate, lane);
-        tracker.markCompletionInDb(result.toCoordinate(), lane);
+        if (lane == Lane.PRIORITY) {
+            tracker.markCompletionInDb(artifact.coordinate, lane);
+            tracker.markCompletionInDb(result.toCoordinate(), lane);
+        }
     }
 
     private void store(PomAnalysisResult result, Lane lane, Date consumedAt) {
