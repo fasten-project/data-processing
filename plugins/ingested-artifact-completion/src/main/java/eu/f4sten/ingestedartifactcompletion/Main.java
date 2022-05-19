@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package eu.f4sten.ingestedartifactcompletion;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
@@ -25,14 +29,7 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-
-/**
- * This is a tiny plug-in that mark normal artifacts that are FULLY completed/processed in the ingested_artifacts table.
- */
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
