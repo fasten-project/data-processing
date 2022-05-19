@@ -24,6 +24,7 @@ import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.vulchainfinder.exceptions.RestApiError;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
@@ -151,6 +152,9 @@ public class Main implements Plugin {
     private void runOrPublishErr(final Runnable r) {
         try {
             r.run();
+        } catch (RestApiError e) {
+            LOG.error("Forced to stop the plug-in as the REST API is unavailable", e);
+            throw e;
         } catch (Exception e) {
             LOG.warn("Execution failed for input: {}", curId, e);
 
