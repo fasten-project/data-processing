@@ -43,26 +43,23 @@ public class Main implements Plugin {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final int NUM_TO_REPORT = 1000;
 
-    // TODO this thresholds still need tweaking
-    private static final int MIN_STORAGE_NUMBER = 10000;
-    private static final long STORAGE_TIMEOUT = 5 * 60 * 1000; // 5min
-
     private final HttpServer server;
     private final Kafka kafka;
-
-    private final MavenResolverData data;
     private final IoUtils io;
+    private final MavenResolverData data;
+    private final DepGraphArgs args;
 
     private Set<Pom> poms = new HashSet<>();
     private long lastStoredAt = 0;
     private int numPomsAddedSinceLastStore = 0;
 
     @Inject
-    public Main(HttpServer server, Kafka kafka, IoUtils io, MavenResolverData data1) {
+    public Main(HttpServer server, Kafka kafka, IoUtils io, MavenResolverData data, DepGraphArgs args) {
         this.server = server;
         this.kafka = kafka;
-        this.data = data1;
         this.io = io;
+        this.data = data;
+        this.args = args;
     }
 
     @Override
@@ -121,8 +118,8 @@ public class Main implements Plugin {
     }
 
     private boolean shouldStore() {
-        var isOldEnough = now() - lastStoredAt > STORAGE_TIMEOUT;
-        var hasAddedEnoughItems = numPomsAddedSinceLastStore >= MIN_STORAGE_NUMBER;
+        var isOldEnough = now() - lastStoredAt > args.minTimeExportMS;
+        var hasAddedEnoughItems = numPomsAddedSinceLastStore >= args.minNumExport;
         return isOldEnough && hasAddedEnoughItems;
     }
 
