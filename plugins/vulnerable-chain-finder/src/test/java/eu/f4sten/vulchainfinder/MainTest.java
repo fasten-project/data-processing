@@ -20,66 +20,68 @@ import static eu.f4sten.vulchainfinder.Main.extractMavenIdFrom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.f4sten.infra.impl.json.JsonUtilsImpl;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.MessageGenerator;
-import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
-import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
-import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
-import eu.fasten.core.data.callableindex.RocksDao;
-import eu.fasten.core.vulchains.VulnerableCallChainRepository;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import org.jooq.impl.DSL;
+import org.json.JSONException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.RocksDBException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import eu.f4sten.infra.impl.json.JsonUtilsImpl;
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.MessageGenerator;
+import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
+import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
+import eu.fasten.core.data.callableindex.RocksDao;
+import eu.fasten.core.maven.data.PomBuilder;
+import eu.fasten.core.vulchains.VulnerableCallChainRepository;
+
 class MainTest {
 
-    public static final String CI_URL =
-        "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/fasten-docker-deployment/docker-volumes/fasten/java/callable-index";
+    public static final String CI_URL = "/Users/mehdi/Desktop/MyMac/TUD/FASTEN/Repositories/MainRepo/fasten-docker-deployment/docker-volumes/fasten/java/callable-index";
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/fasten_java";
     private static final String USR = "fasten";
 
     public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().build();
     public static final String LOCAL_REST = "http://localhost:9080/";
-    public static final Path VUL_REPO =
-        Paths.get("src", "test", "resources", "vulnrepo");
+    public static final Path VUL_REPO = Paths.get("src", "test", "resources", "vulnrepo");
 
     @Test
     void testExtractMavenIdFrom() {
-        final var pomAR = new PomAnalysisResult();
-        pomAR.groupId = "g";
-        pomAR.artifactId = "g";
-        pomAR.version = "v";
+        final var pb = new PomBuilder();
+        pb.groupId = "g";
+        pb.artifactId = "g";
+        pb.version = "v";
 
-        var actual = extractMavenIdFrom(pomAR);
+        var actual = extractMavenIdFrom(pb.pom());
         final MavenId expected = new MavenId();
-        expected.groupId = pomAR.groupId;
-        expected.artifactId = pomAR.artifactId;
-        expected.version = pomAR.version;
+        expected.groupId = pb.groupId;
+        expected.artifactId = pb.artifactId;
+        expected.version = pb.version;
         assertEquals(expected, actual);
     }
 
-    //TODO implement vulnerability inserter in the integration tests plugin and use that as a
-    // dependency to automate the vulnerability insertion
-    @Disabled("This is an integration test that checks if all the steps of vul-chain-finder work " +
-        "correctly. It is only for local development and debugging. It requires DC up and running" +
-        "with synthetic app:0.0.1 ingested, vulnerability inserted to wash method, and CI_URL " +
-        "constant available.")
+    // TODO implement vulnerability inserter in the integration tests plugin and use
+    // that as a dependency to automate the vulnerability insertion
+    @Disabled("This is an integration test that checks if all the steps of vul-chain-finder work "
+            + "correctly. It is only for local development and debugging. It requires DC up and running"
+            + "with synthetic app:0.0.1 ingested, vulnerability inserted to wash method, and CI_URL "
+            + "constant available.")
     @Test
-    void testProcess() throws RocksDBException, IOException {
+    void testProcess() throws RocksDBException, IOException, JSONException {
         final var id = getMavenId("eu.fasten-project.tests.syntheticjars", "app", "0.0.1");
         final Main main = setUpMainFor(id);
 
@@ -104,8 +106,8 @@ class MainTest {
         final var ci = new RocksDao(CI_URL, true);
         final var resolver = new RestAPIDependencyResolver(LOCAL_REST, HTTP_CLIENT);
         final var repo = new VulnerableCallChainRepository(VUL_REPO.toString());
-        final var main = new Main(db, ci, mock(Kafka.class), new VulChainFinderArgs(),
-            mock(MessageGenerator.class), resolver, repo);
+        final var main = new Main(db, ci, mock(Kafka.class), new VulChainFinderArgs(), mock(MessageGenerator.class),
+                resolver, repo);
         main.setCurId(id);
         return main;
     }

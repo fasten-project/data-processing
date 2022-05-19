@@ -9,12 +9,14 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.util.HashSet;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class RestAPIDependencyResolver {
+    private static final BodyHandler<String> BODY_HANDLER = HttpResponse.BodyHandlers.ofString();
     private static final String DEPS_ENDPOINT;
     public static final String PACKAGE_VERSION_ENDPOINT =
         "/api/mvn/packages/{groupId}:{artifactId}/{version}";
@@ -76,7 +78,7 @@ public class RestAPIDependencyResolver {
         Exception exception = null;
 
         try {
-             response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+            response = this.client.send(request, BODY_HANDLER);
         } catch (IOException | InterruptedException e) {
             exception = e;
         }
@@ -92,10 +94,8 @@ public class RestAPIDependencyResolver {
     }
 
     public String placeIDInEndpoint(final String uri, final MavenId id) {
-        return uri
-            .replace("{groupId}", id.groupId)
-            .replace("{artifactId}", id.artifactId)
-            .replace("{version}", id.version);
+        return uri.replace("{groupId}", id.groupId).replace("{artifactId}", id.artifactId).replace("{version}",
+                id.version);
     }
 
     public URI returnFullUriOrThrow(final String endpoint) {

@@ -24,11 +24,11 @@ import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
+import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.merge.CGMerger;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -52,9 +52,8 @@ public class Main implements Plugin {
     private MavenId curId;
 
     @Inject
-    public Main(DatabaseUtils db, RocksDao dao, Kafka kafka, VulChainFinderArgs args,
-                MessageGenerator msgs, RestAPIDependencyResolver resolver,
-                VulnerableCallChainRepository repo) {
+    public Main(DatabaseUtils db, RocksDao dao, Kafka kafka, VulChainFinderArgs args, MessageGenerator msgs,
+            RestAPIDependencyResolver resolver, VulnerableCallChainRepository repo) {
         this.db = db;
         this.dao = dao;
         this.kafka = kafka;
@@ -66,19 +65,17 @@ public class Main implements Plugin {
 
     @Override
     public void run() {
-        AssertArgs.assertFor(args)
-            .notNull(a -> a.kafkaIn, "kafka input topic")
-            .notNull(a -> a.kafkaOut, "kafka output topic");
+        AssertArgs.assertFor(args) //
+                .notNull(a -> a.kafkaIn, "kafka input topic") //
+                .notNull(a -> a.kafkaOut, "kafka output topic");
 
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
 
-        final var msgClass = new TRef<Message<Message<Message<Message
-            <MavenId, PomAnalysisResult>, Object>, Object>, Object>>() {
-        };
+        final var msgClass = new TRef<Message<Message<Message<Message<MavenId, Pom>, Object>, Object>, Object>>() {};
 
         kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
-            final var pomAnalysisResult = msg.input.input.input.payload;
-            curId = extractMavenIdFrom(pomAnalysisResult);
+            final var pom = msg.input.input.input.payload;
+            curId = extractMavenIdFrom(pom);
             LOG.info("Consuming next record ...");
             runOrPublishErr(this::process);
         });
@@ -118,8 +115,7 @@ public class Main implements Plugin {
         repo.store(productName, curId.version, vulnerableCallChains);
     }
 
-    private Set<VulnerableCallChain> extractVulCallChains(final Set<Long> allDeps,
-                                                          final Set<Long> vulDeps) {
+    private Set<VulnerableCallChain> extractVulCallChains(final Set<Long> allDeps, final Set<Long> vulDeps) {
         Set<VulnerableCallChain> result = new HashSet<>();
 
         final var merger = new CGMerger(allDeps, db.getContext(), dao);
@@ -136,12 +132,12 @@ public class Main implements Plugin {
         return result;
     }
 
-    public static MavenId extractMavenIdFrom(final PomAnalysisResult pomAnalysisResult) {
-        final var mavenId = new MavenId();
-        mavenId.groupId = pomAnalysisResult.groupId;
-        mavenId.artifactId = pomAnalysisResult.artifactId;
-        mavenId.version = pomAnalysisResult.version;
-        return mavenId;
+    public static MavenId extractMavenIdFrom(final Pom pom) {
+        final var id = new MavenId();
+        id.groupId = pom.groupId;
+        id.artifactId = pom.artifactId;
+        id.version = pom.version;
+        return id;
     }
 
     private void runOrPublishErr(final Runnable r) {
