@@ -18,10 +18,13 @@ package eu.f4sten.pomanalyzer.utils;
 import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
 
 import java.sql.Timestamp;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.kafka.Lane;
@@ -32,11 +35,11 @@ import eu.fasten.core.maven.data.Pom;
 
 public class DatabaseUtils {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseUtils.class);
+
     private final DSLContext context;
     private final JsonUtils jsonUtils;
     private final Version version;
-
-    private boolean processedRecord;
 
     public DatabaseUtils(DSLContext context, JsonUtils jsonUtils, Version version) {
         this.context = context;
@@ -49,19 +52,24 @@ public class DatabaseUtils {
     }
 
     public void save(Pom result) {
-        processedRecord = false;
+        var hasProcessedRecord = new AtomicBoolean(false);
         int numTries = 0;
-        while (!processedRecord && numTries < Constants.transactionRestartLimit) {
+        while (!hasProcessedRecord.get() && numTries < Constants.transactionRestartLimit) {
             numTries++;
             context.transaction(transaction -> {
                 var dao = getDao(DSL.using(transaction));
                 try {
                     insertIntoDB(result, dao);
-                    processedRecord = true;
+                    hasProcessedRecord.set(true);
                 } catch (DataAccessException e) {
                     // Can be happen. Normally fixable through retrying.
+                    LOG.debug("Caught DataAccessException during insertion of Pom. Retrying ...");
                 }
             });
+        }
+        if (!hasProcessedRecord.get()) {
+            // catch cases in which retries did not work
+            throw new IllegalStateException("Unable to save Pom in database");
         }
     }
 
