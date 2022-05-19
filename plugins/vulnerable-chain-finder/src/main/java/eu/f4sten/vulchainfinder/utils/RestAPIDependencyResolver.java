@@ -1,6 +1,7 @@
 package eu.f4sten.vulchainfinder.utils;
 
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.vulchainfinder.exceptions.RestApiError;
 import eu.fasten.core.data.metadatadb.codegen.tables.Dependencies;
 import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 import java.io.IOException;
@@ -81,7 +82,7 @@ public class RestAPIDependencyResolver {
             exception = e;
         }
         if (exception != null || response == null || isNotOK(response)) {
-            throw new RuntimeException("Problem requesting Rest API.", exception);
+            throw new RestApiError("Problem requesting Rest API.", exception);
         }
 
         return response;
