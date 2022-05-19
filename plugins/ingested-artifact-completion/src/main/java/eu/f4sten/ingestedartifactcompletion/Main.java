@@ -38,8 +38,6 @@ public class Main implements Plugin {
     private final Kafka kafka;
     private final DatabaseUtils db;
 
-    private MavenId currMavenId;
-
     @Inject
     public Main(IngestedArtifactCompletionArgs args, Kafka kafka, DatabaseUtils db) {
         this.args = args;
@@ -55,15 +53,22 @@ public class Main implements Plugin {
 
             LOG.info("Subscribing to '{}'", args.kafkaIn);
 
-            final var msgClass = new TRef<Message<Message<Message<Message
-                                <MavenId, PomAnalysisResult>, Object>, Object>, Object>>() {
-            };
+            final var msgClass = new TRef<Message<Message<Message<Message<MavenId, PomAnalysisResult>, Object>, Object>, Object>>() {};
 
             kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
-                final var pomAnalysisResult = msg.input.input.input.payload;
-                currMavenId = extractMavenIdFrom(pomAnalysisResult);
-                LOG.info("Consuming next record ...");
-                ingestCompletedArtifact(l);
+                final var pom = msg.input.input.input.payload;
+
+                if (l == Lane.PRIORITY) {
+                    LOG.info("No processing required for package on priority lane ... ({})", pom.toCoordinate());
+                    return;
+                }
+
+                LOG.info("Marking package as fully ingested ... ({})", pom.toCoordinate());
+                var mavenId = extractMavenId(pom);
+                // without packaging (g:a:?:v)
+                db.markAsIngestedPackage(mavenId.asCoordinate(), Lane.PRIORITY);
+                // with packaging (g:a:jar:v)
+                db.markAsIngestedPackage(pom.toCoordinate(), Lane.PRIORITY);
             });
             while (true) {
                 LOG.debug("Polling ...");
@@ -74,18 +79,11 @@ public class Main implements Plugin {
         }
     }
 
-    public void ingestCompletedArtifact(Lane lane) {
-        if (lane == Lane.NORMAL) {
-            db.markAsIngestedPackage(currMavenId.asCoordinate(), Lane.PRIORITY);
-            LOG.info("Marked normal artifact {} as completed", currMavenId.asCoordinate());
-        }
-    }
-
-    private MavenId extractMavenIdFrom(final PomAnalysisResult pomAnalysisResult) {
-        final var mavenId = new MavenId();
-        mavenId.groupId = pomAnalysisResult.groupId;
-        mavenId.artifactId = pomAnalysisResult.artifactId;
-        mavenId.version = pomAnalysisResult.version;
-        return mavenId;
+    private MavenId extractMavenId(final PomAnalysisResult pom) {
+        var id = new MavenId();
+        id.groupId = pom.groupId;
+        id.artifactId = pom.artifactId;
+        id.version = pom.version;
+        return id;
     }
 }
