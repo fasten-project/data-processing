@@ -15,6 +15,13 @@
  */
 package eu.f4sten.depgraph;
 
+import com.beust.jcommander.Parameter;
+
 public class DepGraphArgs {
-    // none yet
+
+    @Parameter(names = "--depgraph.minNumExport", arity = 1, description = "Minimum number of new messages before updating disk export")
+    public int minNumExport = 20000;
+
+    @Parameter(names = "--depgraph.minTimeExportMS", arity = 1, description = "Minimum time that needs to pass before updating disk export (ms)")
+    public long minTimeExportMS = 20 * 60 * 1000; // 20min
 }
