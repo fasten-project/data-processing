@@ -27,8 +27,8 @@ import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.pomanalyzer.data.PomAnalysisResult;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
+import eu.fasten.core.maven.data.Pom;
 
 public class Main implements Plugin {
 
@@ -53,7 +53,7 @@ public class Main implements Plugin {
 
             LOG.info("Subscribing to '{}'", args.kafkaIn);
 
-            final var msgClass = new TRef<Message<Message<Message<Message<MavenId, PomAnalysisResult>, Object>, Object>, Object>>() {};
+            final var msgClass = new TRef<Message<Message<Message<Message<MavenId, Pom>, Object>, Object>, Object>>() {};
 
             kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
                 final var pom = msg.input.input.input.payload;
@@ -79,7 +79,7 @@ public class Main implements Plugin {
         }
     }
 
-    private MavenId extractMavenId(final PomAnalysisResult pom) {
+    private MavenId extractMavenId(final Pom pom) {
         var id = new MavenId();
         id.groupId = pom.groupId;
         id.artifactId = pom.artifactId;
