@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -116,8 +118,11 @@ public class IoUtilsImplTest {
         });
         assertNotNull(e.getCause());
         var cause = e.getCause();
-        assertEquals(FileNotFoundException.class, cause.getClass());
-        assertTrue(cause.getMessage().startsWith(f.getAbsolutePath()));
+        // handled differently in different JDKs, Windows works completely differently
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            assertErrorType(cause, FileNotFoundException.class);
+            assertTrue(cause.getMessage().startsWith(f.getAbsolutePath()));
+        }
     }
 
     @Test
@@ -224,8 +229,11 @@ public class IoUtilsImplTest {
         });
         assertNotNull(e.getCause());
         var cause = e.getCause();
-        assertEquals(AccessDeniedException.class, cause.getClass());
-        assertTrue(cause.getMessage().startsWith(to.getAbsolutePath()));
+        // handled differently in different JDKs, Windows works completely differently
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            assertErrorType(cause, AccessDeniedException.class, FileSystemException.class);
+            assertTrue(cause.getMessage().startsWith(to.getAbsolutePath()));
+        }
     }
 
     @Test
@@ -352,7 +360,17 @@ public class IoUtilsImplTest {
         assertEquals(expecteds, actuals);
     }
 
+    private static void assertErrorType(Throwable cause, Class<?>... expecteds) {
+        var actual = cause.getClass();
+        for (var expected : expecteds) {
+            if (expected.equals(actual)) {
+                return;
+            }
+        }
+        fail(String.format("Unexpected error type: %s", cause.getClass()));
+    }
+
     private static String getInaccessibleRoot() {
-        return SystemUtils.IS_OS_WINDOWS ? "C:\\Windows\\" : "/";
+        return SystemUtils.IS_OS_WINDOWS ? "X:\\NonExisting\\" : "/";
     }
 }
