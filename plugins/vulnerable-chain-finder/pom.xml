@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>eu.fasten-project</groupId>
+        <artifactId>plugins</artifactId>
+        <version>0.0.8-SNAPSHOT</version>
+    </parent>
+    <artifactId>vulnerable-chain-finder</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>pom-analyzer</artifactId>
+            <version>0.0.8-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten.analyzer</groupId>
+            <artifactId>javacg-opal</artifactId>
+            <version>0.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>infrastructure-impl</artifactId>
+            <version>0.0.8-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

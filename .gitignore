@@ -6,5 +6,7 @@
 **/*.iml
 **/*.swp
 **/*.versionsBackup
+**/*.ipr
+**/*.iws
 
 
