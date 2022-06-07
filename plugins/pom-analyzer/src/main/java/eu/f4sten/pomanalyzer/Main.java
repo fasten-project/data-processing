@@ -123,9 +123,10 @@ public class Main implements Plugin {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            // this should not happen
             var cause = e.getCause();
-            if (cause instanceof RuntimeException) {
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            } else if (cause instanceof RuntimeException) {
                 throw (RuntimeException) cause;
             } else {
                 throw new RuntimeException(cause);
