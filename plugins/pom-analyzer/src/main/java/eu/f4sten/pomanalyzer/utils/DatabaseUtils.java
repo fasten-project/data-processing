@@ -18,24 +18,20 @@ package eu.f4sten.pomanalyzer.utils;
 import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
 
 import java.sql.Timestamp;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.utils.Version;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
+import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Pom;
 
 public class DatabaseUtils {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DatabaseUtils.class);
 
     private final DSLContext context;
     private final JsonUtils jsonUtils;
@@ -52,28 +48,18 @@ public class DatabaseUtils {
     }
 
     public void save(Pom result) {
-        var hasProcessedRecord = new AtomicBoolean(false);
-        int numTries = 0;
-        while (!hasProcessedRecord.get() && numTries < Constants.transactionRestartLimit) {
-            numTries++;
+        try {
             context.transaction(transaction -> {
                 var dao = getDao(DSL.using(transaction));
-                try {
-                    insertIntoDB(result, dao);
-                    hasProcessedRecord.set(true);
-                } catch (DataAccessException e) {
-                    // Can be happen. Normally fixable through retrying.
-                    LOG.debug("Caught DataAccessException during insertion of Pom. Retrying ...");
-                }
+                insertIntoDB(result, dao);
             });
-        }
-        if (!hasProcessedRecord.get()) {
-            // catch cases in which retries did not work
-            throw new IllegalStateException("Unable to save Pom in database");
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
         }
     }
 
-    public void insertIntoDB(Pom r, MetadataDao dao) {
+    @SuppressWarnings("deprecation")
+    private void insertIntoDB(Pom r, MetadataDao dao) {
         var product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
         final var packageId = dao.insertPackage(product, Constants.mvnForge, r.projectName, r.repoUrl, null);
 
@@ -95,9 +81,13 @@ public class DatabaseUtils {
     }
 
     public void markAsIngestedPackage(String gapv, Lane lane) {
-        if (!hasPackageBeenIngested(gapv, lane)) {
-            var dao = getDao(context);
-            dao.insertIngestedArtifact(toKey(gapv, lane), version.get());
+        try {
+            if (!hasPackageBeenIngested(gapv, lane)) {
+                var dao = getDao(context);
+                dao.insertIngestedArtifact(toKey(gapv, lane), version.get());
+            }
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
         }
     }
 
@@ -106,9 +96,13 @@ public class DatabaseUtils {
     }
 
     public boolean hasPackageBeenIngested(String gapv, Lane lane) {
-        var key = toKey(gapv, lane);
-        var dao = getDao(context);
-        return dao.isArtifactIngested(key);
+        try {
+            var key = toKey(gapv, lane);
+            var dao = getDao(context);
+            return dao.isArtifactIngested(key);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 
     private static Timestamp getProperTimestamp(long timestamp) {
@@ -126,14 +120,26 @@ public class DatabaseUtils {
     }
 
     public int getRetryCount(String key) {
-        return getDao(context).getIngestionRetryCount(key);
+        try {
+            return getDao(context).getIngestionRetryCount(key);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 
     public void registerRetry(String key) {
-        getDao(context).registerIngestionRetry(key);
+        try {
+            getDao(context).registerIngestionRetry(key);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 
     public void pruneRetries(String key) {
-        getDao(context).pruneIngestionRetries(key);
+        try {
+            getDao(context).pruneIngestionRetries(key);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 }
