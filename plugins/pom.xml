@@ -17,6 +17,7 @@
         <module>dependency-graph-resolver</module>
         <module>integration-tests</module>
         <module>ingested-artifact-completion</module>
+        <module>sources-provider</module>
     </modules>
 
     <dependencies>
