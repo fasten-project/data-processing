@@ -1,0 +1,9 @@
+{
+  "product": "anna",
+  "forge": "debian",
+  "dist": "buster",
+  "arch": "amd64",
+  "dir": "/mnt/fasten/revision-callgraphs/debian/callgraphs/a/anna/buster/1.71/amd64/file.json",
+  "version": "1.71",
+  "sourcePath": "/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71"
+}

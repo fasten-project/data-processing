@@ -1,0 +1,22 @@
+{
+  "product": "pycg-stitch",
+  "metadata": {
+    "loc": 332,
+    "max_rss": 19896,
+    "time_elapsed": 0.13,
+    "num_files": 6
+  },
+  "nodes": 45,
+  "forge": "PyPI",
+  "generator": "PyCG",
+  "depset": [
+    {
+      "product": "flask",
+      "forge": "PyPI",
+      "constraints": []
+    }
+  ],
+  "version": "0.0.7",
+  "sourcePath": "/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7",
+  "timestamp": "1653386953"
+}
