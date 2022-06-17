@@ -16,12 +16,13 @@
 package eu.f4sten.sourcesprovider;
 
 import com.beust.jcommander.Parameter;
+import eu.f4sten.infra.kafka.DefaultTopics;
 
 public class SourcesProviderArgs {
 
-    @Parameter(names = "--examples.kafkaIn", arity = 1)
+    @Parameter(names = "--sourcesprovider.kafkaIn", arity = 1)
     public String kafkaIn;
 
-    @Parameter(names = "--examples.kafkaOut", arity = 1)
-    public String kafkaOut;
+    @Parameter(names = "--sourcesprovider.kafkaOut", arity = 1)
+    public String kafkaOut = DefaultTopics.SOURCES_PROVIDER;
 }
