@@ -15,14 +15,9 @@
  */
 package eu.f4sten.sourcesprovider;
 
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
-import com.google.inject.multibindings.ProvidesIntoSet;
-
 import eu.f4sten.infra.IInjectorConfig;
 import eu.f4sten.infra.InjectorConfig;
-import eu.f4sten.infra.kafka.Message;
 
 @InjectorConfig
 public class SourcesProviderInjectorConfig implements IInjectorConfig {
@@ -36,12 +31,5 @@ public class SourcesProviderInjectorConfig implements IInjectorConfig {
     @Override
     public void configure(Binder binder) {
         binder.bind(SourcesProviderArgs.class).toInstance(args);
-    }
-
-    @ProvidesIntoSet
-    public Module provideJacksonModule() {
-        var m = new SimpleModule();
-        // TODO
-        return m;
     }
 }

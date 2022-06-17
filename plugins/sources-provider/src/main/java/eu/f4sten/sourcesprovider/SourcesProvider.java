@@ -16,14 +16,18 @@
 package eu.f4sten.sourcesprovider;
 
 import com.google.inject.Inject;
-
 import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourcesProvider implements Plugin {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SourcesProvider.class);
     private final Kafka kafka;
     private final SourcesProviderArgs args;
 
@@ -31,26 +35,31 @@ public class SourcesProvider implements Plugin {
     public SourcesProvider(Kafka kafka, SourcesProviderArgs args) {
         this.kafka = kafka;
         this.args = args;
-        AssertArgs.assertFor(args) //
-            .notNull(a -> a.kafkaIn, "kafka in") //
+        AssertArgs.assertFor(args)
+            .notNull(a -> a.kafkaIn, "kafka in")
             .notNull(a -> a.kafkaOut, "kafka out");
     }
 
     @Override
     public void run() {
-        System.out.printf("Subscribing to %s, publishing to %s ...\n", args.kafkaIn, args.kafkaOut);
-
-        kafka.subscribe(args.kafkaIn, Message.class, (in, l) -> {
-            System.out.printf("Found message: %s\n", in);
-
-            var out = in.version;
-
-            System.out.printf("Publishing transformation: %s\n", out);
-            kafka.publish(out, args.kafkaOut, l);
-        });
-
-        while (true) {
-            kafka.poll();
+        try {
+            LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
+            kafka.subscribe(args.kafkaIn, Message.class, this::consume);
+            while (true) {
+                LOG.debug("Polling ...");
+                kafka.poll();
+            }
+        } finally {
+            kafka.stop();
         }
+    }
+
+    private void consume(Message<JSONObject, JSONObject> message, Lane lane) {
+        var input = message.input;
+        var payload = message.payload;
+
+        LOG.info("Consuming next {} record {} ...", lane, input.toString());
+
+        kafka.publish(payload, args.kafkaOut, lane);
     }
 }
