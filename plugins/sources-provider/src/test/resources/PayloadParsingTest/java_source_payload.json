@@ -1,0 +1,68 @@
+{
+  "repoUrl": "scm:svn:http://svn.apache.org/repos/asf/logging/log4j/tags/v1_2_17_rc3",
+  "releaseDate": 1338025419000,
+  "dependencyManagement": [],
+  "groupId": "log4j",
+  "version": "1.2.17",
+  "dependencies": [
+    {
+      "a": "mail",
+      "v": [
+        "1.4.3"
+      ],
+      "g": "javax.mail",
+      "optional": true
+    },
+    {
+      "a": "javaee-api",
+      "v": [
+        "5.0-2"
+      ],
+      "g": "org.apache.openejb",
+      "scope": "provided"
+    },
+    {
+      "a": "oro",
+      "v": [
+        "2.0.8"
+      ],
+      "g": "oro",
+      "scope": "test"
+    },
+    {
+      "a": "junit",
+      "v": [
+        "3.8.2"
+      ],
+      "g": "junit",
+      "scope": "test"
+    },
+    {
+      "a": "geronimo-jms_1.1_spec",
+      "v": [
+        "1.0"
+      ],
+      "g": "org.apache.geronimo.specs",
+      "optional": true
+    }
+  ],
+  "artifactRepository": "https://repo.maven.apache.org/maven2/",
+  "forge": "mvn",
+  "hashCode": -1726175894,
+  "sourcesUrl": "https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17-sources.jar",
+  "artifactId": "log4j",
+  "ga": {
+    "hashCode": -994237695,
+    "groupId": "log4j",
+    "artifactId": "log4j"
+  },
+  "projectName": "Apache Log4j",
+  "commitTag": "HEAD",
+  "gav": {
+    "hashCode": 690248222,
+    "groupId": "log4j",
+    "artifactId": "log4j",
+    "version": "1.2.17"
+  },
+  "packagingType": "jar"
+}
