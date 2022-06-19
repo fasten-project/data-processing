@@ -1,0 +1,65 @@
+
+{
+  "createdAt": 1655405335694,
+  "input": {
+    "createdAt": 1655405331092,
+    "input": {
+      "createdAt": 1655405325382,
+      "plugin": "eu.f4sten.pomanalyzer.Main",
+      "payload": {
+        "repoUrl": "scm:svn:http://svn.apache.org/repos/asf/commons/proper/codec/trunk",
+        "releaseDate": 1415283333000,
+        "dependencyManagement": [],
+        "groupId": "commons-codec",
+        "version": "1.10",
+        "parentCoordinate": "org.apache.commons:commons-parent:pom:35",
+        "dependencies": [
+          {
+            "a": "junit",
+            "v": [
+              "4.11"
+            ],
+            "g": "junit",
+            "scope": "test"
+          }
+        ],
+        "artifactRepository": "https://repo.maven.apache.org/maven2/",
+        "forge": "mvn",
+        "hashCode": 68031814,
+        "sourcesUrl": "https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10-sources.jar",
+        "artifactId": "commons-codec",
+        "ga": {
+          "hashCode": -1269480991,
+          "groupId": "commons-codec",
+          "artifactId": "commons-codec"
+        },
+        "projectName": "Apache Commons Codec",
+        "commitTag": "HEAD",
+        "gav": {
+          "hashCode": -697699525,
+          "groupId": "commons-codec",
+          "artifactId": "commons-codec",
+          "version": "1.10"
+        },
+        "packagingType": "jar"
+      },
+      "host": "c39c0588c15e",
+      "consumedAt": 1655405324195,
+      "version": "0.0.8"
+    },
+    "plugin": "eu.fasten.analyzer.javacgopal.OPALPlugin$OPAL",
+    "payload": {
+      "dir": "/mnt/fasten/revision-callgraphs/mvn/c/commons-codec/commons-codec_commons-codec_1.10.json"
+    },
+    "host": "bc733d127faf",
+    "consumedAt": 1655405326991,
+    "version": "0.0.1-SNAPSHOT"
+  },
+  "plugin": "eu.fasten.analyzer.metadataplugin.MetadataDatabaseJavaPlugin$MetadataDBJavaExtension",
+  "payload": {
+    "dir": "/mnt/fasten/global-callgraphs/mvn/c/commons-codec/commons-codec_commons-codec_1.10.json"
+  },
+  "host": "a8bbddbfc10b",
+  "consumedAt": 1655405333407,
+  "version": "0.1.2"
+}

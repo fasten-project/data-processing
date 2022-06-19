@@ -6,17 +6,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PayloadParsing {
-    static SourcePayload findSourcePayload(JSONObject json) {
+    public static SourcePayload findSourcePayload(JSONObject json) {
         for (var key : json.keySet()) {
             if (key.equals("payload")) {
                 var candidatePayload = parse(json.getJSONObject(key));
-                if (candidatePayload != null)
+                if (candidatePayload != null) {
                     return candidatePayload;
+                }
             } else {
                 var other = json.get(key);
                 if (other instanceof JSONObject) {
                     var otherPayload = findSourcePayload((JSONObject) other);
-                    if(otherPayload != null) return otherPayload;
+                    if(otherPayload != null) {
+                        return otherPayload;
+                    }
                 }
             }
         }

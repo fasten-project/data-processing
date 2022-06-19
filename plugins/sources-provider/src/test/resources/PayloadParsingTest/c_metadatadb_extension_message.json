@@ -1,0 +1,33 @@
+{
+  "createdAt": 1655381511893,
+  "input": {
+    "input": {
+      "source_version": "1.71",
+      "date": "",
+      "package": "anna",
+      "release": "buster",
+      "arch": "amd64",
+      "source": "anna",
+      "version": "1.71"
+    },
+    "plugin_version": "0.0.1",
+    "payload": {
+      "product": "anna",
+      "forge": "debian",
+      "dist": "buster",
+      "arch": "amd64",
+      "dir": "/mnt/fasten/revision-callgraphs/debian/callgraphs/a/anna/buster/1.71/amd64/file.json",
+      "version": "1.71",
+      "sourcePath": "/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71"
+    },
+    "created_at": "1655381511.124369",
+    "plugin_name": "CScoutKafkaPlugin"
+  },
+  "plugin": "eu.fasten.analyzer.metadataplugin.MetadataDatabaseCPlugin$MetadataDBCExtension",
+  "payload": {
+    "dir": "/mnt/fasten/global-callgraphs/debian/a/anna_amd64_1.71.json"
+  },
+  "host": "48b965886f52",
+  "consumedAt": 1655381511135,
+  "version": "0.1.2"
+}

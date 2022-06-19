@@ -20,6 +20,7 @@ import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Lane;
+import eu.f4sten.sourcesprovider.utils.PayloadParsing;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +59,14 @@ public class Main implements Plugin {
     private void consume(LinkedHashMap<String, String> message, Lane lane) {
         var json = new JSONObject(message);
         LOG.info("Consuming next {} record {} ...", lane, json);
-
-        kafka.publish(message, args.kafkaOut, lane);
+        var sourcePayload = PayloadParsing.findSourcePayload(json);
+        if (sourcePayload != null) {
+            kafka.publish(sourcePayload, args.kafkaOut, lane);
+        } else {
+            var errorMessage = new JSONObject();
+            errorMessage.put("Could not parse source payload for input", json);
+            kafka.publish(errorMessage, args.kafkaOut, Lane.ERROR);
+            LOG.error("Could not parse source payload on {} for record {} ...", lane, json);
+        }
     }
-
-
 }
