@@ -1,0 +1,590 @@
+{
+   "createdAt": 1655381182797,
+   "input": {
+      "input": {
+         "requires_dist": [
+            {
+               "product": "flask",
+               "forge": "PyPI",
+               "constraints": []
+            }
+         ],
+         "product": "pycg-stitch",
+         "version_timestamp": 1653386953,
+         "version": "0.0.7"
+      },
+      "plugin_version": "0.0.1",
+      "payload": {
+         "product": "pycg-stitch",
+         "metadata": {
+            "loc": 332,
+            "max_rss": 19896,
+            "time_elapsed": 0.13,
+            "num_files": 6
+         },
+         "nodes": 45,
+         "forge": "PyPI",
+         "generator": "PyCG",
+         "depset": [
+            {
+               "product": "flask",
+               "forge": "PyPI",
+               "constraints": []
+            }
+         ],
+         "version": "0.0.7",
+         "modules": {
+            "internal": {
+               "/stitcher.__main__/": {
+                  "sourceFile": "stitcher/__main__.py",
+                  "namespaces": {
+                     "0": {
+                        "metadata": {
+                           "last": 50,
+                           "first": 1
+                        },
+                        "namespace": "/stitcher.__main__/"
+                     },
+                     "1": {
+                        "metadata": {
+                           "last": 47,
+                           "first": 8
+                        },
+                        "namespace": "/stitcher.__main__/main()"
+                     }
+                  }
+               },
+               "/stitcher.stitcher/": {
+                  "sourceFile": "stitcher/stitcher.py",
+                  "namespaces": {
+                     "2": {
+                        "metadata": {
+                           "last": 154,
+                           "first": 1
+                        },
+                        "namespace": "/stitcher.stitcher/"
+                     },
+                     "3": {
+                        "metadata": {
+                           "last": 154,
+                           "first": 29,
+                           "superClasses": []
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher"
+                     },
+                     "4": {
+                        "metadata": {
+                           "last": 45,
+                           "first": 30
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher.__init__()"
+                     },
+                     "5": {
+                        "metadata": {
+                           "last": 77,
+                           "first": 47
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher.stitch()"
+                     },
+                     "6": {
+                        "metadata": {
+                           "last": 80,
+                           "first": 79
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher.output()"
+                     },
+                     "7": {
+                        "metadata": {
+                           "last": 89,
+                           "first": 82
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher._parse_cgs()"
+                     },
+                     "8": {
+                        "metadata": {
+                           "last": 93,
+                           "first": 91
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher.parse_cg()"
+                     },
+                     "9": {
+                        "metadata": {
+                           "last": 121,
+                           "first": 95
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher._resolve()"
+                     },
+                     "10": {
+                        "metadata": {
+                           "last": 145,
+                           "first": 123
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher._resolve_mro()"
+                     },
+                     "11": {
+                        "metadata": {
+                           "last": 149,
+                           "first": 147
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher._err_and_exit()"
+                     },
+                     "12": {
+                        "metadata": {
+                           "last": 154,
+                           "first": 151
+                        },
+                        "namespace": "/stitcher.stitcher/Stitcher._assign_id()"
+                     }
+                  }
+               },
+               "/stitcher.node/": {
+                  "sourceFile": "stitcher/node.py",
+                  "namespaces": {
+                     "22": {
+                        "metadata": {
+                           "last": 80,
+                           "first": 1
+                        },
+                        "namespace": "/stitcher.node/"
+                     },
+                     "23": {
+                        "metadata": {
+                           "last": 80,
+                           "first": 24,
+                           "superClasses": []
+                        },
+                        "namespace": "/stitcher.node/Node"
+                     },
+                     "24": {
+                        "metadata": {
+                           "last": 52,
+                           "first": 25
+                        },
+                        "namespace": "/stitcher.node/Node.__init__()"
+                     },
+                     "25": {
+                        "metadata": {
+                           "last": 55,
+                           "first": 54
+                        },
+                        "namespace": "/stitcher.node/Node.get_product()"
+                     },
+                     "26": {
+                        "metadata": {
+                           "last": 58,
+                           "first": 57
+                        },
+                        "namespace": "/stitcher.node/Node.get_version()"
+                     },
+                     "27": {
+                        "metadata": {
+                           "last": 61,
+                           "first": 60
+                        },
+                        "namespace": "/stitcher.node/Node.get_modname()"
+                     },
+                     "28": {
+                        "metadata": {
+                           "last": 64,
+                           "first": 63
+                        },
+                        "namespace": "/stitcher.node/Node.get_callable()"
+                     },
+                     "29": {
+                        "metadata": {
+                           "last": 67,
+                           "first": 66
+                        },
+                        "namespace": "/stitcher.node/Node.get_class_hier()"
+                     },
+                     "30": {
+                        "metadata": {
+                           "last": 80,
+                           "first": 69
+                        },
+                        "namespace": "/stitcher.node/Node.to_string()"
+                     }
+                  }
+               },
+               "/stitcher/": {
+                  "sourceFile": "stitcher/__init__.py",
+                  "namespaces": {
+                     "31": {
+                        "metadata": {
+                           "last": 0,
+                           "first": 0
+                        },
+                        "namespace": "/stitcher/"
+                     }
+                  }
+               },
+               "/stitcher.cg/": {
+                  "sourceFile": "stitcher/cg.py",
+                  "namespaces": {
+                     "13": {
+                        "metadata": {
+                           "last": 89,
+                           "first": 1
+                        },
+                        "namespace": "/stitcher.cg/"
+                     },
+                     "14": {
+                        "metadata": {
+                           "last": 89,
+                           "first": 26,
+                           "superClasses": []
+                        },
+                        "namespace": "/stitcher.cg/CallGraph"
+                     },
+                     "15": {
+                        "metadata": {
+                           "last": 37,
+                           "first": 27
+                        },
+                        "namespace": "/stitcher.cg/CallGraph.__init__()"
+                     },
+                     "16": {
+                        "metadata": {
+                           "last": 42,
+                           "first": 39
+                        },
+                        "namespace": "/stitcher.cg/CallGraph.get_node()"
+                     },
+                     "17": {
+                        "metadata": {
+                           "last": 45,
+                           "first": 44
+                        },
+                        "namespace": "/stitcher.cg/CallGraph.get_internal_calls()"
+                     },
+                     "18": {
+                        "metadata": {
+                           "last": 48,
+                           "first": 47
+                        },
+                        "namespace": "/stitcher.cg/CallGraph.get_external_calls()"
+                     },
+                     "19": {
+                        "metadata": {
+                           "last": 89,
+                           "first": 50
+                        },
+                        "namespace": "/stitcher.cg/CallGraph._parse_cg()"
+                     },
+                     "20": {
+                        "metadata": {
+                           "last": 74,
+                           "first": 51
+                        },
+                        "namespace": "/stitcher.cg/CallGraph._parse_cg.iterate_mods()"
+                     },
+                     "21": {
+                        "metadata": {
+                           "last": 83,
+                           "first": 76
+                        },
+                        "namespace": "/stitcher.cg/CallGraph._parse_cg.iterate_calls()"
+                     }
+                  }
+               },
+               "/stitcher.api/": {
+                  "sourceFile": "stitcher/api.py",
+                  "namespaces": {
+                     "32": {
+                        "metadata": {
+                           "last": 25,
+                           "first": 1
+                        },
+                        "namespace": "/stitcher.api/"
+                     },
+                     "33": {
+                        "metadata": {
+                           "last": 21,
+                           "first": 11
+                        },
+                        "namespace": "/stitcher.api/stitch()"
+                     },
+                     "34": {
+                        "metadata": {
+                           "last": 25,
+                           "first": 24
+                        },
+                        "namespace": "/stitcher.api/deploy()"
+                     }
+                  }
+               }
+            },
+            "external": {
+               "json": {
+                  "sourceFile": "",
+                  "namespaces": {
+                     "36": {
+                        "metadata": {},
+                        "namespace": "//json//json.dumps"
+                     },
+                     "37": {
+                        "metadata": {},
+                        "namespace": "//json//json.load"
+                     }
+                  }
+               },
+               "flask": {
+                  "sourceFile": "",
+                  "namespaces": {
+                     "42": {
+                        "metadata": {},
+                        "namespace": "//flask//flask.Flask"
+                     },
+                     "43": {
+                        "metadata": {},
+                        "namespace": "//flask//flask.request.json.values"
+                     }
+                  }
+               },
+               "sys": {
+                  "sourceFile": "",
+                  "namespaces": {
+                     "44": {
+                        "metadata": {},
+                        "namespace": "//sys//sys.exit"
+                     }
+                  }
+               },
+               "argparse": {
+                  "sourceFile": "",
+                  "namespaces": {
+                     "35": {
+                        "metadata": {},
+                        "namespace": "//argparse//argparse.ArgumentParser"
+                     }
+                  }
+               },
+               ".builtin": {
+                  "sourceFile": "",
+                  "namespaces": {
+                     "38": {
+                        "metadata": {},
+                        "namespace": "//.builtin//open"
+                     },
+                     "39": {
+                        "metadata": {},
+                        "namespace": "//.builtin//print"
+                     },
+                     "40": {
+                        "metadata": {},
+                        "namespace": "//.builtin//len"
+                     },
+                     "41": {
+                        "metadata": {},
+                        "namespace": "//.builtin//range"
+                     }
+                  }
+               }
+            }
+         },
+         "graph": {
+            "internalCalls": [
+               [
+                  "0",
+                  "1",
+                  {}
+               ],
+               [
+                  "1",
+                  "4",
+                  {}
+               ],
+               [
+                  "1",
+                  "34",
+                  {}
+               ],
+               [
+                  "1",
+                  "6",
+                  {}
+               ],
+               [
+                  "1",
+                  "5",
+                  {}
+               ],
+               [
+                  "4",
+                  "7",
+                  {}
+               ],
+               [
+                  "5",
+                  "12",
+                  {}
+               ],
+               [
+                  "5",
+                  "9",
+                  {}
+               ],
+               [
+                  "33",
+                  "4",
+                  {}
+               ],
+               [
+                  "33",
+                  "6",
+                  {}
+               ],
+               [
+                  "33",
+                  "5",
+                  {}
+               ],
+               [
+                  "33",
+                  "8",
+                  {}
+               ],
+               [
+                  "8",
+                  "15",
+                  {}
+               ],
+               [
+                  "7",
+                  "15",
+                  {}
+               ],
+               [
+                  "9",
+                  "10",
+                  {}
+               ],
+               [
+                  "15",
+                  "19",
+                  {}
+               ],
+               [
+                  "10",
+                  "9",
+                  {}
+               ],
+               [
+                  "19",
+                  "21",
+                  {}
+               ],
+               [
+                  "19",
+                  "20",
+                  {}
+               ],
+               [
+                  "20",
+                  "27",
+                  {}
+               ],
+               [
+                  "20",
+                  "24",
+                  {}
+               ],
+               [
+                  "20",
+                  "28",
+                  {}
+               ]
+            ],
+            "externalCalls": [
+               [
+                  "1",
+                  "38",
+                  {}
+               ],
+               [
+                  "1",
+                  "36",
+                  {}
+               ],
+               [
+                  "1",
+                  "39",
+                  {}
+               ],
+               [
+                  "1",
+                  "35",
+                  {}
+               ],
+               [
+                  "5",
+                  "40",
+                  {}
+               ],
+               [
+                  "32",
+                  "42",
+                  {}
+               ],
+               [
+                  "33",
+                  "36",
+                  {}
+               ],
+               [
+                  "33",
+                  "43",
+                  {}
+               ],
+               [
+                  "7",
+                  "38",
+                  {}
+               ],
+               [
+                  "7",
+                  "37",
+                  {}
+               ],
+               [
+                  "9",
+                  "41",
+                  {}
+               ],
+               [
+                  "9",
+                  "40",
+                  {}
+               ],
+               [
+                  "11",
+                  "39",
+                  {}
+               ],
+               [
+                  "11",
+                  "44",
+                  {}
+               ],
+               [
+                  "24",
+                  "40",
+                  {}
+               ]
+            ],
+            "resolvedCalls": []
+         },
+         "sourcePath": "/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7",
+         "timestamp": "1653386953"
+      },
+      "created_at": 1655381182,
+      "plugin_name": "PyCG"
+   },
+   "plugin": "eu.fasten.analyzer.metadataplugin.MetadataDatabasePythonPlugin$MetadataDBPythonExtension",
+   "payload": {
+      "dir": "/mnt/fasten/global-callgraphs/PyPI/p/pycg-stitch_0.0.7.json"
+   },
+   "host": "8154f0a5fbbb",
+   "consumedAt": 1655381182108,
+   "version": "0.1.2"
+}
