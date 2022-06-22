@@ -32,11 +32,13 @@ public class Main implements Plugin {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private final Kafka kafka;
     private final SourcesProviderArgs args;
+    private final PayloadParsing payloadParser;
 
     @Inject
-    public Main(Kafka kafka, SourcesProviderArgs args) {
+    public Main(Kafka kafka, SourcesProviderArgs args, PayloadParsing payloadParser) {
         this.kafka = kafka;
         this.args = args;
+        this.payloadParser = payloadParser;
         AssertArgs.assertFor(args)
             .notNull(a -> a.kafkaIn, "kafka in")
             .notNull(a -> a.kafkaOut, "kafka out");
@@ -59,7 +61,7 @@ public class Main implements Plugin {
     private void consume(LinkedHashMap<String, String> message, Lane lane) {
         var json = new JSONObject(message);
         LOG.info("Consuming next {} record {} ...", lane, json);
-        var sourcePayload = PayloadParsing.findSourcePayload(json);
+        var sourcePayload = payloadParser.findSourcePayload(json);
         if (sourcePayload != null) {
             kafka.publish(sourcePayload, args.kafkaOut, lane);
         } else {

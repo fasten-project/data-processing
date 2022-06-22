@@ -1,12 +1,38 @@
+/*
+ * Copyright 2022 Software Improvement Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package eu.f4sten.sourcesprovider.utils;
 
-import eu.f4sten.sourcesprovider.data.MavenSourcePayload;
+import com.google.inject.Inject;
+import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.sourcesprovider.data.SourcePayload;
+import eu.fasten.core.data.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.file.Path;
+
 public class PayloadParsing {
-    public static SourcePayload findSourcePayload(JSONObject json) {
+    private final SourcesJarDownloader sourcesJarDownloader;
+
+    @Inject
+    public PayloadParsing(SourcesJarDownloader sourcesJarDownloader) {
+        this.sourcesJarDownloader = sourcesJarDownloader;
+    }
+
+    public SourcePayload findSourcePayload(JSONObject json) {
         for (var key : json.keySet()) {
             if (key.equals("payload")) {
                 var candidatePayload = parse(json.getJSONObject(key));
@@ -26,7 +52,7 @@ public class PayloadParsing {
         return null;
     }
 
-    static SourcePayload parse(JSONObject payload) {
+    public SourcePayload parse(JSONObject payload) {
         SourcePayload result = trySourcePayload(payload);
         if(result == null) {
             result = tryMavenSourcePayload(payload);
@@ -34,24 +60,33 @@ public class PayloadParsing {
         return result;
     }
 
-    private static SourcePayload trySourcePayload(JSONObject payload) {
+    private SourcePayload trySourcePayload(JSONObject payload) {
         try {
             return new SourcePayload(payload.getString("forge"),
                     payload.getString("product"),
                     payload.getString("version"),
-                    payload.getString("sourcePath"));
+                    Path.of(payload.getString("sourcePath")));
         } catch (JSONException e) {
             return null;
         }
     }
 
-    private static SourcePayload tryMavenSourcePayload(JSONObject payload) {
+    private SourcePayload tryMavenSourcePayload(JSONObject payload) {
         try {
-            return new MavenSourcePayload(payload.getString("forge"),
-                    payload.getString("groupId"),
-                    payload.getString("artifactId"),
-                    payload.getString("version"),
-                    payload.getString("sourcesUrl"));
+            if(payload.getString("forge").equals(Constants.mvnForge)) {
+                var sourcesUrl = payload.getString("sourcesUrl");
+                var mavenId = new MavenId();
+                mavenId.groupId = payload.getString("groupId");
+                mavenId.artifactId = payload.getString("artifactId");
+                mavenId.version = payload.getString("version");
+                var sourcesPath = sourcesJarDownloader.downloadSourcesJar(mavenId, sourcesUrl);
+                return new SourcePayload(Constants.mvnForge,
+                        payload.getString("groupId") + Constants.mvnCoordinateSeparator + payload.getString("artifactId"),
+                        payload.getString("version"),
+                        sourcesPath);
+            } else {
+                return null;
+            }
         } catch (JSONException e) {
             return null;
         }

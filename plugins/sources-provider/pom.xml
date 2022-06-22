@@ -18,5 +18,17 @@
             <artifactId>json</artifactId>
             <version>20190722</version>
         </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>infrastructure-impl</artifactId>
+            <version>0.0.9-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>pom-analyzer</artifactId>
+            <version>0.0.9-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
