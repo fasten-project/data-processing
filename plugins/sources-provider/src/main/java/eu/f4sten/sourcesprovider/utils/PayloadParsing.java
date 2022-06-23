@@ -22,14 +22,15 @@ import eu.fasten.core.data.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.file.Path;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class PayloadParsing {
-    private final SourcesJarDownloader sourcesJarDownloader;
+    private final SourcesJarProvider sourcesJarProvider;
 
     @Inject
-    public PayloadParsing(SourcesJarDownloader sourcesJarDownloader) {
-        this.sourcesJarDownloader = sourcesJarDownloader;
+    public PayloadParsing(SourcesJarProvider sourcesJarProvider) {
+        this.sourcesJarProvider = sourcesJarProvider;
     }
 
     public SourcePayload findSourcePayload(JSONObject json) {
@@ -65,7 +66,7 @@ public class PayloadParsing {
             return new SourcePayload(payload.getString("forge"),
                     payload.getString("product"),
                     payload.getString("version"),
-                    Path.of(payload.getString("sourcePath")));
+                    payload.getString("sourcePath"));
         } catch (JSONException e) {
             return null;
         }
@@ -74,12 +75,12 @@ public class PayloadParsing {
     private SourcePayload tryMavenSourcePayload(JSONObject payload) {
         try {
             if(payload.getString("forge").equals(Constants.mvnForge)) {
-                var sourcesUrl = payload.getString("sourcesUrl");
+                var sourcesUrl = new URL(payload.getString("sourcesUrl"));
                 var mavenId = new MavenId();
                 mavenId.groupId = payload.getString("groupId");
                 mavenId.artifactId = payload.getString("artifactId");
                 mavenId.version = payload.getString("version");
-                var sourcesPath = sourcesJarDownloader.downloadSourcesJar(mavenId, sourcesUrl);
+                var sourcesPath = sourcesJarProvider.downloadSourcesJar(mavenId, sourcesUrl);
                 return new SourcePayload(Constants.mvnForge,
                         payload.getString("groupId") + Constants.mvnCoordinateSeparator + payload.getString("artifactId"),
                         payload.getString("version"),
@@ -87,7 +88,7 @@ public class PayloadParsing {
             } else {
                 return null;
             }
-        } catch (JSONException e) {
+        } catch (JSONException | MalformedURLException e) {
             return null;
         }
     }
