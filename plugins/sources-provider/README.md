@@ -49,5 +49,6 @@ The following CLI parameters need to be set:
 - `--plugin` [eu.f4sten.sourcesprovider.Main] (cannot be different)
 - `--kafka.url` [localhost:19092]
 - `--sourcesprovider.kafkaIn` [fasten.MetadataDBJavaExtension]
+- `--sourcesprovider.kafkaOut` [fasten.SourcesProvider.java]
 - `--instanceId` [sourcesprovider-1]
 - `--baseDir` [/mnt/fasten]
