@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static eu.fasten.core.utils.TestUtils.getTestResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,8 +37,8 @@ class PayloadParsingTest {
 
     @BeforeEach
     void setUp() {
-        SourcesJarDownloader sd = mock(SourcesJarDownloader.class);
-        when(sd.downloadSourcesJar(any(), any())).thenReturn(Path.of("/test/path"));
+        SourcesJarProvider sd = mock(SourcesJarProvider.class);
+        when(sd.downloadSourcesJar(any(), any())).thenReturn("/test/path");
         pp = new PayloadParsing(sd);
     }
 
@@ -51,7 +50,7 @@ class PayloadParsingTest {
         assertEquals(Constants.mvnForge, payload.getForge());
         assertEquals("commons-codec:commons-codec", payload.getProduct());
         assertEquals("1.10", payload.getVersion());
-        assertEquals(Path.of("/test/path"), payload.getSourcePath());
+        assertEquals("/test/path", payload.getSourcePath());
     }
 
     @Test
@@ -62,7 +61,7 @@ class PayloadParsingTest {
         assertEquals(Constants.pypiForge, payload.getForge());
         assertEquals("pycg-stitch", payload.getProduct());
         assertEquals("0.0.7", payload.getVersion());
-        assertEquals(Path.of("/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7"), payload.getSourcePath());
+        assertEquals("/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7", payload.getSourcePath());
     }
 
     @Test
@@ -73,7 +72,7 @@ class PayloadParsingTest {
         assertEquals(Constants.debianForge, payload.getForge());
         assertEquals("anna", payload.getProduct());
         assertEquals("1.71", payload.getVersion());
-        assertEquals(Path.of("/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71"), payload.getSourcePath());
+        assertEquals("/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71", payload.getSourcePath());
     }
 
     @Test

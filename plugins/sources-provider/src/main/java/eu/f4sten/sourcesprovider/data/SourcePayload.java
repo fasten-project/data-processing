@@ -15,15 +15,13 @@
  */
 package eu.f4sten.sourcesprovider.data;
 
-import java.nio.file.Path;
-
 public class SourcePayload {
     private String forge;
     private String product;
     private String version;
-    private Path sourcePath;
+    private String sourcePath;
 
-    public SourcePayload(String forge, String product, String version, Path sourcePath) {
+    public SourcePayload(String forge, String product, String version, String sourcePath) {
         setForge(forge);
         setProduct(product);
         setVersion(version);
@@ -54,11 +52,11 @@ public class SourcePayload {
         this.version = version;
     }
 
-    public Path getSourcePath() {
+    public String getSourcePath() {
         return sourcePath;
     }
 
-    public void setSourcePath(Path sourcePath) {
+    public void setSourcePath(String sourcePath) {
         this.sourcePath = sourcePath;
     }
 }
