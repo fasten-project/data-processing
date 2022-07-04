@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>plugins</artifactId>
-        <version>0.0.10-SNAPSHOT</version>
+        <version>0.0.10</version>
     </parent>
     <artifactId>dependency-graph-resolver</artifactId>
 
@@ -13,7 +13,7 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>pom-analyzer</artifactId>
-            <version>0.0.10-SNAPSHOT</version>
+            <version>0.0.10</version>
         </dependency>
     </dependencies>
 

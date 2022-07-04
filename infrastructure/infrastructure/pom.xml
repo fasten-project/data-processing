@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.10-SNAPSHOT</version>
+        <version>0.0.10</version>
         <relativePath>../..</relativePath>
     </parent>
     <artifactId>infrastructure</artifactId>
