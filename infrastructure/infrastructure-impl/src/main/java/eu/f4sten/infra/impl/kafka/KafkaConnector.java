@@ -29,6 +29,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import java.security.InvalidParameterException;
@@ -88,6 +89,7 @@ public class KafkaConnector {
         p.setProperty(MAX_POLL_RECORDS_CONFIG, "1");
         p.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false");
         p.setProperty(AUTO_COMMIT_INTERVAL_MS_CONFIG, "0");
+        p.setProperty(REQUEST_TIMEOUT_MS_CONFIG, "60000");
 
         p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
 
