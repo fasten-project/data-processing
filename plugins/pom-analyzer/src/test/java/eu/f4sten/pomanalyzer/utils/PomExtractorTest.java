@@ -31,6 +31,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import eu.f4sten.test.TestLoggerUtils;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
 import eu.fasten.core.maven.data.Pom;
@@ -125,6 +126,20 @@ public class PomExtractorTest {
         expected.dependencies.add(depC(7, "(,1.0]", "[1.2)"));
         expected.dependencies.add(depC(8, "(,1.1)", "(1.1,)"));
         assertEquals(expected.pom(), actual);
+    }
+
+    @Test
+    public void dependenciesWithProperty() {
+        TestLoggerUtils.clearLog();
+
+        var actual = extract("dependencies-properties.pom");
+        var expected = getMinimal();
+        expected.dependencies.add(depC(1, "1"));
+        expected.dependencies.add(depC(3, "3"));
+        assertEquals(expected.pom(), actual);
+
+        TestLoggerUtils.assertLogsContain(PomExtractor.class,
+                "ERROR Ignoring dependency 'g2:a2' -- Failed to parse version spec '${some.unresolved.property}'");
     }
 
     @Test
@@ -275,7 +290,7 @@ public class PomExtractorTest {
                 "");
     }
 
-    private Dependency depC(int i, String... specs) {
+    private static Dependency depC(int i, String... specs) {
         var vcs = new LinkedHashSet<VersionConstraint>();
         for (var spec : specs) {
             vcs.add(new VersionConstraint(spec));

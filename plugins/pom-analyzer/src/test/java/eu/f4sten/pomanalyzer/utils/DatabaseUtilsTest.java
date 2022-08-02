@@ -17,11 +17,14 @@ package eu.f4sten.pomanalyzer.utils;
 
 import static eu.f4sten.infra.kafka.Lane.NORMAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,8 +35,10 @@ import java.util.Date;
 
 import org.jooq.DSLContext;
 import org.jooq.TransactionalRunnable;
+import org.jooq.exception.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -42,12 +47,15 @@ import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.Version;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
+import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.PomBuilder;
 import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
 
+    private static final String SOME_KEY = "abc";
+    private static final DataAccessException DAE = mock(DataAccessException.class);
     private static final String SOME_PLUGIN_VERSION = "0.1.2";
     private MetadataDao dao;
     private JsonUtils json;
@@ -172,7 +180,89 @@ public class DatabaseUtilsTest {
         verify(dao).isArtifactIngested("gapv-NORMAL");
     }
 
-    private PomBuilder getSomeResult() {
+    @Test
+    public void registerRetry() {
+        sut.registerRetry(SOME_KEY);
+        verify(dao).registerIngestionRetry(SOME_KEY);
+    }
+
+    @Test
+    public void getRetryCount() {
+        when(dao.getIngestionRetryCount(SOME_KEY)).thenReturn(1234);
+        var actual = sut.getRetryCount(SOME_KEY);
+        var expected = 1234;
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void pruneRetries() {
+        sut.pruneRetries(SOME_KEY);
+        verify(dao).pruneIngestionRetries(SOME_KEY);
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_save() {
+        doThrow(DAE).when(dslContext).transaction(any(TransactionalRunnable.class));
+        assertUnrecoverableError(DAE, () -> {
+            sut.save(getSomeResult().pom());
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_insertIntoDB() {
+        doThrow(DAE).when(dao).insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null));
+        assertUnrecoverableError(DAE, () -> {
+            sut.save(getSomeResult().pom());
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_markAsIngestedPackage() {
+        doThrow(DAE).when(dao).insertIngestedArtifact(anyString(), anyString());
+        assertUnrecoverableError(DAE, () -> {
+            sut.markAsIngestedPackage("g:a:jar:1", NORMAL);
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_hasPackageBeenIngested() {
+        doThrow(DAE).when(dao).isArtifactIngested(anyString());
+        assertUnrecoverableError(DAE, () -> {
+            sut.hasPackageBeenIngested("...", NORMAL);
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_getRetryCount() {
+        doThrow(DAE).when(dao).getIngestionRetryCount(anyString());
+        assertUnrecoverableError(DAE, () -> {
+            sut.getRetryCount("...");
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_registerRetry() {
+        doThrow(DAE).when(dao).registerIngestionRetry(anyString());
+        assertUnrecoverableError(DAE, () -> {
+            sut.registerRetry("...");
+        });
+    }
+
+    @Test
+    public void assertDBExceptionIsHandled_pruneRetries() {
+        doThrow(DAE).when(dao).pruneIngestionRetries(anyString());
+        assertUnrecoverableError(DAE, () -> {
+            sut.pruneRetries("...");
+        });
+    }
+
+    private static void assertUnrecoverableError(Throwable cause, Executable r) {
+        var e = assertThrows(UnrecoverableError.class, r);
+        Throwable actual = e.getCause();
+        assertSame(cause, actual);
+    }
+
+    private static PomBuilder getSomeResult() {
         var result = new PomBuilder();
         result.artifactRepository = "...";
         result.groupId = "g";

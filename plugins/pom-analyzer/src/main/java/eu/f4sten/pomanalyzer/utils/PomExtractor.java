@@ -26,13 +26,18 @@ import java.util.function.Consumer;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.ModelBase;
 import org.apache.maven.model.Profile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.fasten.core.maven.data.Dependency;
 import eu.fasten.core.maven.data.Exclusion;
 import eu.fasten.core.maven.data.PomBuilder;
 import eu.fasten.core.maven.data.Scope;
+import eu.fasten.core.maven.data.VersionConstraint;
 
 public class PomExtractor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PomExtractor.class);
 
     public PomBuilder process(Model model) {
         var r = new PomBuilder();
@@ -112,7 +117,14 @@ public class PomExtractor {
                 });
             });
 
-            var d = new Dependency(g, a, parseVersionSpec(v), exclusions, Scope.valueOf(s.toUpperCase()), o, p, c);
+            Set<VersionConstraint> vcs;
+            try {
+                vcs = parseVersionSpec(v);
+            } catch (IllegalStateException e) {
+                LOG.error("Ignoring dependency '{}:{}' -- Failed to parse version spec '{}'", g, a, v);
+                return;
+            }
+            var d = new Dependency(g, a, vcs, exclusions, Scope.valueOf(s.toUpperCase()), o, p, c);
             depsOut.add(d);
         });
     }
