@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static eu.fasten.core.utils.TestUtils.getTestResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,9 +70,11 @@ class SourcesJarProviderTest {
         var sourcesPath = provider.downloadSourcesJar(mavenId, testUrl);
         assertNotNull(sourcesPath);
         var files = new File(sourcesPath).listFiles();
-        assertNotNull(files);
-        assertEquals("META-INF", files[0].getName());
-        assertEquals("org", files[1].getName());
+        var actuals = Arrays.stream(files) //
+                .map(f -> f.getName()) //
+                .collect(Collectors.toSet());
+        var expecteds = Set.of("META-INF", "org");
+        assertEquals(expecteds, actuals);
     }
 
     @AfterEach
