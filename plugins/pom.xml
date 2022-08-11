@@ -18,6 +18,7 @@
         <module>integration-tests</module>
         <module>ingested-artifact-completion</module>
         <module>sources-provider</module>
+        <module>swh-inserter</module>
     </modules>
 
     <dependencies>
