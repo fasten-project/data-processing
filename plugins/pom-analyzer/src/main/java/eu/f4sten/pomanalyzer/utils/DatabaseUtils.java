@@ -18,8 +18,13 @@ package eu.f4sten.pomanalyzer.utils;
 import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
 
 import java.sql.Timestamp;
+import java.util.List;
 
+import eu.fasten.core.data.metadatadb.codegen.tables.Files;
+import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
+import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
 import org.jooq.DSLContext;
+import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
@@ -30,6 +35,7 @@ import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Pom;
+import org.json.JSONObject;
 
 public class DatabaseUtils {
 
@@ -138,6 +144,42 @@ public class DatabaseUtils {
     public void pruneRetries(String key) {
         try {
             getDao(context).pruneIngestionRetries(key);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
+    }
+
+    public Long getPkgVersionID(String pkgName, String version) {
+        try {
+            var pkgVerID = context.select(PackageVersions.PACKAGE_VERSIONS.ID).
+                    from(Packages.PACKAGES, PackageVersions.PACKAGE_VERSIONS).
+                    where(Packages.PACKAGES.PACKAGE_NAME.eq(pkgName).
+                                    and(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID.eq(Packages.PACKAGES.ID)).
+                                    and(PackageVersions.PACKAGE_VERSIONS.VERSION.eq(version))).fetchOne();
+            // May produce null pointer exception
+            return pkgVerID.component1();
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
+    }
+
+    public List<String> getFilePaths4PkgVersion(Long pkgVersionID) {
+        try {
+            var filePaths = context.select(Files.FILES.PATH).
+                    from(Files.FILES).where(Files.FILES.PACKAGE_VERSION_ID.eq(pkgVersionID)).fetch();
+            return filePaths.getValues(Files.FILES.PATH);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
+    }
+
+    public String addFileHash(Long pkgVersionID, String filePath, String fileHash) {
+        try {
+            var fileMetadata = JSONB.valueOf(String.valueOf(new JSONObject().put("swh_checksum", fileHash)));
+            return context.update(Files.FILES).
+                    set(Files.FILES.METADATA, fileMetadata).
+                    where(Files.FILES.PACKAGE_VERSION_ID.eq(pkgVersionID).and(Files.FILES.PATH.eq(filePath))).
+                    returningResult(Files.FILES.PATH).fetchOne().getValue(Files.FILES.PATH);
         } catch (DataAccessException e) {
             throw new UnrecoverableError(e);
         }

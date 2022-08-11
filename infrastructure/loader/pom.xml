@@ -75,6 +75,11 @@
             <artifactId>sources-provider</artifactId>
             <version>0.0.12-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
+            <artifactId>swh-inserter</artifactId>
+            <version>0.0.12-SNAPSHOT</version>
+        </dependency>
 
         <!-- actual dependencies -->
         <dependency>
