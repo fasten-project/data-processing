@@ -25,4 +25,5 @@ public class DefaultTopics {
     public static final String POM_ANALYZER = "fasten.POMAnalyzer";
     public static final String CALLABLE_INDEXER = "fasten.CallableIndexFastenPlugin";
     public static final String SOURCES_PROVIDER = "fasten.SourcesProvider";
+    public static final String METADATA_DB_JAVA = "fasten.MetadataDBJavaExtension";
 }

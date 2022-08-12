@@ -21,7 +21,7 @@ import eu.f4sten.infra.kafka.DefaultTopics;
 public class SourcesProviderArgs {
 
     @Parameter(names = "--sourcesprovider.kafkaIn", arity = 1)
-    public String kafkaIn;
+    public String kafkaIn = DefaultTopics.METADATA_DB_JAVA;
 
     @Parameter(names = "--sourcesprovider.kafkaOut", arity = 1)
     public String kafkaOut = DefaultTopics.SOURCES_PROVIDER;
