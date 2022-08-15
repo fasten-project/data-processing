@@ -1,25 +1,40 @@
+/*
+ * Copyright 2022 Delft University of Technology
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package eu.f4sten.swhinserter;
 
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.infra.utils.IoUtils;
-import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedHashMap;
+
+import javax.inject.Inject;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.f4sten.infra.AssertArgs;
+import eu.f4sten.infra.Plugin;
+import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
+import eu.f4sten.infra.utils.IoUtils;
+import eu.f4sten.sourcesprovider.data.SourcePayload;
 
 public class Main implements Plugin {
 
@@ -46,7 +61,7 @@ public class Main implements Plugin {
                     .notNull(a -> a.kafkaIn, "kafka input topic"); //
 
             LOG.info("Subscribing to '{}'", args.kafkaIn);
-            kafka.subscribe(args.kafkaIn, LinkedHashMap.class, this::consume);
+            kafka.subscribe(args.kafkaIn, SourcePayload.class, this::consume);
             while (true) {
                 LOG.debug("Polling ...");
                 kafka.poll();
@@ -56,49 +71,56 @@ public class Main implements Plugin {
         }
     }
 
-    private void consume(LinkedHashMap<String, String> message, Lane lane) {
-        var json = new JSONObject(message);
-        LOG.info("Consuming next {} record {} ...", lane, json);
-        var pkgName = json.get("product").toString();
-        var ver = json.get("version").toString();
-        //var srcPath = json.get("version").toString();
+    private void consume(SourcePayload payload, Lane lane) {
+        LOG.info("Consuming next {} record ...", lane);
+        var pkgName = payload.getProduct();
+        var ver = payload.getVersion();
 
+        var basePath = getBasePath(pkgName, ver);
         var pkgVerID = db.getPkgVersionID(pkgName, ver);
-        var pkgVerFilesPaths = db.getFilePaths4PkgVersion(pkgVerID);
+        var paths = db.getFilePaths4PkgVersion(pkgVerID);
 
-        pkgVerFilesPaths.forEach(fp -> {
-            LOG.info("P: {}", fp);
-            var srcFileContent = readSrcFileContent(pkgName, ver, fp);
-            var srcFileHash = computeGitHash(srcFileContent.getBytes(StandardCharsets.UTF_8));
-            db.addFileHash(pkgVerID, fp, srcFileHash);
-            LOG.info("Added file hash for {}", fp);
+        paths.forEach(path -> {
+            var content = read(basePath, path);
+            var bytes = content.getBytes(StandardCharsets.UTF_8);
+            var hash = computeSwhHash(bytes);
+            db.addFileHash(pkgVerID, path, hash);
+            LOG.info("Added file hash for {}", path);
         });
     }
 
-    private String readSrcFileContent(String pkgName, String version, String filePath) {
+    private File getBasePath(String pkgName, String version) {
         String[] ga = pkgName.split(":");
         var groupID = ga[0];
         var artifactID = ga[1];
-        var baseDir = io.getBaseFolder();
-        var srcFile = new File(Path.of(baseDir.toString(), "sources", "mvn", Character.toString(groupID.charAt(0)),
-                groupID, artifactID, version, filePath).toString());
+        var baseDir = io.getBaseFolder().getAbsolutePath();
+        var firstChar = Character.toString(groupID.charAt(0));
+        var basePath = Path.of(baseDir, "sources", "mvn", firstChar, groupID, artifactID, version).toFile();
+        return basePath;
+    }
+
+    private String read(File basePath, String filePath) {
         try {
+            var srcFile = new File(basePath, filePath);
             return FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Could not read the file " + srcFile.toPath());
+            throw new RuntimeException(e);
         }
     }
 
-    // This method computes a SWH-compatible hash
-    private String computeGitHash(byte[] fileContent) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+    private String computeSwhHash(byte[] fileContent) {
+        var md = getSha1Digest();
+        // The SWH hash is based on Git, which saltes the content with "blob"
         md.update(String.format("blob %d\u0000", fileContent.length).getBytes());
         md.update(fileContent);
         return Hex.encodeHexString(md.digest());
+    }
+
+    private static MessageDigest getSha1Digest() {
+        try {
+            return MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
