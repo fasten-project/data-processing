@@ -68,12 +68,12 @@ public class Main implements Plugin {
         }
     }
 
-    private void consume(SourcePayload payload, Lane lane) {
+    public void consume(SourcePayload payload, Lane lane) {
         LOG.info("Consuming next {} record ...", lane);
         var pkgName = payload.getProduct();
         var ver = payload.getVersion();
 
-        var basePath = getBasePath(pkgName, ver);
+        var basePath = getBasePath(payload.getForge(), pkgName, ver);
 
         var pkgVerID = db.getPkgVersionID(pkgName, ver);
         var paths = db.getFilePaths4PkgVersion(pkgVerID);
@@ -85,13 +85,13 @@ public class Main implements Plugin {
         });
     }
 
-    private File getBasePath(String pkgName, String version) {
+    private File getBasePath(String forge, String pkgName, String version) {
         String[] ga = pkgName.split(":");
         var groupID = ga[0];
         var artifactID = ga[1];
-        var baseDir = io.getBaseFolder().getAbsolutePath();
+        var baseDir = io.getBaseFolder().getPath();
         var firstChar = Character.toString(groupID.charAt(0));
-        var basePath = Path.of(baseDir, "sources", "mvn", firstChar, groupID, artifactID, version).toFile();
+        var basePath = Path.of(baseDir, "sources", forge, firstChar, groupID, artifactID, version).toFile();
         return basePath;
     }
 }
