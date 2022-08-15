@@ -15,11 +15,22 @@
  */
 package eu.f4sten.sourcesprovider.data;
 
+import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class SourcePayload {
+
     private String forge;
     private String product;
     private String version;
     private String sourcePath;
+
+    public SourcePayload() {
+        // for object mappers
+    }
 
     public SourcePayload(String forge, String product, String version, String sourcePath) {
         setForge(forge);
@@ -58,5 +69,20 @@ public class SourcePayload {
 
     public void setSourcePath(String sourcePath) {
         this.sourcePath = sourcePath;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
     }
 }
