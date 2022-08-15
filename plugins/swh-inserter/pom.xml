@@ -7,7 +7,7 @@
     <parent>
         <artifactId>plugins</artifactId>
         <groupId>eu.fasten-project</groupId>
-        <version>0.0.12-SNAPSHOT</version>
+        <version>0.0.12</version>
     </parent>
     <artifactId>swh-inserter</artifactId>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>sources-provider</artifactId>
-            <version>0.0.12-SNAPSHOT</version>
+            <version>0.0.12</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
