@@ -16,16 +16,10 @@
 package eu.f4sten.swhinserter;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import javax.inject.Inject;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +39,15 @@ public class Main implements Plugin {
     private final DatabaseUtils db;
     private final IoUtils io;
 
+    private final SwhHashCalculator calc;
+
     @Inject
-    public Main(SwhInserterArgs args, Kafka kafka, DatabaseUtils db, IoUtils io) {
+    public Main(SwhInserterArgs args, Kafka kafka, DatabaseUtils db, IoUtils io, SwhHashCalculator calc) {
         this.args = args;
         this.kafka = kafka;
         this.db = db;
         this.io = io;
+        this.calc = calc;
     }
 
     @Override
@@ -77,13 +74,12 @@ public class Main implements Plugin {
         var ver = payload.getVersion();
 
         var basePath = getBasePath(pkgName, ver);
+
         var pkgVerID = db.getPkgVersionID(pkgName, ver);
         var paths = db.getFilePaths4PkgVersion(pkgVerID);
 
         paths.forEach(path -> {
-            var content = read(basePath, path);
-            var bytes = content.getBytes(StandardCharsets.UTF_8);
-            var hash = computeSwhHash(bytes);
+            var hash = calc.calc(basePath, path);
             db.addFileHash(pkgVerID, path, hash);
             LOG.info("Added file hash for {}", path);
         });
@@ -97,30 +93,5 @@ public class Main implements Plugin {
         var firstChar = Character.toString(groupID.charAt(0));
         var basePath = Path.of(baseDir, "sources", "mvn", firstChar, groupID, artifactID, version).toFile();
         return basePath;
-    }
-
-    private String read(File basePath, String filePath) {
-        try {
-            var srcFile = new File(basePath, filePath);
-            return FileUtils.readFileToString(srcFile, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String computeSwhHash(byte[] fileContent) {
-        var md = getSha1Digest();
-        // The SWH hash is based on Git, which saltes the content with "blob"
-        md.update(String.format("blob %d\u0000", fileContent.length).getBytes());
-        md.update(fileContent);
-        return Hex.encodeHexString(md.digest());
-    }
-
-    private static MessageDigest getSha1Digest() {
-        try {
-            return MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
