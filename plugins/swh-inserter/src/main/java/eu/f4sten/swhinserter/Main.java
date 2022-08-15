@@ -16,6 +16,7 @@
 package eu.f4sten.swhinserter;
 
 import java.io.File;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 import javax.inject.Inject;
@@ -79,9 +80,13 @@ public class Main implements Plugin {
         var paths = db.getFilePaths4PkgVersion(pkgVerID);
 
         paths.forEach(path -> {
-            var hash = calc.calc(basePath, path);
-            db.addFileHash(pkgVerID, path, hash);
-            LOG.info("Added file hash for {}", path);
+            try {
+                var hash = calc.calc(basePath, path);
+                db.addFileHash(pkgVerID, path, hash);
+                LOG.info("Added file hash for {}", path);
+            } catch (UncheckedIOException | IllegalStateException e) {
+                LOG.error("Unable to process '{}' ({}: {})", path, e.getClass(), e.getMessage());
+            }
         });
     }
 
