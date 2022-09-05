@@ -30,7 +30,10 @@ import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
+
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.file.Paths;
 
@@ -78,11 +81,15 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     }
 
     @Provides
-    public VulnerableCallChainRepository bindVulnerableCallChainRepository(IoUtils io){
+    public VulnerableCallChainRepository bindVulnerableCallChainRepository(IoUtils io) throws IOException {
         try {
             assertFor(args) //
                     .notNull(args -> args.vulnChainRepoPath, "Provide a path to store vulnerable chain repos!");
-            return new VulnerableCallChainRepository(Paths.get(io.getBaseFolder().toString(), args.vulnChainRepoPath.getPath()).toString());
+            var vulnChainRepoFolder = new File(Paths.get(io.getBaseFolder().toString(), args.vulnChainRepoPath.getPath()).toString());
+            if (!vulnChainRepoFolder.exists()) {
+                vulnChainRepoFolder.mkdir();
+            }
+            return new VulnerableCallChainRepository(vulnChainRepoFolder.getAbsolutePath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

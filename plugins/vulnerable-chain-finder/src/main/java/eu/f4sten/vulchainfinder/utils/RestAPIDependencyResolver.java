@@ -4,14 +4,19 @@ import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.vulchainfinder.exceptions.RestApiError;
 import eu.fasten.core.data.metadatadb.codegen.tables.Dependencies;
 import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.jgrapht.alg.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -40,10 +45,24 @@ public class RestAPIDependencyResolver {
     public Set<Long> resolveDependencyIds(final MavenId id) {
         final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
         final var depIds = extractPackageIdsFromResponse(response);
-        final HttpResponse<String> appResponse = requestEndPoint(PACKAGE_VERSION_ENDPOINT, id);
-        final var fieldName = PackageVersions.PACKAGE_VERSIONS.ID.getName();
-        depIds.add(extractLongFieldFromJSONObj(new JSONObject(appResponse.body()), fieldName));
+        depIds.add(extractPackageVersionIdFromResponse(id));
         return depIds;
+    }
+
+    public Set<Pair<Long, Pair<String, File>>> resolveDependencies(final MavenId id, final String baseDir) {
+        final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
+        final Set<Pair<Long, Pair<String, File>>> depsPair = new HashSet<>();
+
+        final var deps = new JSONArray(response.body());
+        final var depFieldName = Dependencies.DEPENDENCIES.DEPENDENCY_ID.getName();
+        for (final var dep : deps) {
+
+            JSONObject depMetadata = (JSONObject) ((JSONObject) dep).get("metadata");
+            var mvnId = extractMavenIdsFromMetadata(depMetadata);
+            depsPair.add(new Pair<>(((Number)((JSONObject) dep).get(depFieldName)).longValue(), new Pair<>(mvnId.asCoordinate(),
+                    new File(Paths.get(baseDir, ".m2", mvnId.toJarPath()).toString()))));
+        }
+        return depsPair;
     }
 
     private HttpResponse<String> requestEndPoint(final String depsEndpoint, final MavenId id) {
@@ -66,6 +85,32 @@ public class RestAPIDependencyResolver {
             result.add(id);
         }
         return result;
+    }
+
+    public long extractPackageVersionIdFromResponse(final MavenId id) {
+        final HttpResponse<String> appResponse = requestEndPoint(PACKAGE_VERSION_ENDPOINT, id);
+        final var fieldName = PackageVersions.PACKAGE_VERSIONS.ID.getName();
+        return extractLongFieldFromJSONObj(new JSONObject(appResponse.body()), fieldName);
+    }
+
+//    public Set<Pair<String, Path>> extractMavenIdsFromResponse(final HttpResponse<String> response) {
+//        final Set<Pair<String, Path>> result = new HashSet<>();
+//
+//        final var deps = new JSONArray(response.body());
+//        for (final var dep : deps) {
+//            final var fieldName = Dependencies.DEPENDENCIES.DEPENDENCY_ID.getName();
+//            JSONObject depMetadata = (JSONObject) ((JSONObject) dep).get("metadata");
+//            var mvnId = extractMavenIdsFromMetadata(depMetadata);
+//            result.add(new Pair<>(mvnId.asCoordinate(), mvnId.toJarPath()));
+//        }
+//        return result;
+//    }
+
+    public MavenId extractMavenIdsFromMetadata(JSONObject depMetadata) {
+        var gId = (String )depMetadata.get("g");
+        var aID = (String) depMetadata.get("a");
+        var ver = (JSONArray) depMetadata.get("v");
+        return new MavenId(gId, aID, (String) ver.get(0), null);
     }
 
     public static boolean isNotOK(final HttpResponse<String> response) {

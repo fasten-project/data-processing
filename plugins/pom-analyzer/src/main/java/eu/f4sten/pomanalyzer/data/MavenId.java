@@ -21,12 +21,23 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.nio.file.Paths;
+
 public class MavenId {
 
     public String groupId;
     public String artifactId;
     public String version;
     public String artifactRepository;
+
+    public MavenId() {}
+
+    public MavenId(String groupId, String artifactId, String version, String artifactRepository) {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.artifactRepository = artifactRepository;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -44,7 +55,12 @@ public class MavenId {
     }
 
     public String asCoordinate() {
-        return String.format("%s:%s:?:%s", $(groupId), $(artifactId), $(version));
+        return String.format("%s:%s:%s", $(groupId), $(artifactId), $(version));
+    }
+
+    public String toJarPath() {
+        return Paths.get(groupId.replace('.', '/'), artifactId, version,
+                artifactId + "-" + version + "." + "jar").toString();
     }
 
     private static String $(String s) {

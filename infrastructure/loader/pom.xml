@@ -83,7 +83,7 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>vulnerable-chain-finder</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.14-SNAPSHOT</version>
         </dependency>
         <!-- actual dependencies -->
         <dependency>

@@ -3,20 +3,27 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>plugins</artifactId>
-        <version>0.0.7-SNAPSHOT</version>
+        <version>0.0.14-SNAPSHOT</version>
     </parent>
     <artifactId>vulnerable-chain-finder</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>eu.fasten-project</groupId>
-            <artifactId>pom-analyzer</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
-        </dependency>
         <dependency>
             <groupId>eu.fasten.analyzer</groupId>
             <artifactId>javacg-opal</artifactId>
@@ -24,8 +31,14 @@
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
+            <artifactId>pom-analyzer</artifactId>
+            <version>0.0.14-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure-impl</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.14-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
