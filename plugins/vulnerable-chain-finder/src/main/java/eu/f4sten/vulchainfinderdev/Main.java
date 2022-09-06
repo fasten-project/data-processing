@@ -22,7 +22,6 @@ import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
@@ -47,6 +46,7 @@ import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
 import eu.fasten.core.data.opal.MavenArtifactDownloader;
 import eu.fasten.core.data.opal.MavenCoordinate;
+import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -127,21 +127,23 @@ public class Main implements Plugin {
         LOG.info("Processing {}", curId.asCoordinate());
 
         // Client/Root package
-        var clientPkgVer = new Pair<Long, Pair<String, File>>(resolver.extractPackageVersionIdFromResponse(curId),
-                new Pair<>(curId.asCoordinate(), new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
+        var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(resolver.extractPackageVersionIdFromResponse(curId),
+                new Pair<>(curId, new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
         final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.baseDir);
 
         // Download jars if not present in the .m2 folder
         if (!clientPkgVer.getSecond().getSecond().exists()) {
             clientPkgVer.getSecond().getSecond().getParentFile().mkdirs();
-            new MavenArtifactDownloader(MavenCoordinate.fromString(clientPkgVer.getSecond().getFirst(), "jar"),
+            new MavenArtifactDownloader(MavenCoordinate.fromString(clientPkgVer.getSecond().getFirst().asCoordinate(),
+                    clientPkgVer.getSecond().getFirst().packagingType),
                     clientPkgVer.getSecond().getSecond()).downloadArtifact(null);
         }
 
         clientPkgVerAllDeps.forEach(d -> {
             if (!d.getSecond().getSecond().exists()) {
                 d.getSecond().getSecond().getParentFile().mkdirs();
-                new MavenArtifactDownloader(MavenCoordinate.fromString(d.getSecond().getFirst(), "jar"),
+                new MavenArtifactDownloader(MavenCoordinate.fromString(d.getSecond().getFirst().asCoordinate(),
+                        d.getSecond().getFirst().packagingType),
                         d.getSecond().getSecond()).downloadArtifact(null);
             }
         });
@@ -176,8 +178,8 @@ public class Main implements Plugin {
         repo.store(productName, curId.version, vulnerableCallChains);
     }
 
-    private Set<VulnerableCallChain> extractVulCallChains(final Pair<Long, Pair<String, File>> clientPkgVer,
-                                                          final Set<Pair<Long, Pair<String, File>>> allDeps,
+    private Set<VulnerableCallChain> extractVulCallChains(final Pair<Long, Pair<MavenId, File>> clientPkgVer,
+                                                          final Set<Pair<Long, Pair<MavenId, File>>> allDeps,
                                                           final Set<Long> vulDeps) {
         Set<VulnerableCallChain> result = new HashSet<>();
 
@@ -186,7 +188,7 @@ public class Main implements Plugin {
                 extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
         var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
 
-        var clientProductAndVersion = extractProductAndVersion(clientPkgVer.getSecond().getFirst());
+        var clientProductAndVersion = extractProductAndVersion(clientPkgVer.getSecond().getFirst().asCoordinate());
         var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientProductAndVersion.getFirst(), clientProductAndVersion.getSecond(), -1,
                 Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
         var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
@@ -208,6 +210,7 @@ public class Main implements Plugin {
         mavenId.groupId = pomAnalysisResult.groupId;
         mavenId.artifactId = pomAnalysisResult.artifactId;
         mavenId.version = pomAnalysisResult.version;
+        mavenId.packagingType = pomAnalysisResult.packagingType;
         return mavenId;
     }
 
@@ -260,7 +263,7 @@ public class Main implements Plugin {
         return new Pair<>(parts[0]+":"+parts[1], parts[2]);
     }
 
-    private File[] extractFilesFromDeps(final Set<Pair<Long, Pair<String, File>>> deps) {
+    private File[] extractFilesFromDeps(final Set<Pair<Long, Pair<MavenId, File>>> deps) {
         var allDepsFile = new File[deps.size()];
         var i = 0;
         for (var f: deps) {
@@ -277,10 +280,11 @@ public class Main implements Plugin {
             LOG.error("Forced to stop the plug-in as the REST API is unavailable", e);
             throw e;
         } catch (Exception e) {
-            LOG.warn("Execution failed for input: {}", curId, e);
+            LOG.error("Execution failed for input: {} and", curId, e);
+            throw new UnrecoverableError("the plugin should be stopped.");
 
-            var msg = msgs.getErr(curId, returnCause(e));
-            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+//            var msg = msgs.getErr(curId, returnCause(e));
+//            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
 

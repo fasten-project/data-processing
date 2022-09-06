@@ -29,14 +29,16 @@ public class MavenId {
     public String artifactId;
     public String version;
     public String artifactRepository;
+    public String packagingType;
 
     public MavenId() {}
 
-    public MavenId(String groupId, String artifactId, String version, String artifactRepository) {
+    public MavenId(String groupId, String artifactId, String version, String artifactRepository, String packagingType) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
         this.artifactRepository = artifactRepository;
+        this.packagingType = packagingType;
     }
 
     @Override

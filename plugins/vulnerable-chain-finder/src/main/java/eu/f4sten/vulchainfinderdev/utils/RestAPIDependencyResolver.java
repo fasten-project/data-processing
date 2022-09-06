@@ -49,9 +49,9 @@ public class RestAPIDependencyResolver {
         return depIds;
     }
 
-    public Set<Pair<Long, Pair<String, File>>> resolveDependencies(final MavenId id, final String baseDir) {
+    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final String baseDir) {
         final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
-        final Set<Pair<Long, Pair<String, File>>> depsPair = new HashSet<>();
+        final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
 
         final var deps = new JSONArray(response.body());
         final var depFieldName = Dependencies.DEPENDENCIES.DEPENDENCY_ID.getName();
@@ -59,7 +59,7 @@ public class RestAPIDependencyResolver {
 
             JSONObject depMetadata = (JSONObject) ((JSONObject) dep).get("metadata");
             var mvnId = extractMavenIdsFromMetadata(depMetadata);
-            depsPair.add(new Pair<>(((Number)((JSONObject) dep).get(depFieldName)).longValue(), new Pair<>(mvnId.asCoordinate(),
+            depsPair.add(new Pair<>(((Number)((JSONObject) dep).get(depFieldName)).longValue(), new Pair<>(mvnId,
                     new File(Paths.get(baseDir, ".m2", mvnId.toJarPath()).toString()))));
         }
         return depsPair;
@@ -107,10 +107,11 @@ public class RestAPIDependencyResolver {
 //    }
 
     public MavenId extractMavenIdsFromMetadata(JSONObject depMetadata) {
-        var gId = (String )depMetadata.get("g");
-        var aID = (String) depMetadata.get("a");
-        var ver = (JSONArray) depMetadata.get("v");
-        return new MavenId(gId, aID, (String) ver.get(0), null);
+        var gId = (String )depMetadata.get("groupId");
+        var aID = (String) depMetadata.get("artifactId");
+        var ver = (JSONArray) depMetadata.get("versionConstraints");
+        var type = (String) depMetadata.get("type");
+        return new MavenId(gId, aID, (String) ver.get(0), null, type);
     }
 
     public static boolean isNotOK(final HttpResponse<String> response) {
