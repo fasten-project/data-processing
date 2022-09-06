@@ -1,4 +1,4 @@
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

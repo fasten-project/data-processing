@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder;
+package eu.f4sten.vulchainfinderdev;
 
 //import static eu.f4sten.vulchainfinder.Main.extractMavenIdFrom;
 //import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,9 +27,9 @@ import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
-import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.json.FastenURIJacksonModule;
+import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 //import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;

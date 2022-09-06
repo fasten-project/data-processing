@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;

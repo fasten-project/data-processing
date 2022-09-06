@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.f4sten.infra.impl.json.JsonUtilsImpl;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;
-import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
+import eu.f4sten.vulchainfinderdev.json.FastenURIJacksonModule;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.metadatadb.codegen.tables.Callables;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.vulchainfinder;
+package eu.f4sten.vulchainfinderdev;
 
 import com.beust.jcommander.Parameter;
 import eu.f4sten.infra.kafka.DefaultTopics;

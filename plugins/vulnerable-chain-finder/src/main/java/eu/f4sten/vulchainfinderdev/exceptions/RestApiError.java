@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder.exceptions;
+package eu.f4sten.vulchainfinderdev.exceptions;
 
 /**
  * A custom exception for Rest API-related exception to stop the plug-in's container. This error is unrecoverable.

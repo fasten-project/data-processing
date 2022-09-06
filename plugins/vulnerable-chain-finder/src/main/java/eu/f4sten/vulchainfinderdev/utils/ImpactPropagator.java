@@ -1,8 +1,8 @@
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import com.google.common.collect.BiMap;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.data.NodeReachability;
+import eu.f4sten.vulchainfinderdev.data.NodeReachability;
 import eu.fasten.core.data.DirectedGraph;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.vulnerability.Vulnerability;

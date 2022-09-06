@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder;
+package eu.f4sten.vulchainfinderdev;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -27,10 +27,10 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.exceptions.RestApiError;
-import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinder.utils.ImpactPropagator;
-import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
+import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinderdev.utils.ImpactPropagator;
+import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
 import eu.fasten.analyzer.javacgopal.data.CGAlgorithm;
 import eu.fasten.analyzer.javacgopal.data.CallPreservationStrategy;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraph;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import static eu.fasten.analyzer.javacgopal.data.CGAlgorithm.RTA;
 import static eu.fasten.analyzer.javacgopal.data.CallPreservationStrategy.ONLY_STATIC_CALLSITES;
@@ -24,7 +24,7 @@ import static eu.fasten.core.utils.TestUtils.getTestResource;
 
 import com.google.common.collect.HashBiMap;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.data.NodeReachability;
+import eu.f4sten.vulchainfinderdev.data.NodeReachability;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraphConstructor;
 import eu.fasten.analyzer.javacgopal.data.OPALPartialCallGraphConstructor;
 import eu.fasten.core.data.FastenURI;

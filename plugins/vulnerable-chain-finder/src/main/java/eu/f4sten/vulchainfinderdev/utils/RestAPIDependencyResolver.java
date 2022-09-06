@@ -1,7 +1,7 @@
-package eu.f4sten.vulchainfinder.utils;
+package eu.f4sten.vulchainfinderdev.utils;
 
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinder.exceptions.RestApiError;
+import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
 import eu.fasten.core.data.metadatadb.codegen.tables.Dependencies;
 import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 

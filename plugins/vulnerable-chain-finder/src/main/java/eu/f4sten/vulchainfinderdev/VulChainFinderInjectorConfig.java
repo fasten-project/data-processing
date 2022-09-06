@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.vulchainfinder;
+package eu.f4sten.vulchainfinderdev;
 
 import com.fasterxml.jackson.databind.Module;
 import com.google.inject.Binder;
@@ -25,9 +25,9 @@ import eu.f4sten.infra.InjectorConfig;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
-import eu.f4sten.vulchainfinder.json.FastenURIJacksonModule;
-import eu.f4sten.vulchainfinder.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinder.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.json.FastenURIJacksonModule;
+import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
+import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
 

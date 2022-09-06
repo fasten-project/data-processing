@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.f4sten.vulchainfinder.data;
+package eu.f4sten.vulchainfinderdev.data;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
