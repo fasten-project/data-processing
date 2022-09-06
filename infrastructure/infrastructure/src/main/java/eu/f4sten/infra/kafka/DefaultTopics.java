@@ -26,5 +26,5 @@ public class DefaultTopics {
     public static final String CALLABLE_INDEXER = "fasten.CallableIndexFastenPlugin";
     public static final String SOURCES_PROVIDER = "fasten.SourcesProvider";
     public static final String METADATA_DB_JAVA = "fasten.MetadataDBJavaExtension";
-    public static final String VUL_CHAIN_FINDER = "fasten.VulChainFinder";
+    public static final String VUL_CHAIN_FINDER = "fasten.VulChainFinderDev";
 }

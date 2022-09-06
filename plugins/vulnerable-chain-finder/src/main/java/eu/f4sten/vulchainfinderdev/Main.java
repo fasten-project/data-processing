@@ -22,6 +22,7 @@ import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.infra.kafka.Kafka;
+import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
@@ -31,10 +32,10 @@ import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinderdev.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
 import eu.fasten.analyzer.javacgopal.data.CGAlgorithm;
-import eu.fasten.analyzer.javacgopal.data.CallPreservationStrategy;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraph;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraphConstructor;
 import eu.fasten.analyzer.javacgopal.data.OPALPartialCallGraphConstructor;
+import eu.fasten.core.data.CallPreservationStrategy;
 import eu.fasten.core.data.Constants;
 import eu.fasten.core.data.DirectedGraph;
 import eu.fasten.core.data.MergedDirectedGraph;
@@ -46,7 +47,7 @@ import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
 import eu.fasten.core.data.opal.MavenArtifactDownloader;
 import eu.fasten.core.data.opal.MavenCoordinate;
-import eu.fasten.core.exceptions.UnrecoverableError;
+//import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -186,6 +187,7 @@ public class Main implements Plugin {
         // Merging using OPAL
         OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[] {clientPkgVer.getSecond().getSecond()},
                 extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
+
         var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
 
         var clientProductAndVersion = extractProductAndVersion(clientPkgVer.getSecond().getFirst().asCoordinate());
@@ -281,10 +283,10 @@ public class Main implements Plugin {
             throw e;
         } catch (Exception e) {
             LOG.error("Execution failed for input: {} and", curId, e);
-            throw new UnrecoverableError("the plugin should be stopped.");
+            //throw new UnrecoverableError("the plugin should be stopped.");
 
-//            var msg = msgs.getErr(curId, returnCause(e));
-//            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
+            var msg = msgs.getErr(curId, returnCause(e));
+            kafka.publish(msg, args.kafkaOut, Lane.ERROR);
         }
     }
 
