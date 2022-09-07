@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +57,7 @@ public class DependencyResolver {
         return depIds;
     }
 
-    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final String m2Path) {
+    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path) {
         var restMavenResolver = new RestMavenResolver(depResolverBaseURL);
         var restMavenResolverConfig = new ResolverConfig();
         var deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), restMavenResolverConfig);
@@ -66,7 +67,7 @@ public class DependencyResolver {
             var mvnId = extractMavenIDsFromDGR(d);
             // TODO: Use the DB to find pkg. version IDs rather than a REST API call
             depsPair.add(new Pair<>(extractPackageVersionId(mvnId), new Pair<>(mvnId,
-                    new File(Paths.get(m2Path, mvnId.toJarPath()).toString()))));
+                    new File(Paths.get(m2Path.toAbsolutePath().toString(), mvnId.toJarPath()).toString()))));
         }
         return depsPair;
     }

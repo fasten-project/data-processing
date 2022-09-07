@@ -92,7 +92,7 @@ public class Main implements Plugin {
         this.resolver = resolver;
         this.repo = repo;
         this.baseDir = io.getBaseFolder().getAbsolutePath();
-        this.m2Path = Paths.get(this.baseDir, ".m2");
+        this.m2Path = Paths.get(this.baseDir, ".m2", "repository");
     }
 
     @Override
@@ -131,7 +131,7 @@ public class Main implements Plugin {
         // Client/Root package
         var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(resolver.extractPackageVersionId(curId),
                 new Pair<>(curId, new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
-        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.baseDir);
+        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.m2Path);
 
         // Download jars if not present in the .m2 folder
         if (!clientPkgVer.getSecond().getSecond().exists()) {
