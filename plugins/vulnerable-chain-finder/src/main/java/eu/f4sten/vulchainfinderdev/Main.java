@@ -48,6 +48,7 @@ import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
 import eu.fasten.core.data.opal.MavenArtifactDownloader;
 import eu.fasten.core.data.opal.MavenCoordinate;
 //import eu.fasten.core.exceptions.UnrecoverableError;
+import eu.fasten.core.data.opal.exceptions.MissingArtifactException;
 import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.vulchains.VulnerableCallChain;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -140,25 +141,36 @@ public class Main implements Plugin {
                     clientPkgVer.getSecond().getSecond()).downloadArtifact(null);
         }
 
-        clientPkgVerAllDeps.forEach(d -> {
+        var resolvedClientPkgVerDeps = new HashSet<Pair<Long, Pair<MavenId, File>>>();
+        for (var d : clientPkgVerAllDeps) {
             if (!d.getSecond().getSecond().exists()) {
                 d.getSecond().getSecond().getParentFile().mkdirs();
-                new MavenArtifactDownloader(MavenCoordinate.fromString(d.getSecond().getFirst().asCoordinate(),
-                        d.getSecond().getFirst().packagingType),
-                        d.getSecond().getSecond()).downloadArtifact(null);
+                try {
+                    var f = new MavenArtifactDownloader(MavenCoordinate.fromString(d.getSecond().getFirst().asCoordinate(),
+                            d.getSecond().getFirst().packagingType),
+                            d.getSecond().getSecond()).downloadArtifact(null);
+                    if (f != null) {
+                        resolvedClientPkgVerDeps.add(d);
+                    }
+                } catch (MissingArtifactException e) {
+                    LOG.error("Could not retrieve artifact for {}", d.getSecond().getFirst().asCoordinate());
+                }
             }
-        });
+            else {
+                resolvedClientPkgVerDeps.add(d);
+            }
+        }
 
         // Client's (transitive) dependency set + client itself
         final var allDeps = new HashSet<Long>();
-        clientPkgVerAllDeps.forEach(d -> allDeps.add(d.getFirst()));
+        resolvedClientPkgVerDeps.forEach(d -> allDeps.add(d.getFirst()));
         allDeps.add(clientPkgVer.getFirst());
 
         final var vulDeps = db.selectVulnerablePackagesExistingIn(allDeps);
 
         Set<VulnerableCallChain> vulChains = new HashSet<>();
         if (curIdIsPackageLevelVulnerable(vulDeps)) {
-            vulChains = extractVulCallChains(clientPkgVer, clientPkgVerAllDeps, vulDeps);
+            vulChains = extractVulCallChains(clientPkgVer, resolvedClientPkgVerDeps, vulDeps);
         }
 
         curIdIsMethodLevelVulnerable(vulChains);
