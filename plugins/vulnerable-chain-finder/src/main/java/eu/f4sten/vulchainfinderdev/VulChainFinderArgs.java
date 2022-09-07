@@ -31,6 +31,9 @@ public class VulChainFinderArgs {
     @Parameter(names = "--restApiBaseUrl", arity = 1)
     public String restApiBaseURL;
 
+    @Parameter(names = "--depResolverBaseUrl", arity = 1)
+    public String depResolverBaseURL;
+
     @Parameter(names = "--callableIndexPath", arity = 1)
     public File callableIndexPath;
 

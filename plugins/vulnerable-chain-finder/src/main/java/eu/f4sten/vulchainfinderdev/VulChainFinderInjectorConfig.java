@@ -27,7 +27,7 @@ import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.vulchainfinderdev.json.FastenURIJacksonModule;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.utils.DependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
 
@@ -74,10 +74,11 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     }
 
     @Provides
-    public RestAPIDependencyResolver bindRestAPIDependencyResolver(){
+    public DependencyResolver bindRestAPIDependencyResolver(){
         assertFor(args) //
-                .notNull(args -> args.restApiBaseURL, "Provide the REST API address!");
-        return new RestAPIDependencyResolver(args.restApiBaseURL, HttpClient.newBuilder().build());
+                .notNull(args -> args.restApiBaseURL, "Provide the REST API address!")
+                .notNull(args -> args.depResolverBaseURL, "Provide the dependency resolver address!");
+        return new DependencyResolver(args.restApiBaseURL, args.depResolverBaseURL, HttpClient.newBuilder().build());
     }
 
     @Provides

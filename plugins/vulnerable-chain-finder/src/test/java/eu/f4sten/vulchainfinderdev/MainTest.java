@@ -29,7 +29,7 @@ import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.vulchainfinderdev.json.FastenURIJacksonModule;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
-import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.utils.DependencyResolver;
 import eu.fasten.core.data.callableindex.RocksDao;
 //import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.vulchains.VulnerableCallChainRepository;
@@ -55,6 +55,7 @@ class MainTest {
 
     public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().build();
     public static final String LOCAL_REST = "http://localhost:9080/";
+    public static final String LOCAL_DEP_RESOLVER = "http://localhost:9080/"; // TODO: Change the address!
     public static final Path VUL_REPO =
         Paths.get("src", "test", "resources", "vulnrepo");
 
@@ -100,7 +101,7 @@ class MainTest {
         final var jsonUtils = new JsonUtilsImpl(om);
         final var db = new DatabaseUtils(dbContext, jsonUtils);
         final var ci = new RocksDao(CI_URL, true);
-        final var resolver = new RestAPIDependencyResolver(LOCAL_REST, HTTP_CLIENT);
+        final var resolver = new DependencyResolver(LOCAL_REST, LOCAL_DEP_RESOLVER, HTTP_CLIENT);
         final var repo = new VulnerableCallChainRepository(VUL_REPO.toString());
         final var main = new Main(db, ci, mock(Kafka.class), new VulChainFinderArgs(),
             mock(MessageGenerator.class), resolver, repo, mock(IoUtils.class));

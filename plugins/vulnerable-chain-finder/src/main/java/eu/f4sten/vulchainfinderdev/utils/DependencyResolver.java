@@ -14,13 +14,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import eu.fasten.core.maven.data.ResolvedRevision;
+import eu.fasten.core.maven.data.VersionConstraint;
+import eu.fasten.core.maven.resolution.ResolverConfig;
+import eu.fasten.core.maven.resolution.RestMavenResolver;
 import org.jgrapht.alg.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class RestAPIDependencyResolver {
+public class DependencyResolver {
     private static final String DEPS_ENDPOINT;
     public static final String PACKAGE_VERSION_ENDPOINT =
         "/packages/{groupId}:{artifactId}/{version}";
@@ -31,36 +36,37 @@ public class RestAPIDependencyResolver {
 
     private static final int OK = 200;
     private final String restAPIBaseURL;
+    private final String depResolverBaseURL;
     private final HttpClient client;
 
     public String getRestAPIBaseURL() {
         return restAPIBaseURL;
     }
 
-    public RestAPIDependencyResolver(String restAPIBaseURL, HttpClient client) {
+    public DependencyResolver(String restAPIBaseURL, String depResolverBaseURL, HttpClient client) {
         this.restAPIBaseURL = restAPIBaseURL;
         this.client = client;
+        this.depResolverBaseURL = depResolverBaseURL;
     }
 
     public Set<Long> resolveDependencyIds(final MavenId id) {
         final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
         final var depIds = extractPackageIdsFromResponse(response);
-        depIds.add(extractPackageVersionIdFromResponse(id));
+        depIds.add(extractPackageVersionId(id));
         return depIds;
     }
 
-    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final String baseDir) {
-        final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
+    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final String m2Path) {
+        var restMavenResolver = new RestMavenResolver(depResolverBaseURL);
+        var restMavenResolverConfig = new ResolverConfig();
+        var deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), restMavenResolverConfig);
+
         final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
-
-        final var deps = new JSONArray(response.body());
-        final var depFieldName = Dependencies.DEPENDENCIES.DEPENDENCY_ID.getName();
-        for (final var dep : deps) {
-
-            JSONObject depMetadata = (JSONObject) ((JSONObject) dep).get("metadata");
-            var mvnId = extractMavenIdsFromMetadata(depMetadata);
-            depsPair.add(new Pair<>(((Number)((JSONObject) dep).get(depFieldName)).longValue(), new Pair<>(mvnId,
-                    new File(Paths.get(baseDir, ".m2", mvnId.toJarPath()).toString()))));
+        for (var d: deps) {
+            var mvnId = extractMavenIDsFromDGR(d);
+            // TODO: Use the DB to find pkg. version IDs rather than a REST API call
+            depsPair.add(new Pair<>(extractPackageVersionId(mvnId), new Pair<>(mvnId,
+                    new File(Paths.get(m2Path, mvnId.toJarPath()).toString()))));
         }
         return depsPair;
     }
@@ -87,7 +93,7 @@ public class RestAPIDependencyResolver {
         return result;
     }
 
-    public long extractPackageVersionIdFromResponse(final MavenId id) {
+    public long extractPackageVersionId(final MavenId id) {
         final HttpResponse<String> appResponse = requestEndPoint(PACKAGE_VERSION_ENDPOINT, id);
         final var fieldName = PackageVersions.PACKAGE_VERSIONS.ID.getName();
         return extractLongFieldFromJSONObj(new JSONObject(appResponse.body()), fieldName);
@@ -107,11 +113,17 @@ public class RestAPIDependencyResolver {
 //    }
 
     public MavenId extractMavenIdsFromMetadata(JSONObject depMetadata) {
-        var gId = (String )depMetadata.get("groupId");
+        var gId = (String) depMetadata.get("groupId");
         var aID = (String) depMetadata.get("artifactId");
-        var ver = (JSONArray) depMetadata.get("versionConstraints");
+        var verConst = new VersionConstraint((String) ((JSONArray) depMetadata.get("versionConstraints")).get(0));
         var type = (String) depMetadata.get("type");
-        return new MavenId(gId, aID, (String) ver.get(0), null, type);
+        // We select the upper bound for dependency versions
+        return new MavenId(gId, aID, verConst.getUpperBound().trim(), null, type);
+    }
+
+    public MavenId extractMavenIDsFromDGR(ResolvedRevision revision) {
+        return new MavenId(revision.getGroupId(), revision.getArtifactId(), revision.version.toString(),
+                null, "jar");
     }
 
     public static boolean isNotOK(final HttpResponse<String> response) {

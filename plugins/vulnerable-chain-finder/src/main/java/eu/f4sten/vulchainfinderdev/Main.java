@@ -30,7 +30,7 @@ import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinderdev.utils.ImpactPropagator;
-import eu.f4sten.vulchainfinderdev.utils.RestAPIDependencyResolver;
+import eu.f4sten.vulchainfinderdev.utils.DependencyResolver;
 import eu.fasten.analyzer.javacgopal.data.CGAlgorithm;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraph;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraphConstructor;
@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
 public class Main implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-    public final RestAPIDependencyResolver resolver;
+    public final DependencyResolver resolver;
     private final DatabaseUtils db;
     private final RocksDao dao;
     private final Kafka kafka;
@@ -81,7 +81,7 @@ public class Main implements Plugin {
 
     @Inject
     public Main(DatabaseUtils db, RocksDao dao, Kafka kafka, VulChainFinderArgs args,
-                MessageGenerator msgs, RestAPIDependencyResolver resolver,
+                MessageGenerator msgs, DependencyResolver resolver,
                 VulnerableCallChainRepository repo, IoUtils io) {
         this.db = db;
         this.dao = dao;
@@ -128,7 +128,7 @@ public class Main implements Plugin {
         LOG.info("Processing {}", curId.asCoordinate());
 
         // Client/Root package
-        var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(resolver.extractPackageVersionIdFromResponse(curId),
+        var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(resolver.extractPackageVersionId(curId),
                 new Pair<>(curId, new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
         final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.baseDir);
 

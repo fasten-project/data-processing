@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-class RestAPIDependencyResolverTest {
+class DependencyResolverTest {
 
     public static String BASE_URL;
     public static JSONObject DEP_JSON;
@@ -35,8 +35,8 @@ class RestAPIDependencyResolverTest {
     public static String EXPECTED_URI_STRING;
     public static String ENDPOINT_WITH_SLASH;
     public static String ENDPOINT_WITHOUT_SLASH;
-    public static RestAPIDependencyResolver RESOLVER_WITHOUT_SLASH;
-    public static RestAPIDependencyResolver RESOLVER_WITH_SLASH;
+    public static DependencyResolver RESOLVER_WITHOUT_SLASH;
+    public static DependencyResolver RESOLVER_WITH_SLASH;
 
     @BeforeEach
     void setUp() {
@@ -58,8 +58,8 @@ class RestAPIDependencyResolverTest {
 
         ENDPOINT_WITHOUT_SLASH = "api/mvn/packages/org.apache.solr:solr-core/6.6.1/deps";
         ENDPOINT_WITH_SLASH = "/api/mvn/packages/org.apache.solr:solr-core/6.6.1/deps";
-        RESOLVER_WITHOUT_SLASH = new RestAPIDependencyResolver(BASE_URL, MOCK_CLIENT);
-        RESOLVER_WITH_SLASH = new RestAPIDependencyResolver(BASE_URL, MOCK_CLIENT);
+        RESOLVER_WITHOUT_SLASH = new DependencyResolver(BASE_URL, null, MOCK_CLIENT);
+        RESOLVER_WITH_SLASH = new DependencyResolver(BASE_URL, null, MOCK_CLIENT);
 
         EXPECTED_URI_STRING = RESOLVER_WITHOUT_SLASH.getRestAPIBaseURL() + ENDPOINT_WITH_SLASH;
     }
@@ -68,7 +68,7 @@ class RestAPIDependencyResolverTest {
         "Run while development and adjust accordingly")
     @Test
     void resolveServer() {
-        var resolver = new RestAPIDependencyResolver(BASE_URL, HttpClient.newBuilder().build());
+        var resolver = new DependencyResolver(BASE_URL, null, HttpClient.newBuilder().build());
         var actual = resolver.resolveDependencyIds(ID);
         assertEquals(Set.of(4L, 8L, 42L, 53L, 55L, 56L, 59L, 70L, 71L, 159L, 10479L), actual);
     }
@@ -78,7 +78,7 @@ class RestAPIDependencyResolverTest {
     @Test
     void resolveLocal() {
         var resolver =
-            new RestAPIDependencyResolver("http://localhost:9080", HttpClient.newBuilder().build());
+            new DependencyResolver("http://localhost:9080", null, HttpClient.newBuilder().build());
         var id = new MavenId();
         id.groupId = "eu.fasten-project.tests.syntheticjars";
         id.artifactId = "app";
@@ -104,13 +104,13 @@ class RestAPIDependencyResolverTest {
     @Test
     void testIsOk() {
         when(MOCK_RESPONSE.statusCode()).thenReturn(200);
-        assertFalse(RestAPIDependencyResolver.isNotOK(MOCK_RESPONSE));
+        assertFalse(DependencyResolver.isNotOK(MOCK_RESPONSE));
     }
 
     @Test
     void testIsNotOK() {
         when(MOCK_RESPONSE.statusCode()).thenReturn(400);
-        assertTrue(RestAPIDependencyResolver.isNotOK(MOCK_RESPONSE));
+        assertTrue(DependencyResolver.isNotOK(MOCK_RESPONSE));
     }
 
     @Test
