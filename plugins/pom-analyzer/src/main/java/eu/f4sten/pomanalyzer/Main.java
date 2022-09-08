@@ -15,6 +15,7 @@
  */
 package eu.f4sten.pomanalyzer;
 
+import static eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils.checkGetRequest;
 import static java.lang.String.format;
 
 import java.time.Duration;
@@ -38,6 +39,7 @@ import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
 import eu.f4sten.pomanalyzer.exceptions.ExecutionTimeoutError;
+import eu.f4sten.pomanalyzer.exceptions.NoArtifactRepositoryException;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
@@ -53,7 +55,7 @@ public class Main implements Plugin {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
 
-    private static final int EXEC_DELAY_MS = 1000;
+    private static final int EXEC_DELAY_MS = 250;
     private static final int EXECUTION_TIMEOUT_MS = 1000 * 60 * 10; // 10min
 
     private final ProgressTracker tracker;
@@ -181,8 +183,14 @@ public class Main implements Plugin {
 
         // extract details
         var result = extractor.process(m);
-        result.artifactRepository = artifact.artifactRepository;
-        // packaging often bogus, check and possibly fix
+
+        // some artifact repos return redirects (e.g., HTTPS), use targets instead
+        result.artifactRepository = checkGetRequest(artifact.artifactRepository).url;
+        if (result.artifactRepository == null) {
+            throw new NoArtifactRepositoryException(artifact.artifactRepository);
+        }
+
+        // packagingType is often bogus, check and possibly fix
         result.packagingType = fixer.checkPackage(result.pom());
         result.sourcesUrl = repo.getSourceUrlIfExisting(result.pom());
         result.releaseDate = repo.getReleaseDate(result.pom());
@@ -197,7 +205,7 @@ public class Main implements Plugin {
         // 1) have dependencies
         // 2) identify artifact sources
         // 3) make sure all dependencies exist in local .m2 folder
-        var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile, artifact.artifactRepository);
+        var deps = resolver.resolveDependenciesFromPom(artifact.localPomFile, result.artifactRepository);
 
         // resolution can be different for dependencies, so 'process' them independently
         deps.forEach(dep -> {

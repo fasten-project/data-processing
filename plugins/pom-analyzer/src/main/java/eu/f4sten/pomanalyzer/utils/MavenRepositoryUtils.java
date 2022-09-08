@@ -15,17 +15,21 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
+import static java.util.Locale.ENGLISH;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
+import java.time.Duration;
+import java.util.Date;
 
+import org.apache.http.HttpStatus;
 import org.apache.maven.settings.Settings;
 import org.jboss.shrinkwrap.resolver.impl.maven.SettingsManager;
 import org.slf4j.Logger;
@@ -45,30 +49,14 @@ public class MavenRepositoryUtils {
     public String getSourceUrlIfExisting(Pom r) {
 
         var url = getUrl(r, "sources");
-
-        int status = sendGetRequest(url);
-        if (status == 200) {
-            return url;
-        } else {
-            return null;
-        }
+        return checkGetRequest(url).url;
     }
 
     public long getReleaseDate(Pom r) {
-        try {
-            var url = new URL(getUrl(r, null));
-            var con = url.openConnection();
-            var lastModified = con.getHeaderField("Last-Modified");
-            if (lastModified == null) {
-                LOG.error("Cannot infer release date, 'Last-Modified' header missing in response for '{}'", url);
-                return -1;
-            }
-            var releaseDate = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH).parse(lastModified);
-            return releaseDate.getTime();
 
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
+        var url = getUrl(r, null);
+        var lm = checkGetRequest(url).lastModified;
+        return lm != null ? lm.getTime() : -1;
     }
 
     private static String getUrl(Pom r, String classifier) {
@@ -88,16 +76,57 @@ public class MavenRepositoryUtils {
         return url;
     }
 
-    private static int sendGetRequest(String url) {
+    public static UrlCheck checkGetRequest(String url) {
         try {
-            var httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
+            var httpClient = HttpClient.newBuilder() //
+                    .version(HttpClient.Version.HTTP_2) //
+                    .connectTimeout(Duration.ofSeconds(10)) //
+                    .followRedirects(Redirect.NEVER) //
+                    .build();
             var request = HttpRequest.newBuilder().GET().uri(URI.create(url)).build();
-            // TODO use "discarding"?
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.statusCode();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            var statusCode = response.statusCode();
+            var lastModified = getDateOrNull(response, "last-modified", "Last-Modified");
+
+            if (statusCode == HttpStatus.SC_OK) {
+                return new UrlCheck(url, lastModified);
+            }
+
+            if (statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+                var newLocation = response.headers().firstValue("location");
+                if (newLocation.isPresent()) {
+                    return checkGetRequest(newLocation.get());
+                }
+            }
+
+            if (statusCode == HttpStatus.SC_TEMPORARY_REDIRECT) {
+                var newLocation = response.headers().firstValue("location");
+                if (newLocation.isPresent()) {
+                    return checkGetRequest(newLocation.get());
+                }
+            }
+
+            return new UrlCheck(null, null);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Date getDateOrNull(HttpResponse<Void> response, String def, String... keys) {
+        var headers = response.headers();
+        for (var key : keys) {
+            var val = headers.firstValue(key);
+            if (val.isPresent()) {
+                try {
+                    var pattern = "E, d MMM yyyy HH:mm:ss Z";
+                    var lastModified = new SimpleDateFormat(pattern, ENGLISH).parse(val.get());
+                    return lastModified;
+                } catch (ParseException e) {
+                    LOG.warn("Could not parse release date: {}\n", val.get());
+                }
+            }
+        }
+        return null;
     }
 
     private static boolean isNullEmptyOrUnset(String s) {
@@ -108,19 +137,28 @@ public class MavenRepositoryUtils {
         // By default, this is set to ~/.m2/repository/, but that can be re-configured
         // or even provided as a parameter. As such, we are reusing an existing library
         // to find the right folder.
-        Settings settings = new SettingsManager() {
+        var settings = new SettingsManager() {
             @Override
             public Settings getSettings() {
                 return super.getSettings();
             }
         }.getSettings();
-        String localRepository = settings.getLocalRepository();
+        var localRepository = settings.getLocalRepository();
         return new File(localRepository);
     }
 
     public boolean doesExist(Pom r) {
         var url = getUrl(r, null);
-        var status = sendGetRequest(url);
-        return status == 200;
+        return checkGetRequest(url).url != null;
+    }
+
+    public static class UrlCheck {
+        public final String url;
+        public final Date lastModified;
+
+        public UrlCheck(String url, Date lastModified) {
+            this.url = url;
+            this.lastModified = lastModified;
+        }
     }
 }
