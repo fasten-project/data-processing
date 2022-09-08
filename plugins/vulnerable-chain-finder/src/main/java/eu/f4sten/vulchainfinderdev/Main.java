@@ -161,12 +161,14 @@ public class Main implements Plugin {
             }
         }
 
+        LOG.info("Resolved {} dependencies for {}", clientPkgVerAllDeps.size(), curId.asCoordinate());
         // Client's (transitive) dependency set + client itself
         final var allDeps = new HashSet<Long>();
         resolvedClientPkgVerDeps.forEach(d -> allDeps.add(d.getFirst()));
         allDeps.add(clientPkgVer.getFirst());
 
         final var vulDeps = db.selectVulnerablePackagesExistingIn(allDeps);
+        LOG.info("Found {} known vulnerabilities in the dep. set of {}", vulDeps.size(), curId.asCoordinate());
 
         Set<VulnerableCallChain> vulChains = new HashSet<>();
         if (curIdIsPackageLevelVulnerable(vulDeps)) {
@@ -214,6 +216,7 @@ public class Main implements Plugin {
 
         if (!propagator.getImpacts().isEmpty()) {
             result = propagator.extractApplicationVulChains(vulCallables, curId);
+            LOG.info("Found {} vulnerable call chains from client to its dependencies", result.size());
         }
 
         return result;
