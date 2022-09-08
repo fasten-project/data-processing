@@ -7,6 +7,7 @@ import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -18,10 +19,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.ResolvedRevision;
 import eu.fasten.core.maven.data.VersionConstraint;
 import eu.fasten.core.maven.resolution.ResolverConfig;
 import eu.fasten.core.maven.resolution.RestMavenResolver;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.ProcessingException;
 import org.jgrapht.alg.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,8 +41,8 @@ public class DependencyResolver {
 
     private static final int OK = 200;
     private final String restAPIBaseURL;
-    private final String depResolverBaseURL;
     private final HttpClient client;
+    private final RestMavenResolver restMavenResolver;
 
     public String getRestAPIBaseURL() {
         return restAPIBaseURL;
@@ -47,7 +51,7 @@ public class DependencyResolver {
     public DependencyResolver(String restAPIBaseURL, String depResolverBaseURL, HttpClient client) {
         this.restAPIBaseURL = restAPIBaseURL;
         this.client = client;
-        this.depResolverBaseURL = depResolverBaseURL;
+        this.restMavenResolver = new RestMavenResolver(depResolverBaseURL);
     }
 
     public Set<Long> resolveDependencyIds(final MavenId id) {
@@ -58,18 +62,25 @@ public class DependencyResolver {
     }
 
     public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path) {
-        var restMavenResolver = new RestMavenResolver(depResolverBaseURL);
-        var restMavenResolverConfig = new ResolverConfig();
-        var deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), restMavenResolverConfig);
-
-        final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
-        for (var d: deps) {
-            var mvnId = extractMavenIDsFromDGR(d);
-            // TODO: Use the DB to find pkg. version IDs rather than a REST API call
-            depsPair.add(new Pair<>(extractPackageVersionId(mvnId), new Pair<>(mvnId,
-                    new File(Paths.get(m2Path.toAbsolutePath().toString(), mvnId.toJarPath()).toString()))));
+        Set<ResolvedRevision> deps;
+        try {
+            deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), new ResolverConfig());
+            final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
+            for (var d: deps) {
+                var mvnId = extractMavenIDsFromDGR(d);
+                // TODO: Use the DB to find pkg. version IDs rather than a REST API call
+                depsPair.add(new Pair<>(extractPackageVersionId(mvnId), new Pair<>(mvnId,
+                        new File(Paths.get(m2Path.toAbsolutePath().toString(), mvnId.toJarPath()).toString()))));
+            }
+            return depsPair;
+        } catch (ProcessingException e) {
+            if (e.getCause() instanceof ConnectException) {
+                throw new UnrecoverableError("Could not connect to the Dependency Graph Resolver service.");
+            }
+        } catch (InternalServerErrorException e) {
+            throw new UnrecoverableError("Could not connect to the Dependency Graph Resolver service.");
         }
-        return depsPair;
+        return null;
     }
 
     private HttpResponse<String> requestEndPoint(final String depsEndpoint, final MavenId id) {
