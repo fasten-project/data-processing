@@ -108,7 +108,8 @@ public class KafkaConnector {
 
     private String getGroupId(Lane lane) {
         var suffix = lane == Lane.PRIORITY ? "-prio" : "";
-        return format("%s%s", activePlugin, suffix);
+        var base = args.kafkaGroupId != null ? args.kafkaGroupId : activePlugin;
+        return format("%s%s", base, suffix);
     }
 
     private String getFullInstanceId(Lane lane) {
