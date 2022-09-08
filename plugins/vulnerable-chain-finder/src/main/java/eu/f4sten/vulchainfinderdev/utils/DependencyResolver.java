@@ -61,15 +61,14 @@ public class DependencyResolver {
         return depIds;
     }
 
-    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path) {
+    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path, final DatabaseUtils db) {
         Set<ResolvedRevision> deps;
         try {
             deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), new ResolverConfig());
             final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
             for (var d: deps) {
                 var mvnId = extractMavenIDsFromDGR(d);
-                // TODO: Use the DB to find pkg. version IDs rather than a REST API call
-                depsPair.add(new Pair<>(extractPackageVersionId(mvnId), new Pair<>(mvnId,
+                depsPair.add(new Pair<>(db.getPackageVersionID(mvnId), new Pair<>(mvnId,
                         new File(Paths.get(m2Path.toAbsolutePath().toString(), mvnId.toJarPath()).toString()))));
             }
             return depsPair;

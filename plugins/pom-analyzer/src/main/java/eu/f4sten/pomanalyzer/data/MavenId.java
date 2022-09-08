@@ -60,6 +60,14 @@ public class MavenId {
         return String.format("%s:%s:%s", $(groupId), $(artifactId), $(version));
     }
 
+    public String getProductName() {
+        return groupId + ":" + artifactId;
+    }
+
+    public String getProductVersion() {
+        return version;
+    }
+
     public String toJarPath() {
         return Paths.get(groupId.replace('.', '/'), artifactId, version,
                 artifactId + "-" + version + "." + "jar").toString();

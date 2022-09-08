@@ -129,9 +129,9 @@ public class Main implements Plugin {
         LOG.info("Processing {}", curId.asCoordinate());
 
         // Client/Root package
-        var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(resolver.extractPackageVersionId(curId),
+        var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(db.getPackageVersionID(curId),
                 new Pair<>(curId, new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
-        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.m2Path);
+        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.m2Path, this.db);
 
         // Download jars if not present in the .m2 folder
         if (!clientPkgVer.getSecond().getSecond().exists()) {
@@ -201,15 +201,18 @@ public class Main implements Plugin {
         // Merging using OPAL
         OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[] {clientPkgVer.getSecond().getSecond()},
                 extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
+        LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
 
         var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
 
-        var clientProductAndVersion = extractProductAndVersion(clientPkgVer.getSecond().getFirst().asCoordinate());
-        var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientProductAndVersion.getFirst(), clientProductAndVersion.getSecond(), -1,
+        var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
+                clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
                 Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
         var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
+        LOG.info("Created a partial call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
 
         final var vulCallables = db.selectVulCallablesOf(vulDeps);
+        LOG.info("Found {} vulnerable callables in the dep. set of {}", vulCallables.size(), clientPkgVer.getSecond().getFirst().asCoordinate());
         final var propagator = new ImpactPropagator(mergedCG, getAllUrisFromDB(mergedCG));
         propagator.propagateUrisImpacts(vulCallables.keySet());
         LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
@@ -273,11 +276,6 @@ public class Main implements Plugin {
                 "fasten://mvn!" + record.component2() + "$" + record.component3() + record.component4()));
 
         return uris;
-    }
-
-    private Pair<String, String> extractProductAndVersion(String mvnCoord) {
-        var parts = mvnCoord.split(":");
-        return new Pair<>(parts[0]+":"+parts[1], parts[2]);
     }
 
     private File[] extractFilesFromDeps(final Set<Pair<Long, Pair<MavenId, File>>> deps) {

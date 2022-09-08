@@ -18,9 +18,12 @@ package eu.f4sten.vulchainfinderdev.utils;
 
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;
+import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.metadatadb.codegen.tables.Modules;
+import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
+import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
 import eu.fasten.core.data.vulnerability.Vulnerability;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -117,5 +120,13 @@ public class DatabaseUtils {
 
     public Set<Long> selectVulnerablePackagesExistingIn(final Set<Long> depIds) {
         return getDao(context).findVulnerablePackageVersions(depIds);
+    }
+
+    public Long getPackageVersionID(final MavenId mvnId) {
+        return context.select(PackageVersions.PACKAGE_VERSIONS.ID)
+                .from(Packages.PACKAGES, PackageVersions.PACKAGE_VERSIONS)
+                .where(Packages.PACKAGES.ID.eq(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID))
+                        .and(Packages.PACKAGES.PACKAGE_NAME.eq(mvnId.getProductName()))
+                                .and(PackageVersions.PACKAGE_VERSIONS.VERSION.eq(mvnId.getProductVersion())).fetchOne().component1();
     }
 }
