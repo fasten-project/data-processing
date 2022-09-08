@@ -36,6 +36,9 @@ public class InfraArgs {
     @Parameter(names = "--kafka.autoCommit", arity = 1, description = "should Kafka auto-commit after each poll")
     public boolean kafkaShouldAutoCommit = true;
 
+    @Parameter(names = "--kafka.groupId", arity = 1, description = "optional id for Kafka consumer group")
+    public String kafkaGroupId = null;
+
     @Parameter(names = "--instanceId", arity = 1, description = "uniquely identifies this application instance across re-starts")
     public String instanceId = null;
 

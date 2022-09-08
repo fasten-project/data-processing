@@ -166,6 +166,17 @@ public class KafkaConnectorTest {
     }
 
     @Test
+    public void groupIdCanBeEnforced() {
+
+        infraArgs.kafkaGroupId = "someGroup";
+        sut = new KafkaConnector(loaderArgs, infraArgs);
+
+        var actual = sut.getConsumerProperties(PRIORITY).getProperty(GROUP_ID_CONFIG);
+        var expected = "someGroup-prio";
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void instanceIdIsSetNormal() {
         infraArgs.instanceId = "X";
         var expected = "p-X";
