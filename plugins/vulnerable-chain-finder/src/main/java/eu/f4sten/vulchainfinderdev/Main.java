@@ -197,31 +197,33 @@ public class Main implements Plugin {
                                                           final Set<Pair<Long, Pair<MavenId, File>>> allDeps,
                                                           final Set<Long> vulDeps) {
         Set<VulnerableCallChain> result = new HashSet<>();
+        final var vulCallables = db.selectVulnerableCallables(vulDeps);
 
-        // Merging using OPAL
-        OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[] {clientPkgVer.getSecond().getSecond()},
-                extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
-        LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
-
-        var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
-
-        var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
-                clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
-                Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
-        var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
-        LOG.info("Created a partial call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
-
-        final var vulCallables = db.selectVulCallablesOf(vulDeps);
         LOG.info("Found {} vulnerable callables in the dep. set of {}", vulCallables.size(), clientPkgVer.getSecond().getFirst().asCoordinate());
-        final var propagator = new ImpactPropagator(mergedCG, getAllUrisFromDB(mergedCG));
-        propagator.propagateUrisImpacts(vulCallables.keySet());
-        LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
-        if (!propagator.getImpacts().isEmpty()) {
-            result = propagator.extractApplicationVulChains(vulCallables, curId);
-            LOG.info("Found {} vulnerable call chains from client to its dependencies", result.size());
+        if (!vulCallables.isEmpty()) {
+            // Merging using OPAL
+            OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[] {clientPkgVer.getSecond().getSecond()},
+                    extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
+            LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
+
+            var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
+
+            var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
+                    clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
+                    Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
+            var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
+            LOG.info("Created a partial call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
+
+            final var propagator = new ImpactPropagator(mergedCG, getAllUrisFromDB(mergedCG));
+            propagator.propagateUrisImpacts(vulCallables.keySet());
+            LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
+
+            if (!propagator.getImpacts().isEmpty()) {
+                result = propagator.extractApplicationVulChains(vulCallables, curId);
+                LOG.info("Found {} vulnerable call chains from client to its dependencies", result.size());
+            }
         }
-
         return result;
     }
 
