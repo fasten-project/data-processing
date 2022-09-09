@@ -21,15 +21,20 @@ import eu.f4sten.infra.json.TRef;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
+import eu.fasten.core.data.metadatadb.codegen.tables.Callables;
 import eu.fasten.core.data.metadatadb.codegen.tables.Modules;
 import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
+import eu.fasten.core.data.metadatadb.codegen.tables.Vulnerabilities;
+import eu.fasten.core.data.metadatadb.codegen.tables.VulnerabilitiesXCallables;
+import eu.fasten.core.data.metadatadb.codegen.tables.VulnerabilitiesXPackageVersions;
 import eu.fasten.core.data.vulnerability.Vulnerability;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jooq.DSLContext;
@@ -58,6 +63,39 @@ public class DatabaseUtils {
         for (Long depId : depIds) {
             vulCallables = selectVulCallablesOf(depId);
         }
+        return vulCallables;
+    }
+
+    /*
+    This method avoids looping over pkg. version IDs and uses only one DB query. Hence it is expected to be faster
+     to retrieve vulnerable callables.
+     */
+    public Map<FastenURI, List<Vulnerability>> selectVulnerableCallables(final Set<Long> vulnDepIds) {
+        Map<FastenURI, List<Vulnerability>> vulCallables = new HashMap<>();
+
+        // Tables
+        Vulnerabilities v = Vulnerabilities.VULNERABILITIES;
+        VulnerabilitiesXPackageVersions vxp = VulnerabilitiesXPackageVersions.VULNERABILITIES_X_PACKAGE_VERSIONS;
+        VulnerabilitiesXCallables vxc = VulnerabilitiesXCallables.VULNERABILITIES_X_CALLABLES;
+        PackageVersions pv = PackageVersions.PACKAGE_VERSIONS;
+        Packages p = Packages.PACKAGES;
+        Callables c = Callables.CALLABLES;
+
+       context.select(p.PACKAGE_NAME, pv.VERSION, c.FASTEN_URI, v.STATEMENT, v.EXTERNAL_ID)
+               .from(v, vxp, vxc, p, pv, c)
+               .where(vxp.PACKAGE_VERSION_ID.in(vulnDepIds))
+               .and(vxp.PACKAGE_VERSION_ID.eq(pv.ID))
+               .and(pv.PACKAGE_ID.eq(p.ID))
+               .and(v.ID.eq(vxp.VULNERABILITY_ID))
+               .and(v.ID.eq(vxc.VULNERABILITY_ID))
+               .and(c.ID.eq(vxc.CALLABLE_ID)).fetch().forEach(r -> {
+                   final var vulMap = convertRecordToVulMap(Objects.requireNonNull(r.get(4)).toString(),
+                           r.get(3));
+                   if (!vulMap.isEmpty()) {
+                       vulCallables.put(createFastenUriFromPckgVersionUriFields(r),
+                               new ArrayList<>(vulMap.values()));
+                   }
+               });
         return vulCallables;
     }
 
@@ -92,6 +130,16 @@ public class DatabaseUtils {
         }
         final var setType = new TRef<HashMap<String, Vulnerability>>() {};
         return jsonUtils.fromJson(vulField.toString(), setType);
+    }
+
+    private Map<String, Vulnerability> convertRecordToVulMap(final String vulnId, final Object vulnObject) {
+        if (vulnObject == null) {
+            return Collections.emptyMap();
+        }
+        final var vulnType = new TRef<Vulnerability>() {};
+        final var vulMap = new HashMap<String, Vulnerability>();
+        vulMap.put(vulnId, jsonUtils.fromJson(vulnObject.toString(), vulnType));
+        return vulMap;
     }
 
     public static FastenURI createFastenUriFromPckgVersionUriFields(final Record record) {
