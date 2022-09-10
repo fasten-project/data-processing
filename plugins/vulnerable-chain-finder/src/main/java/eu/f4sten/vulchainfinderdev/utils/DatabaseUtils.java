@@ -37,8 +37,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import eu.fasten.core.exceptions.UnrecoverableError;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.exception.DataAccessException;
 
 public class DatabaseUtils {
 
@@ -81,21 +84,25 @@ public class DatabaseUtils {
         Packages p = Packages.PACKAGES;
         Callables c = Callables.CALLABLES;
 
-       context.select(p.PACKAGE_NAME, pv.VERSION, c.FASTEN_URI, v.STATEMENT, v.EXTERNAL_ID)
-               .from(v, vxp, vxc, p, pv, c)
-               .where(vxp.PACKAGE_VERSION_ID.in(vulnDepIds))
-               .and(vxp.PACKAGE_VERSION_ID.eq(pv.ID))
-               .and(pv.PACKAGE_ID.eq(p.ID))
-               .and(v.ID.eq(vxp.VULNERABILITY_ID))
-               .and(v.ID.eq(vxc.VULNERABILITY_ID))
-               .and(c.ID.eq(vxc.CALLABLE_ID)).fetch().forEach(r -> {
-                   final var vulMap = convertRecordToVulMap(Objects.requireNonNull(r.get(4)).toString(),
-                           r.get(3));
-                   if (!vulMap.isEmpty()) {
-                       vulCallables.put(createFastenUriFromPckgVersionUriFields(r),
-                               new ArrayList<>(vulMap.values()));
-                   }
-               });
+        try {
+            context.select(p.PACKAGE_NAME, pv.VERSION, c.FASTEN_URI, v.STATEMENT, v.EXTERNAL_ID)
+                    .from(v, vxp, vxc, p, pv, c)
+                    .where(vxp.PACKAGE_VERSION_ID.in(vulnDepIds))
+                    .and(vxp.PACKAGE_VERSION_ID.eq(pv.ID))
+                    .and(pv.PACKAGE_ID.eq(p.ID))
+                    .and(v.ID.eq(vxp.VULNERABILITY_ID))
+                    .and(v.ID.eq(vxc.VULNERABILITY_ID))
+                    .and(c.ID.eq(vxc.CALLABLE_ID)).fetch().forEach(r -> {
+                        final var vulMap = convertRecordToVulMap(Objects.requireNonNull(r.get(4)).toString(),
+                                r.get(3));
+                        if (!vulMap.isEmpty()) {
+                            vulCallables.put(createFastenUriFromPckgVersionUriFields(r),
+                                    new ArrayList<>(vulMap.values()));
+                        }
+                    });
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
         return vulCallables;
     }
 
@@ -167,14 +174,22 @@ public class DatabaseUtils {
     }
 
     public Set<Long> selectVulnerablePackagesExistingIn(final Set<Long> depIds) {
-        return getDao(context).findVulnerablePackageVersions(depIds);
+        try {
+            return getDao(context).findVulnerablePackageVersions(depIds);
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 
     public Long getPackageVersionID(final MavenId mvnId) {
-        return context.select(PackageVersions.PACKAGE_VERSIONS.ID)
-                .from(Packages.PACKAGES, PackageVersions.PACKAGE_VERSIONS)
-                .where(Packages.PACKAGES.ID.eq(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID))
-                        .and(Packages.PACKAGES.PACKAGE_NAME.eq(mvnId.getProductName()))
-                                .and(PackageVersions.PACKAGE_VERSIONS.VERSION.eq(mvnId.getProductVersion())).fetchOne().component1();
+        try {
+            return context.select(PackageVersions.PACKAGE_VERSIONS.ID)
+                    .from(Packages.PACKAGES, PackageVersions.PACKAGE_VERSIONS)
+                    .where(Packages.PACKAGES.ID.eq(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID))
+                    .and(Packages.PACKAGES.PACKAGE_NAME.eq(mvnId.getProductName()))
+                    .and(PackageVersions.PACKAGE_VERSIONS.VERSION.eq(mvnId.getProductVersion())).fetchOne().component1();
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
     }
 }
