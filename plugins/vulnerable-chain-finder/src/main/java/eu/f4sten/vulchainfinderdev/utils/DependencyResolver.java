@@ -22,6 +22,7 @@ import java.util.Set;
 import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.ResolvedRevision;
 import eu.fasten.core.maven.data.VersionConstraint;
+import eu.fasten.core.maven.resolution.MavenResolutionException;
 import eu.fasten.core.maven.resolution.ResolverConfig;
 import eu.fasten.core.maven.resolution.RestMavenResolver;
 import jakarta.ws.rs.InternalServerErrorException;
@@ -77,7 +78,8 @@ public class DependencyResolver {
                 throw new UnrecoverableError("Could not connect to the Dependency Graph Resolver service.");
             }
         } catch (InternalServerErrorException e) {
-            throw new UnrecoverableError("Could not connect to the Dependency Graph Resolver service.");
+            // Internal HTTP 500 error by the DGR mostly corresponds to the dep. resolution error
+            throw new MavenResolutionException("Could not resolve dependencies for " + id.asCoordinate());
         }
         return null;
     }
