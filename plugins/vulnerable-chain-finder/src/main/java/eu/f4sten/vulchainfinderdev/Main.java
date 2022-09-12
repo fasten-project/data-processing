@@ -213,7 +213,8 @@ public class Main implements Plugin {
                     clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
                     Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
             var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
-            LOG.info("Created a partial call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
+            LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
+                    clientPkgVer.getSecond().getFirst().asCoordinate());
 
             final var propagator = new ImpactPropagator(mergedCG, getAllUrisFromDB(mergedCG));
             propagator.propagateUrisImpacts(vulCallables.keySet());
