@@ -16,9 +16,12 @@
 
 package eu.f4sten.vulchainfinderdev.utils;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import eu.f4sten.infra.json.JsonUtils;
 import eu.f4sten.infra.json.TRef;
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.fasten.core.data.DirectedGraph;
 import eu.fasten.core.data.FastenURI;
 import eu.fasten.core.data.metadatadb.MetadataDao;
 import eu.fasten.core.data.metadatadb.codegen.tables.Callables;
@@ -32,6 +35,7 @@ import eu.fasten.core.data.vulnerability.Vulnerability;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -191,5 +195,33 @@ public class DatabaseUtils {
         } catch (DataAccessException e) {
             throw new UnrecoverableError(e);
         }
+    }
+
+    /**
+     * Gets all the FASTEN URIs of a given directed graph from the metadata DB
+     */
+    public BiMap<Long, String> getAllUrisFromDB(DirectedGraph dg){
+        Set<Long> gIDs = new HashSet<>();
+        for (Long node : dg.nodes()) {
+            if (node > 0) {
+                gIDs.add(node);
+            }
+        }
+        BiMap<Long, String> uris = HashBiMap.create();
+        try {
+            context.select(Callables.CALLABLES.ID, Packages.PACKAGES.PACKAGE_NAME,
+                            PackageVersions.PACKAGE_VERSIONS.VERSION,
+                            Callables.CALLABLES.FASTEN_URI)
+                    .from(Callables.CALLABLES, Modules.MODULES, PackageVersions.PACKAGE_VERSIONS, Packages.PACKAGES)
+                    .where(Callables.CALLABLES.ID.in(gIDs))
+                    .and(Modules.MODULES.ID.eq(Callables.CALLABLES.MODULE_ID))
+                    .and(PackageVersions.PACKAGE_VERSIONS.ID.eq(Modules.MODULES.PACKAGE_VERSION_ID))
+                    .and(Packages.PACKAGES.ID.eq(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID))
+                    .fetch().forEach(record -> uris.put( record.component1(),
+                            "fasten://mvn!" + record.component2() + "$" + record.component3() + record.component4()));
+        } catch (DataAccessException e) {
+            throw new UnrecoverableError(e);
+        }
+        return uris;
     }
 }

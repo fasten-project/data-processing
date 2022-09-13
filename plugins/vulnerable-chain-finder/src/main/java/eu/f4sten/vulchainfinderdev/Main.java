@@ -216,7 +216,7 @@ public class Main implements Plugin {
             LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
                     clientPkgVer.getSecond().getFirst().asCoordinate());
 
-            final var propagator = new ImpactPropagator(mergedCG, getAllUrisFromDB(mergedCG));
+            final var propagator = new ImpactPropagator(mergedCG, db.getAllUrisFromDB(mergedCG));
             propagator.propagateUrisImpacts(vulCallables.keySet());
             LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
@@ -251,34 +251,6 @@ public class Main implements Plugin {
             }
         }
         return dcg;
-    }
-
-    /**
-     * Gets all the FASTEN URIs of a given directed graph from the metadata DB
-     * @param dg
-     * @return
-     */
-    public BiMap<Long, String> getAllUrisFromDB(DirectedGraph dg){
-        Set<Long> gIDs = new HashSet<>();
-        for (Long node : dg.nodes()) {
-            if (node > 0) {
-                gIDs.add(node);
-            }
-        }
-        BiMap<Long, String> uris = HashBiMap.create();
-        db.getContext()
-                .select(Callables.CALLABLES.ID, Packages.PACKAGES.PACKAGE_NAME,
-                        PackageVersions.PACKAGE_VERSIONS.VERSION,
-                        Callables.CALLABLES.FASTEN_URI)
-                .from(Callables.CALLABLES, Modules.MODULES, PackageVersions.PACKAGE_VERSIONS, Packages.PACKAGES)
-                .where(Callables.CALLABLES.ID.in(gIDs))
-                .and(Modules.MODULES.ID.eq(Callables.CALLABLES.MODULE_ID))
-                .and(PackageVersions.PACKAGE_VERSIONS.ID.eq(Modules.MODULES.PACKAGE_VERSION_ID))
-                .and(Packages.PACKAGES.ID.eq(PackageVersions.PACKAGE_VERSIONS.PACKAGE_ID))
-                .fetch().forEach(record -> uris.put( record.component1(),
-                "fasten://mvn!" + record.component2() + "$" + record.component3() + record.component4()));
-
-        return uris;
     }
 
     private File[] extractFilesFromDeps(final Set<Pair<Long, Pair<MavenId, File>>> deps) {
