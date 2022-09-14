@@ -57,6 +57,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.inject.Inject;
 
@@ -143,6 +144,11 @@ public class Main implements Plugin {
 
         var resolvedClientPkgVerDeps = new HashSet<Pair<Long, Pair<MavenId, File>>>();
         for (var d : clientPkgVerAllDeps) {
+            // Ignore client/root package in the dep. set
+            if (d.getFirst().equals(clientPkgVer.getFirst())) {
+                continue;
+            }
+
             if (!d.getSecond().getSecond().exists()) {
                 d.getSecond().getSecond().getParentFile().mkdirs();
                 try {
@@ -161,9 +167,9 @@ public class Main implements Plugin {
             }
         }
 
-        LOG.info("Resolved {} dependencies for {}", clientPkgVerAllDeps.size(), curId.asCoordinate());
+        LOG.info("Resolved {} dependencies for {}", resolvedClientPkgVerDeps.size(), curId.asCoordinate());
         // Client's (transitive) dependency set + client itself
-        final var allDeps = new HashSet<Long>();
+        final var allDeps = new LinkedHashSet<Long>();
         resolvedClientPkgVerDeps.forEach(d -> allDeps.add(d.getFirst()));
         allDeps.add(clientPkgVer.getFirst());
 
