@@ -81,6 +81,11 @@ public class Main implements Plugin {
 
     private MavenId curId;
 
+    static class LocalDirectedGraph {
+        DirectedGraph graph;
+        BiMap<Long, String> graphUris;
+    }
+
     @Inject
     public Main(DatabaseUtils db, RocksDao dao, Kafka kafka, VulChainFinderArgs args,
                 MessageGenerator msgs, DependencyResolver resolver,
@@ -218,11 +223,12 @@ public class Main implements Plugin {
             var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
                     clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
                     Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
-            var mergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
             LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
                     clientPkgVer.getSecond().getFirst().asCoordinate());
 
-            final var propagator = new ImpactPropagator(mergedCG, db.getAllUrisFromDB(mergedCG));
+            var localMergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
+
+            final var propagator = new ImpactPropagator(localMergedCG.graph, localMergedCG.graphUris);
             propagator.propagateUrisImpacts(vulCallables.keySet());
             LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
@@ -243,20 +249,33 @@ public class Main implements Plugin {
         return mavenId;
     }
 
-    public DirectedGraph PCGtoLocalDirectedGraph(@NotNull final PartialJavaCallGraph rcg) {
-        DirectedGraph dcg = new MergedDirectedGraph();
+    public LocalDirectedGraph PCGtoLocalDirectedGraph(@NotNull final PartialJavaCallGraph rcg) {
+        var localDirectedGraph = new LocalDirectedGraph();
+        localDirectedGraph.graph = new MergedDirectedGraph();
+        localDirectedGraph.graphUris = HashBiMap.create();
+
         final var internals = rcg.mapOfFullURIStrings();
         for (final var intInt : rcg.getGraph().getCallSites().entrySet()) {
             if (internals.containsKey(intInt.getKey().firstInt())
                     && internals.containsKey(intInt.getKey().secondInt())) {
                 final var source = (long) intInt.getKey().firstInt();
                 final var target = (long) intInt.getKey().secondInt();
-                dcg.addVertex(source);
-                dcg.addVertex(target);
-                dcg.addEdge(source, target);
+                localDirectedGraph.graph.addVertex(source);
+                localDirectedGraph.graph.addVertex(target);
+                localDirectedGraph.graph.addEdge(source, target);
+
+                // Create the FURI Map
+                final var sourceUri = internals.get(intInt.getKey().firstInt());
+                final var targetUri = internals.get(intInt.getKey().secondInt());
+                if (!localDirectedGraph.graphUris.containsKey(source)) {
+                    localDirectedGraph.graphUris.put(source, sourceUri);
+                }
+                if (!localDirectedGraph.graphUris.containsKey(target)) {
+                    localDirectedGraph.graphUris.put(target, targetUri);
+                }
             }
         }
-        return dcg;
+        return localDirectedGraph;
     }
 
     private File[] extractFilesFromDeps(final Set<Pair<Long, Pair<MavenId, File>>> deps) {
