@@ -41,10 +41,7 @@ import eu.fasten.core.data.DirectedGraph;
 import eu.fasten.core.data.MergedDirectedGraph;
 import eu.fasten.core.data.PartialJavaCallGraph;
 import eu.fasten.core.data.callableindex.RocksDao;
-import eu.fasten.core.data.metadatadb.codegen.tables.Callables;
-import eu.fasten.core.data.metadatadb.codegen.tables.Modules;
-import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
-import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
+
 import eu.fasten.core.data.opal.MavenArtifactDownloader;
 import eu.fasten.core.data.opal.MavenCoordinate;
 //import eu.fasten.core.exceptions.UnrecoverableError;
@@ -218,7 +215,8 @@ public class Main implements Plugin {
                     extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
             LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
 
-            var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph, CallPreservationStrategy.ONLY_STATIC_CALLSITES);
+            var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph,
+                    CallPreservationStrategy.INCLUDING_ALL_SUBTYPES);
 
             var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
                     clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
