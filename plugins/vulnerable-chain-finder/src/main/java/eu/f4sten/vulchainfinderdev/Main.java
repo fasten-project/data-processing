@@ -28,6 +28,7 @@ import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
+import eu.f4sten.vulchainfinderdev.exceptions.VulnChainRepoSizeLimitException;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinderdev.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinderdev.utils.DependencyResolver;
@@ -77,6 +78,8 @@ public class Main implements Plugin {
     private final Path m2Path;
 
     private MavenId curId;
+    // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
+    final private int vulnChainsRepoSizeLimit = 10000;
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -183,9 +186,13 @@ public class Main implements Plugin {
             vulChains = extractVulCallChains(clientPkgVer, resolvedClientPkgVerDeps, vulDeps);
         }
 
-        curIdIsMethodLevelVulnerable(vulChains);
+        //curIdIsMethodLevelVulnerable(vulChains);
         // NOTE: it stores empty vuln. chains too to avoid re-processing records.
-        storeInVulRepo(vulChains);
+        if (vulChains.size() <= this.vulnChainsRepoSizeLimit) {
+            storeInVulRepo(vulChains);
+        } else {
+            throw new VulnChainRepoSizeLimitException("Cannot store a vuln chain repo with the size of " + vulChains.size());
+        }
     }
 
     private boolean curIdIsMethodLevelVulnerable(final Set<VulnerableCallChain> vulChains) {
