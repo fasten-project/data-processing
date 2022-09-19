@@ -27,6 +27,7 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.vulchainfinderdev.exceptions.CGConstructionTimeOut;
 import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
 import eu.f4sten.vulchainfinderdev.exceptions.VulnChainRepoSizeLimitException;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
@@ -57,6 +58,12 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +87,7 @@ public class Main implements Plugin {
     private MavenId curId;
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
     final private int vulnChainsRepoSizeLimit = 10000;
+    final private int cgConstructionTimeOut = 5; // minutes
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -218,9 +226,7 @@ public class Main implements Plugin {
 
         if (!vulCallables.isEmpty()) {
             // Merging using OPAL
-            OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[] {clientPkgVer.getSecond().getSecond()},
-                    extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
-            LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
+            OPALCallGraph opalCallGraph = generateOpalCG(clientPkgVer, allDeps);
 
             var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph,
                     CallPreservationStrategy.INCLUDING_ALL_SUBTYPES);
@@ -243,6 +249,25 @@ public class Main implements Plugin {
             }
         }
         return result;
+    }
+
+    @NotNull
+    private OPALCallGraph generateOpalCG(Pair<Long, Pair<MavenId, File>> clientPkgVer, Set<Pair<Long, Pair<MavenId, File>>> allDeps) {
+        AtomicReference<OPALCallGraph> opalCallGraph = new AtomicReference<>();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> {
+            opalCallGraph.set(new OPALCallGraphConstructor().construct(new File[]{clientPkgVer.getSecond().getSecond()},
+                    extractFilesFromDeps(allDeps), CGAlgorithm.CHA));
+            LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
+        });
+        try {
+            future.get(this.cgConstructionTimeOut, TimeUnit.MINUTES);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new CGConstructionTimeOut("Could not generate a CG for " + clientPkgVer.getSecond().getFirst().asCoordinate() + " in " + "minutes.");
+        }
+        return opalCallGraph.get();
     }
 
     public static MavenId extractMavenIdFrom(final Pom pomAnalysisResult) {
