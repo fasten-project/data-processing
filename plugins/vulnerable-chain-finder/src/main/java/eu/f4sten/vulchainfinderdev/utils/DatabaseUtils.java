@@ -96,7 +96,7 @@ public class DatabaseUtils {
                     .and(pv.PACKAGE_ID.eq(p.ID))
                     .and(v.ID.eq(vxp.VULNERABILITY_ID))
                     .and(v.ID.eq(vxc.VULNERABILITY_ID))
-                    .and(c.ID.eq(vxc.CALLABLE_ID)).fetch().forEach(r -> {
+                    .and(c.ID.eq(vxc.CALLABLE_ID)).fetch().parallelStream().forEach(r -> {
                         final var vulMap = convertRecordToVulMap(Objects.requireNonNull(r.get(4)).toString(),
                                 r.get(3));
                         if (!vulMap.isEmpty()) {
