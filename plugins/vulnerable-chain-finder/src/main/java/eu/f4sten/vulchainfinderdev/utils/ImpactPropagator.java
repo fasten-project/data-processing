@@ -1,6 +1,7 @@
 package eu.f4sten.vulchainfinderdev.utils;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Maps;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.vulchainfinderdev.data.NodeReachability;
 import eu.fasten.core.data.DirectedGraph;
@@ -13,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ImpactPropagator {
@@ -24,7 +26,7 @@ public class ImpactPropagator {
 
     public ImpactPropagator(DirectedGraph graph, BiMap<Long, String> idUriMap) {
         this.graph = graph;
-        this.idUriMap = idUriMap;
+        this.idUriMap = Maps.synchronizedBiMap(idUriMap);
     }
 
     public Set<NodeReachability> getImpacts() {
@@ -70,21 +72,21 @@ public class ImpactPropagator {
     public Set<VulnerableCallChain> extractApplicationVulChains(
         final Map<FastenURI, List<Vulnerability>> vulCallables,
         final MavenId appId) {
-        final Set<VulnerableCallChain> result = new HashSet<>();
 
-        for (final var appNode : extractPackageNodes(appId)) {
+        final Set<VulnerableCallChain> result = ConcurrentHashMap.newKeySet();
+        var appNodes = extractPackageNodes(appId);
+        appNodes.parallelStream().forEach(appNode -> {
             for (final var impact : impacts) {
                 if (thereIsNoImpactForNode(appNode, impact)) {
                     continue;
                 }
 
                 final var currentVul =
-                    vulCallables.get(FastenURI.create(idUriMap.get(impact.targetNode)));
+                        vulCallables.get(FastenURI.create(idUriMap.get(impact.targetNode)));
                 final var chains = extractUriChainsForNode(appNode, impact);
                 result.add(new VulnerableCallChain(currentVul, chains));
             }
-        }
-
+        });
         return result;
     }
 

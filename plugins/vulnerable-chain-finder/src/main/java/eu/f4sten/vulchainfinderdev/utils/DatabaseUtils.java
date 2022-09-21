@@ -77,8 +77,8 @@ public class DatabaseUtils {
     This method avoids looping over pkg. version IDs and uses only one DB query. Hence it is expected to be faster
      to retrieve vulnerable callables.
      */
-    public Map<FastenURI, List<Vulnerability>> selectVulnerableCallables(final Set<Long> vulnDepIds) {
-        Map<FastenURI, List<Vulnerability>> vulCallables = new HashMap<>();
+    public ConcurrentHashMap<FastenURI, List<Vulnerability>> selectVulnerableCallables(final Set<Long> vulnDepIds) {
+        ConcurrentHashMap<FastenURI, List<Vulnerability>> vulCallables = new ConcurrentHashMap<>();
 
         // Tables
         Vulnerabilities v = Vulnerabilities.VULNERABILITIES;
