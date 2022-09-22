@@ -182,10 +182,11 @@ public class Main implements Plugin {
         }
 
         LOG.info("Resolved {} dependencies for {}", resolvedClientPkgVerDeps.size(), curId.asCoordinate());
-        // Client's (transitive) dependency set + client itself
+        // Client's (transitive) dependency set
         final var allDeps = new LinkedHashSet<Long>();
         resolvedClientPkgVerDeps.forEach(d -> allDeps.add(d.getFirst()));
-        allDeps.add(clientPkgVer.getFirst());
+        // DO NOT consider the client/root package when looking for vulnerabilities in the dependency tree
+        // allDeps.add(clientPkgVer.getFirst());
 
         final var vulDeps = db.selectVulnerablePackagesExistingIn(allDeps);
         LOG.info("Found {} known vulnerabilities in the dep. set of {}", vulDeps.size(), curId.asCoordinate());
