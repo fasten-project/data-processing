@@ -88,7 +88,7 @@ public class Main implements Plugin {
     private MavenId curId;
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
     final private int vulnChainsRepoSizeLimit = 50000;
-    final private int analysisTimeOut = 10; // minutes
+    final private int analysisTimeOut = 25; // minutes
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
