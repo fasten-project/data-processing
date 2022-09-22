@@ -221,6 +221,7 @@ public class Main implements Plugin {
                                                           final Set<Pair<Long, Pair<MavenId, File>>> allDeps,
                                                           final Set<Long> vulDeps) {
         AtomicReference<Set<VulnerableCallChain>> result = new AtomicReference<>();
+        result.set(new HashSet<>());
         final var vulCallables = db.selectVulnerableCallables(vulDeps);
         LOG.info("Found {} vulnerable callables in the dep. set of {}", vulCallables.size(), clientPkgVer.getSecond().getFirst().asCoordinate());
 
@@ -248,7 +249,7 @@ public class Main implements Plugin {
                 LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
                 if (!propagator.getImpacts().isEmpty()) {
-                    result.set(propagator.extractApplicationVulChains(vulCallables, curId));
+                    result.get().addAll(propagator.extractApplicationVulChains(vulCallables, curId));
                     LOG.info("Found {} vulnerable call chains from client to its dependencies", result.get().size());
                 }
             });
