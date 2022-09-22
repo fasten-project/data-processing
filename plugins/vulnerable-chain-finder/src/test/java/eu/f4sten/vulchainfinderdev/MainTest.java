@@ -86,6 +86,7 @@ class MainTest {
     @Test
     void testProcess() throws RocksDBException, IOException {
         final var id = getMavenId("org.springframework", "spring-webmvc", "4.2.9.RELEASE");
+        // final var id = getMavenId("org.apache.activemq", "activemq-core", "5.7.0");
         final Main main = setUpMainFor(id);
 
         main.process();
@@ -97,8 +98,19 @@ class MainTest {
     }
 
     private void testTwoUnorderedVulChainRepos(final Set<VulnerableCallChain> actual, final Set<VulnerableCallChain> expected) {
-        Assertions.assertTrue(actual.size() == expected.size() &&
-                actual.containsAll(expected) && expected.containsAll(actual));
+        Assertions.assertEquals(actual.size(), expected.size());
+
+        var vccMatch = 0;
+        for (var vce : expected) {
+            for (var vca: actual) {
+                if (vce.getVulnerabilities().equals(vca.getVulnerabilities()) &&
+                        vce.getChain().equals(vca.getChain())){
+                    vccMatch++;
+                    break;
+                }
+            }
+        }
+        Assertions.assertEquals(vccMatch, expected.size());
     }
 
     private String createResourceNameFromID(final MavenId id) {
