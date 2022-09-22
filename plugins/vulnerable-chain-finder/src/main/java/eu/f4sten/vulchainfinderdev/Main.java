@@ -27,7 +27,7 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.vulchainfinderdev.exceptions.CGConstructionTimeOut;
+import eu.f4sten.vulchainfinderdev.exceptions.AnalysisTimeOutException;
 import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
 import eu.f4sten.vulchainfinderdev.exceptions.VulnChainRepoSizeLimitException;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
@@ -61,6 +61,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -87,7 +88,7 @@ public class Main implements Plugin {
     private MavenId curId;
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
     final private int vulnChainsRepoSizeLimit = 50000;
-    final private int cgConstructionTimeOut = 5; // minutes
+    final private int analysisTimeOut = 10; // minutes
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -118,7 +119,7 @@ public class Main implements Plugin {
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
 
         final var msgClass = new TRef<Message<Message<Message<Message
-            <MavenId, Pom>, Object>, Object>, Object>>() {
+                        <MavenId, Pom>, Object>, Object>, Object>>() {
         };
 
         kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
@@ -219,55 +220,50 @@ public class Main implements Plugin {
     private Set<VulnerableCallChain> extractVulCallChains(final Pair<Long, Pair<MavenId, File>> clientPkgVer,
                                                           final Set<Pair<Long, Pair<MavenId, File>>> allDeps,
                                                           final Set<Long> vulDeps) {
-        Set<VulnerableCallChain> result = new HashSet<>();
+        AtomicReference<Set<VulnerableCallChain>> result = new AtomicReference<>();
         final var vulCallables = db.selectVulnerableCallables(vulDeps);
-
         LOG.info("Found {} vulnerable callables in the dep. set of {}", vulCallables.size(), clientPkgVer.getSecond().getFirst().asCoordinate());
 
+        Future future = null;
         if (!vulCallables.isEmpty()) {
-            // Merging using OPAL
-            OPALCallGraph opalCallGraph = generateOpalCG(clientPkgVer, allDeps);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            future = executor.submit(() -> {
+                // Merging using OPAL
+                OPALCallGraph opalCallGraph = new OPALCallGraphConstructor().construct(new File[]{clientPkgVer.getSecond().getSecond()},
+                        extractFilesFromDeps(allDeps), CGAlgorithm.CHA);
 
-            var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph,
-                    CallPreservationStrategy.INCLUDING_ALL_SUBTYPES);
+                var opalPartialCallGraph = new OPALPartialCallGraphConstructor().construct(opalCallGraph,
+                        CallPreservationStrategy.INCLUDING_ALL_SUBTYPES);
 
-            var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
-                    clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
-                    Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
-            LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
-                    clientPkgVer.getSecond().getFirst().asCoordinate());
+                var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
+                        clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
+                        Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
+                LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
+                        clientPkgVer.getSecond().getFirst().asCoordinate());
 
-            var localMergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
+                var localMergedCG = PCGtoLocalDirectedGraph(partialCallGraph);
 
-            final var propagator = new ImpactPropagator(localMergedCG.graph, localMergedCG.graphUris);
-            propagator.propagateUrisImpacts(vulCallables.keySet());
-            LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
+                final var propagator = new ImpactPropagator(localMergedCG.graph, localMergedCG.graphUris);
+                propagator.propagateUrisImpacts(vulCallables.keySet());
+                LOG.info("Found {} distinct vulnerable paths", propagator.getImpacts().size());
 
-            if (!propagator.getImpacts().isEmpty()) {
-                result = propagator.extractApplicationVulChains(vulCallables, curId);
-                LOG.info("Found {} vulnerable call chains from client to its dependencies", result.size());
-            }
+                if (!propagator.getImpacts().isEmpty()) {
+                    result.set(propagator.extractApplicationVulChains(vulCallables, curId));
+                    LOG.info("Found {} vulnerable call chains from client to its dependencies", result.get().size());
+                }
+            });
         }
-        return result;
-    }
-
-    @NotNull
-    private OPALCallGraph generateOpalCG(Pair<Long, Pair<MavenId, File>> clientPkgVer, Set<Pair<Long, Pair<MavenId, File>>> allDeps) {
-        AtomicReference<OPALCallGraph> opalCallGraph = new AtomicReference<>();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        var future = executor.submit(() -> {
-            opalCallGraph.set(new OPALCallGraphConstructor().construct(new File[]{clientPkgVer.getSecond().getSecond()},
-                    extractFilesFromDeps(allDeps), CGAlgorithm.CHA));
-            LOG.info("Generated an OPAL call graph for {} and its dependencies", clientPkgVer.getSecond().getFirst().asCoordinate());
-        });
         try {
-            future.get(this.cgConstructionTimeOut, TimeUnit.MINUTES);
+            if (future != null) {
+                future.get(this.analysisTimeOut, TimeUnit.MINUTES);
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            throw new CGConstructionTimeOut("Could not generate a CG for " + clientPkgVer.getSecond().getFirst().asCoordinate() + " in " + "minutes.");
+            throw new AnalysisTimeOutException("Could not analyze " + clientPkgVer.getSecond().getFirst().asCoordinate() +
+                    " in " + this.analysisTimeOut + " minutes.");
         }
-        return opalCallGraph.get();
+        return result.get();
     }
 
     public static MavenId extractMavenIdFrom(final Pom pomAnalysisResult) {
