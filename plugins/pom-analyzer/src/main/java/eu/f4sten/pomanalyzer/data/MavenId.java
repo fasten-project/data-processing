@@ -17,6 +17,7 @@ package eu.f4sten.pomanalyzer.data;
 
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 
+import eu.fasten.core.data.opal.MavenCoordinate;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -71,6 +72,9 @@ public class MavenId {
     public String toJarPath() {
         return Paths.get(groupId.replace('.', '/'), artifactId, version,
                 artifactId + "-" + version + "." + "jar").toString();
+    }
+    public MavenCoordinate toMavenCoordinate() {
+        return new MavenCoordinate(groupId, artifactId, version, packagingType);
     }
 
     private static String $(String s) {
