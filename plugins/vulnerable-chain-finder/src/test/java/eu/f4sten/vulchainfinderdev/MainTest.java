@@ -85,8 +85,7 @@ class MainTest {
         "correctly.")
     @Test
     void testProcess() throws RocksDBException, IOException {
-        final var id = getMavenId("org.springframework", "spring-webmvc", "4.2.9.RELEASE");
-        // final var id = getMavenId("org.apache.activemq", "activemq-core", "5.7.0");
+        final var id = getMavenId("org.apache.wicket", "wicket-request", "6.13.0");
         final Main main = setUpMainFor(id);
 
         main.process();
@@ -95,6 +94,15 @@ class MainTest {
         final var expected = readResourceIntoVulCC(readResourceIntoString(createResourceNameFromID(id,"_expected")));
 
         testTwoUnorderedVulChainRepos(actual, expected);
+    }
+    @Test
+    void testProcessWitnNoVCC() throws RocksDBException, IOException {
+        final var id = getMavenId("net.spy", "spymemcached", "2.12.3");
+        final Main main = setUpMainFor(id);
+
+        main.process();
+        final var emptyVulCC = readResourceIntoVulCC(readResourceIntoString(createResourceNameFromID(id)));
+        Assertions.assertEquals(emptyVulCC.size(), 0);
     }
 
     private void testTwoUnorderedVulChainRepos(final Set<VulnerableCallChain> actual, final Set<VulnerableCallChain> expected) {
