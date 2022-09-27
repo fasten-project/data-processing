@@ -62,8 +62,17 @@ public class DatabaseUtils {
 
     public String addFileHash(Long pkgVersionID, String filePath, String fileHash) {
         try {
-            var fileMetadata = JSONB.valueOf(String.valueOf(new JSONObject().put("swh_checksum", fileHash)));
-            return context.update(Files.FILES).set(Files.FILES.METADATA, fileMetadata)
+            final var fileHashFieldName = "swh_checksum";
+            final var currentMetadata = context.select(Files.FILES.METADATA).from(Files.FILES)
+                    .where(Files.FILES.PACKAGE_VERSION_ID.eq(pkgVersionID)
+                            .and(Files.FILES.PATH.eq(filePath))).fetchOne().getValue(Files.FILES.METADATA);
+
+            // Updates the existing metadata field with file hash to avoid overriding it
+            var fileMetadata = currentMetadata == null
+                    ? new JSONObject().put(fileHashFieldName, fileHash)
+                    : new JSONObject(currentMetadata.data()).put(fileHashFieldName, fileHash);
+
+            return context.update(Files.FILES).set(Files.FILES.METADATA, JSONB.valueOf(String.valueOf(fileMetadata)))
                     .where(Files.FILES.PACKAGE_VERSION_ID.eq(pkgVersionID).and(Files.FILES.PATH.eq(filePath)))
                     .returningResult(Files.FILES.PATH).fetchOne().getValue(Files.FILES.PATH);
         } catch (DataAccessException e) {
