@@ -210,7 +210,7 @@ public class Main implements Plugin {
         // NOTE: it stores empty vuln. chains too to avoid re-processing records.
         if (vulChains.size() <= this.vulnChainsRepoSizeLimit) {
             final var vulRepoFilePath = storeInVulRepo(vulChains);
-            if (args.publishToKafka) {
+            if (args.publishToKafka && vulChains.size() != 0) {
                 kafka.publish(new VcfPayload(curId.groupId, curId.artifactId, curId.version, curId.packagingType,
                                 vulRepoFilePath, vulChains.size()), args.kafkaOut, kafkaLane);
             }
