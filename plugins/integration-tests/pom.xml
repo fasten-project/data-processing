@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>plugins</artifactId>
-        <version>0.0.15</version>
+        <version>0.0.16-SNAPSHOT</version>
     </parent>
     <artifactId>integration-tests</artifactId>
 
@@ -13,12 +13,12 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure-impl</artifactId>
-            <version>0.0.15</version>
+            <version>0.0.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>pom-analyzer</artifactId>
-            <version>0.0.15</version>
+            <version>0.0.16-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
