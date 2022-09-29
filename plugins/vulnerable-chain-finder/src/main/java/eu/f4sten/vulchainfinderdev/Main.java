@@ -27,6 +27,7 @@ import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.vulchainfinderdev.data.VcfPayload;
 import eu.f4sten.vulchainfinderdev.exceptions.AnalysisTimeOutException;
 import eu.f4sten.vulchainfinderdev.exceptions.RestApiError;
 import eu.f4sten.vulchainfinderdev.exceptions.VulnChainRepoSizeLimitException;
@@ -87,6 +88,7 @@ public class Main implements Plugin {
     private final VulnerableCallChainRepository repo;
     private final String baseDir;
     private final Path m2Path;
+    private Lane kafkaLane;
 
     private MavenId curId;
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
@@ -111,6 +113,10 @@ public class Main implements Plugin {
         this.repo = repo;
         this.baseDir = io.getBaseFolder().getAbsolutePath();
         this.m2Path = Paths.get(this.baseDir, ".m2", "repository");
+
+        if(args.publishToKafka) {
+            LOG.info("The plugin publishes pkg. versions with vuln. call chains to its output Kafka topic.");
+        }
     }
 
     @Override
@@ -128,6 +134,7 @@ public class Main implements Plugin {
         kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
             final var pomAnalysisResult = msg.input.input.input.payload;
             curId = extractMavenIdFrom(pomAnalysisResult);
+            kafkaLane = l;
             LOG.info("Consuming next record ...");
             runOrPublishErr(this::process);
         });
@@ -202,7 +209,11 @@ public class Main implements Plugin {
         //curIdIsMethodLevelVulnerable(vulChains);
         // NOTE: it stores empty vuln. chains too to avoid re-processing records.
         if (vulChains.size() <= this.vulnChainsRepoSizeLimit) {
-            storeInVulRepo(vulChains);
+            final var vulRepoFilePath = storeInVulRepo(vulChains);
+            if (args.publishToKafka) {
+                kafka.publish(new VcfPayload(curId.groupId, curId.artifactId, curId.version, curId.packagingType,
+                                vulRepoFilePath, vulChains.size()), args.kafkaOut, kafkaLane);
+            }
         } else {
             throw new VulnChainRepoSizeLimitException("Cannot store a vuln chain repo with the size of " + vulChains.size());
         }
@@ -216,9 +227,9 @@ public class Main implements Plugin {
         return vulDeps != null && !vulDeps.isEmpty();
     }
 
-    private void storeInVulRepo(final Set<VulnerableCallChain> vulnerableCallChains) {
+    private String storeInVulRepo(final Set<VulnerableCallChain> vulnerableCallChains) {
         final var productName = String.format("%s:%s", curId.groupId, curId.artifactId);
-        repo.store(productName, curId.version, vulnerableCallChains);
+        return repo.store(productName, curId.version, vulnerableCallChains);
     }
 
     private Set<VulnerableCallChain> extractVulCallChains(final Pair<Long, Pair<MavenId, File>> clientPkgVer,

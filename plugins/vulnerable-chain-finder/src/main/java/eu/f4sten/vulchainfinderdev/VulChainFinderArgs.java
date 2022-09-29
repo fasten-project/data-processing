@@ -39,4 +39,7 @@ public class VulChainFinderArgs {
 
     @Parameter(names = "--vulnChainRepoPath", arity = 1)
     public File vulnChainRepoPath;
+
+    @Parameter(names = "--publish2kafka")
+    public boolean publishToKafka = false;
 }

@@ -89,6 +89,7 @@ public class DatabaseUtils {
         Callables c = Callables.CALLABLES;
 
         try {
+            // TODO: Select distinct may improve performance
             context.select(p.PACKAGE_NAME, pv.VERSION, c.FASTEN_URI, v.STATEMENT, v.EXTERNAL_ID)
                     .from(v, vxp, vxc, p, pv, c)
                     .where(vxp.PACKAGE_VERSION_ID.in(vulnDepIds))
@@ -100,8 +101,13 @@ public class DatabaseUtils {
                         final var vulMap = convertRecordToVulMap(Objects.requireNonNull(r.get(4)).toString(),
                                 r.get(3));
                         if (!vulMap.isEmpty()) {
-                            vulCallables.put(createFastenUriFromPckgVersionUriFields(r),
+                            final var fUriForPkgVersion = createFastenUriFromPckgVersionUriFields(r);
+//                            if (vulCallables.containsKey(fUriForPkgVersion)) {
+//                                vulCallables.get(fUriForPkgVersion).addAll(vulMap.values());
+//                            } else {
+                            vulCallables.put(fUriForPkgVersion,
                                     new ArrayList<>(vulMap.values()));
+//                            }
                         }
                     });
         } catch (DataAccessException e) {
