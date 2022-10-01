@@ -93,7 +93,7 @@ public class Main implements Plugin {
     private MavenId curId;
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
     final private int vulnChainsRepoSizeLimit = 50000;
-    final private int analysisTimeOut = 25; // minutes
+    final private int analysisTimeOut = 20; // minutes
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -277,6 +277,7 @@ public class Main implements Plugin {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e.getCause());
         } catch (TimeoutException e) {
+            future.cancel(true);
             throw new AnalysisTimeOutException("Could not analyze " + clientPkgVer.getSecond().getFirst().asCoordinate() +
                     " in " + this.analysisTimeOut + " minutes.");
         }
