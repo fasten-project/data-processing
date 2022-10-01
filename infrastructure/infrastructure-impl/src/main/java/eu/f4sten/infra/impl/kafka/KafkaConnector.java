@@ -30,6 +30,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import java.security.InvalidParameterException;
@@ -57,6 +58,8 @@ public class KafkaConnector {
 
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
     private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 60); // 60min
+    // Due to static membership we also want to tune the session timeout to 30 minutes.
+    private static final String MAX_SESSION_TIMEOUT_MS = valueOf(1000 * 60 * 30);
 
     private final String activePlugin;
     private final InfraArgs args;
@@ -92,6 +95,7 @@ public class KafkaConnector {
         p.setProperty(REQUEST_TIMEOUT_MS_CONFIG, "60000");
 
         p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
+        p.setProperty(SESSION_TIMEOUT_MS_CONFIG, MAX_SESSION_TIMEOUT_MS);
 
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
