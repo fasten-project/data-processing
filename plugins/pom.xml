@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>root</artifactId>
-        <version>0.0.15-SNAPSHOT</version>
+        <version>0.0.16-SNAPSHOT</version>
     </parent>
     <artifactId>plugins</artifactId>
     <packaging>pom</packaging>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure</artifactId>
-            <version>0.0.15-SNAPSHOT</version>
+            <version>0.0.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>eu.fasten</groupId>

@@ -19,7 +19,7 @@
     <parent>
         <groupId>eu.fasten-project</groupId>
         <artifactId>plugins</artifactId>
-        <version>0.0.15-SNAPSHOT</version>
+        <version>0.0.16-SNAPSHOT</version>
     </parent>
     <artifactId>vulnerable-chain-finder</artifactId>
 
@@ -32,13 +32,13 @@
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>pom-analyzer</artifactId>
-            <version>0.0.15-SNAPSHOT</version>
+            <version>0.0.16-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.fasten-project</groupId>
             <artifactId>infrastructure-impl</artifactId>
-            <version>0.0.15-SNAPSHOT</version>
+            <version>0.0.16-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
