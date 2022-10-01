@@ -275,7 +275,7 @@ public class Main implements Plugin {
                 future.get(this.analysisTimeOut, TimeUnit.MINUTES);
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getCause());
         } catch (TimeoutException e) {
             throw new AnalysisTimeOutException("Could not analyze " + clientPkgVer.getSecond().getFirst().asCoordinate() +
                     " in " + this.analysisTimeOut + " minutes.");
