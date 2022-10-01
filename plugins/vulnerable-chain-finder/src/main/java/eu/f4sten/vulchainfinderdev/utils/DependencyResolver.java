@@ -25,6 +25,7 @@ import eu.fasten.core.maven.data.VersionConstraint;
 import eu.fasten.core.maven.resolution.MavenResolutionException;
 import eu.fasten.core.maven.resolution.ResolverConfig;
 import eu.fasten.core.maven.resolution.RestMavenResolver;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.ProcessingException;
 import org.jgrapht.alg.util.Pair;
@@ -76,6 +77,10 @@ public class DependencyResolver {
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
                 throw new UnrecoverableError("Could not connect to the Dependency Graph Resolver service.");
+            }
+        } catch (ClientErrorException e) {
+            if (e.getMessage().equals("HTTP 422 Unprocessable Entity")) {
+                throw new MavenResolutionException("Could not resolve dependencies for " + id.asCoordinate());
             }
         } catch (InternalServerErrorException e) {
             // Internal HTTP 500 error by the DGR mostly corresponds to the dep. resolution error
