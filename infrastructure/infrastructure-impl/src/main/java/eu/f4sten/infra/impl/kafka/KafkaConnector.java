@@ -56,7 +56,7 @@ public class KafkaConnector {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaConnector.class);
 
     private static final String MAX_REQUEST_SIZE = valueOf(50 * 1024 * 1024); // 50MB
-    private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 30); // 30min
+    private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 60); // 60min
 
     private final String activePlugin;
     private final InfraArgs args;
