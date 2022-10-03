@@ -22,6 +22,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_COMMIT_INTER
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.CLIENT_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.FETCH_MAX_BYTES_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
@@ -60,6 +61,8 @@ public class KafkaConnector {
     private static final String MAX_POLL_INTERVAL_MS = valueOf(1000 * 60 * 60); // 60 min
     // Due to static membership we also want to tune the session timeout to 30 minutes.
     private static final String MAX_SESSION_TIMEOUT_MS = valueOf(1000 * 60 * 30);
+    // Should be higher than MAX_POLL_INTERVAL_MS and MAX_SESSION_TIMEOUT_MS
+    private static final String MAX_CONNECTIONS_IDLE_MS = valueOf(1000 * 60 * 90); // 90 min
 
     private final String activePlugin;
     private final InfraArgs args;
@@ -96,6 +99,7 @@ public class KafkaConnector {
 
         p.setProperty(MAX_POLL_INTERVAL_MS_CONFIG, MAX_POLL_INTERVAL_MS);
         p.setProperty(SESSION_TIMEOUT_MS_CONFIG, MAX_SESSION_TIMEOUT_MS);
+        p.setProperty(CONNECTIONS_MAX_IDLE_MS_CONFIG, MAX_CONNECTIONS_IDLE_MS);
 
         var instanceId = getFullInstanceId(l);
         if (instanceId != null) {
@@ -134,6 +138,7 @@ public class KafkaConnector {
         p.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         p.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         p.setProperty(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, MAX_REQUEST_SIZE);
+        p.setProperty(ProducerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, MAX_CONNECTIONS_IDLE_MS);
         return p;
     }
 }
