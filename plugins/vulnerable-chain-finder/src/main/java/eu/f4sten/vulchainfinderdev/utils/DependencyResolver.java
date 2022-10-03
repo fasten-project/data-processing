@@ -63,10 +63,15 @@ public class DependencyResolver {
         return depIds;
     }
 
-    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path, final DatabaseUtils db) {
+    public Set<Pair<Long, Pair<MavenId, File>>> resolveDependencies(final MavenId id, final Path m2Path, final DatabaseUtils db,
+                                                                    final int depLevel) {
         Set<ResolvedRevision> deps;
         try {
-            deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), new ResolverConfig());
+            var depResolverConfig = new ResolverConfig();
+            if(depLevel < Integer.MAX_VALUE) {
+                depResolverConfig.limitTransitiveDeps(depLevel);
+            }
+            deps = restMavenResolver.resolveDependencies(List.of(id.asCoordinate()), depResolverConfig);
             final Set<Pair<Long, Pair<MavenId, File>>> depsPair = new HashSet<>();
             for (var d: deps) {
                 var mvnId = extractMavenIDsFromDGR(d);

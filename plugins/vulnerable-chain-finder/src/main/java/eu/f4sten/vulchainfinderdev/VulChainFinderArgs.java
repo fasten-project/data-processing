@@ -42,4 +42,7 @@ public class VulChainFinderArgs {
 
     @Parameter(names = "--publish2kafka")
     public boolean publishToKafka = false;
+
+    @Parameter(names = "--depLevel", description = "The dependency level at which the plugin should analyze vulnerable package versions", arity = 1)
+    public String depLevel;
 }

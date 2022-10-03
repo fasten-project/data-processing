@@ -21,6 +21,7 @@ import com.google.common.collect.HashBiMap;
 import eu.f4sten.infra.AssertArgs;
 import eu.f4sten.infra.Plugin;
 import eu.f4sten.infra.json.TRef;
+import eu.f4sten.infra.kafka.DefaultTopics;
 import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Lane;
 import eu.f4sten.infra.kafka.Message;
@@ -94,6 +95,7 @@ public class Main implements Plugin {
     // Max. number of vuln chain repos can be stored on the disk to avoid the OoM error
     final private int vulnChainsRepoSizeLimit = 50000;
     final private int analysisTimeOut = 20; // minutes
+    final private int dependencyLevel;
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -113,6 +115,7 @@ public class Main implements Plugin {
         this.repo = repo;
         this.baseDir = io.getBaseFolder().getAbsolutePath();
         this.m2Path = Paths.get(this.baseDir, ".m2", "repository");
+        this.dependencyLevel = args.depLevel != null ? Integer.parseInt(args.depLevel) : Integer.MAX_VALUE;
 
         if(args.publishToKafka) {
             LOG.info("The plugin publishes pkg. versions with vuln. call chains to its output Kafka topic.");
@@ -121,19 +124,51 @@ public class Main implements Plugin {
 
     @Override
     public void run() {
+
         AssertArgs.assertFor(args)
-            .notNull(a -> a.kafkaIn, "kafka input topic")
-            .notNull(a -> a.kafkaOut, "kafka output topic");
+                .notNull(a -> a.kafkaIn, "kafka input topic")
+                .notNull(a -> a.kafkaOut, "kafka output topic");
+
+        if (this.dependencyLevel == Integer.MAX_VALUE) {
+            LOG.info("Analyzing package versions with their full transitive set.");
+            runWithMaxDepLevel();
+        } else {
+            LOG.info("Analyzing package versions considering the dependency set up to level " + this.dependencyLevel);
+            args.kafkaIn = DefaultTopics.VUL_CHAIN_FINDER;
+            args.kafkaOut = DefaultTopics.VUL_CHAIN_FINDER + "_d" + this.dependencyLevel;
+            runWithGivenDepLevel();
+        }
 
         LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
+    }
 
+    /**
+     * Runs the vuln-chain-finder plugin while considering the max transitive dependency level.
+     */
+    public void runWithMaxDepLevel() {
         final var msgClass = new TRef<Message<Message<Message<Message
-                        <MavenId, Pom>, Object>, Object>, Object>>() {
+                <MavenId, Pom>, Object>, Object>, Object>>() {
         };
 
         kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
             final var pomAnalysisResult = msg.input.input.input.payload;
             curId = extractMavenIdFrom(pomAnalysisResult);
+            kafkaLane = l;
+            LOG.info("Consuming next record ...");
+            runOrPublishErr(this::process);
+        });
+        while (true) {
+            LOG.debug("Polling ...");
+            kafka.poll();
+        }
+    }
+
+    /**
+     * Runs the vuln-chain-finder plugin while considering a given dependency level, which is lower than the full dependency set.
+     */
+    public void runWithGivenDepLevel() {
+        kafka.subscribe(args.kafkaIn, VcfPayload.class, (msg, l) -> {
+            curId = msg.toMavenId();
             kafkaLane = l;
             LOG.info("Consuming next record ...");
             runOrPublishErr(this::process);
@@ -156,7 +191,8 @@ public class Main implements Plugin {
         // Client/Root package
         var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(db.getPackageVersionID(curId),
                 new Pair<>(curId, new File(Paths.get(String.valueOf(m2Path), curId.toJarPath()).toString())));
-        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.m2Path, this.db);
+        final var clientPkgVerAllDeps = resolver.resolveDependencies(curId, this.m2Path,
+                this.db, this.dependencyLevel);
 
         // Download jars if not present in the .m2 folder
         if (!clientPkgVer.getSecond().getSecond().exists()) {
@@ -191,7 +227,9 @@ public class Main implements Plugin {
             }
         }
 
-        LOG.info("Resolved {} dependencies for {}", resolvedClientPkgVerDeps.size(), curId.asCoordinate());
+        LOG.info("Resolved {} dependencies at level {} for {}", resolvedClientPkgVerDeps.size(),
+                dependencyLevel == Integer.MAX_VALUE ? "max" : dependencyLevel,
+                curId.asCoordinate());
         // Client's (transitive) dependency set
         final var allDeps = new LinkedHashSet<Long>();
         resolvedClientPkgVerDeps.forEach(d -> allDeps.add(d.getFirst()));
@@ -229,7 +267,7 @@ public class Main implements Plugin {
 
     private String storeInVulRepo(final Set<VulnerableCallChain> vulnerableCallChains) {
         final var productName = String.format("%s:%s", curId.groupId, curId.artifactId);
-        return repo.store(productName, curId.version, vulnerableCallChains);
+        return repo.store(productName, curId.version, dependencyLevel, vulnerableCallChains);
     }
 
     private Set<VulnerableCallChain> extractVulCallChains(final Pair<Long, Pair<MavenId, File>> clientPkgVer,
@@ -382,7 +420,8 @@ public class Main implements Plugin {
     }
 
     private boolean isCurIdProcessed() {
-        return new File(repo.getFilePath(String.format("%s:%s", curId.groupId, curId.artifactId), curId.version)).exists();
+        return new File(repo.getFilePath(String.format("%s:%s", curId.groupId, curId.artifactId), curId.version,
+                dependencyLevel)).exists();
     }
 
 }

@@ -1,5 +1,6 @@
 package eu.f4sten.vulchainfinderdev.data;
 
+import eu.f4sten.pomanalyzer.data.MavenId;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,6 +15,10 @@ public class VcfPayload {
     private String packagingType;
     private String vulCallChainRepoPath;
     private int numFoundVulCallChains;
+
+    public VcfPayload() {
+        // For object mappers
+    }
 
     public VcfPayload(String groupId, String artifactId, String version, String packagingType,
                       String vulCallChainRepoPath, int numFoundVulCallChains) {
@@ -71,6 +76,10 @@ public class VcfPayload {
 
     public void setNumFoundVulCallChains(int numFoundVulCallChains) {
         this.numFoundVulCallChains = numFoundVulCallChains;
+    }
+
+    public MavenId toMavenId() {
+        return new MavenId(this.groupId, this.artifactId, this.version, null, this.packagingType);
     }
 
     @Override
