@@ -35,6 +35,7 @@ import eu.f4sten.vulchainfinderdev.exceptions.VulnChainRepoSizeLimitException;
 import eu.f4sten.vulchainfinderdev.utils.DatabaseUtils;
 import eu.f4sten.vulchainfinderdev.utils.ImpactPropagator;
 import eu.f4sten.vulchainfinderdev.utils.DependencyResolver;
+import eu.f4sten.vulchainfinderdev.utils.MemoryUsageReport;
 import eu.fasten.analyzer.javacgopal.data.CGAlgorithm;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraph;
 import eu.fasten.analyzer.javacgopal.data.OPALCallGraphConstructor;
@@ -186,7 +187,7 @@ public class Main implements Plugin {
             return;
         }
 
-        LOG.info("Processing {}", curId.asCoordinate());
+        LOG.info("Processing {} {}", curId.asCoordinate(), MemoryUsageReport.getMemoryUsageInfo());
 
         // Client/Root package
         var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(db.getPackageVersionID(curId),
@@ -237,7 +238,8 @@ public class Main implements Plugin {
         // allDeps.add(clientPkgVer.getFirst());
 
         final var vulDeps = db.selectVulnerablePackagesExistingIn(allDeps);
-        LOG.info("Found {} known vulnerabilities in the dep. set of {}", vulDeps.size(), curId.asCoordinate());
+        LOG.info("Found {} known vulnerabilities in the dep. set of {} {}", vulDeps.size(),
+                curId.asCoordinate(), MemoryUsageReport.getMemoryUsageInfo());
 
         Set<VulnerableCallChain> vulChains = new HashSet<>();
         if (curIdIsPackageLevelVulnerable(vulDeps)) {
@@ -292,8 +294,8 @@ public class Main implements Plugin {
                 var partialCallGraph = new PartialJavaCallGraph(Constants.mvnForge, clientPkgVer.getSecond().getFirst().getProductName(),
                         clientPkgVer.getSecond().getFirst().getProductVersion(), -1,
                         Constants.opalGenerator, opalPartialCallGraph.classHierarchy, opalPartialCallGraph.graph);
-                LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies", partialCallGraph.getCallSites().size(),
-                        clientPkgVer.getSecond().getFirst().asCoordinate());
+                LOG.info("Created a partial call graph w/ {} call sites for {} and its dependencies {}", partialCallGraph.getCallSites().size(),
+                        clientPkgVer.getSecond().getFirst().asCoordinate(), MemoryUsageReport.getMemoryUsageInfo());
 
                 var localMergedCG = PCGtoLocalDirectedGraph(partialCallGraph,
                         createTypeUriToCoordMap(clientPkgVer, allDeps));
@@ -304,7 +306,8 @@ public class Main implements Plugin {
 
                 if (!propagator.getImpacts().isEmpty()) {
                     result.get().addAll(propagator.extractApplicationVulChains(vulCallables, curId));
-                    LOG.info("Found {} vulnerable call chains from client to its dependencies", result.get().size());
+                    LOG.info("Found {} vulnerable call chains from client to its dependencies {}", result.get().size(),
+                            MemoryUsageReport.getMemoryUsageInfo());
                 }
             });
         }
@@ -317,7 +320,7 @@ public class Main implements Plugin {
         } catch (TimeoutException e) {
             future.cancel(true);
             throw new AnalysisTimeOutException("Could not analyze " + clientPkgVer.getSecond().getFirst().asCoordinate() +
-                    " in " + this.analysisTimeOut + " minutes.");
+                    " in " + this.analysisTimeOut + " minutes." + MemoryUsageReport.getMemoryUsageInfo());
         }
         return result.get();
     }
