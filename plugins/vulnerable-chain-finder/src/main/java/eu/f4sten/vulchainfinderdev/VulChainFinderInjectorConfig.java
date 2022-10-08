@@ -61,6 +61,7 @@ public class VulChainFinderInjectorConfig implements IInjectorConfig {
     public DatabaseUtils bindDatabaseUtils(PostgresConnector pc, JsonUtils json) {
         var c = pc.getNewConnection();
         var dslContext = DSL.using(c, SQLDialect.POSTGRES);
+        dslContext.settings().setQueryTimeout(5 * 60); // 5 minutes timeout for SQL queries;
         return new DatabaseUtils(dslContext, json);
     }
 
