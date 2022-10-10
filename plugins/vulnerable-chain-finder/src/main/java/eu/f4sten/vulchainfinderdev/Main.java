@@ -182,12 +182,14 @@ public class Main implements Plugin {
 
     public void process() {
         // NOTE: this can be a temporary FS-based check and can be replaced with a better approach or removed at all.
-        if (isCurIdProcessed()) {
-            LOG.info("Coordinate {} already processed!", curId.asCoordinate());
+        var emptyVCRFilePath = new File("");
+        if (isCurIdProcessed() || isCurIdFailed()) {
+            LOG.info("Coordinate {} already processed or failed!", curId.asCoordinate());
             return;
+        } else {
+            LOG.info("Processing {} {}", curId.asCoordinate(), MemoryUsageReport.getMemoryUsageInfo());
+            emptyVCRFilePath = new File(repo.createEmptyVulnChainRepo(curId.getProductName(), curId.getProductVersion(), dependencyLevel));
         }
-
-        LOG.info("Processing {} {}", curId.asCoordinate(), MemoryUsageReport.getMemoryUsageInfo());
 
         // Client/Root package
         var clientPkgVer = new Pair<Long, Pair<MavenId, File>>(db.getPackageVersionID(curId),
@@ -254,6 +256,7 @@ public class Main implements Plugin {
                 kafka.publish(new VcfPayload(curId.groupId, curId.artifactId, curId.version, curId.packagingType,
                                 vulRepoFilePath, vulChains.size()), args.kafkaOut, kafkaLane);
             }
+            emptyVCRFilePath.delete();
         } else {
             throw new VulnChainRepoSizeLimitException("Cannot store a vuln chain repo with the size of " + vulChains.size());
         }
@@ -426,5 +429,8 @@ public class Main implements Plugin {
         return new File(repo.getFilePath(String.format("%s:%s", curId.groupId, curId.artifactId), curId.version,
                 dependencyLevel)).exists();
     }
-
+    private boolean isCurIdFailed() {
+        return new File(repo.getFilePath(String.format("%s:%s", curId.groupId, curId.artifactId), curId.version,
+                dependencyLevel, "_failed")).exists();
+    }
 }
