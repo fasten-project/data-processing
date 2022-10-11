@@ -49,8 +49,8 @@ import eu.fasten.core.data.callableindex.RocksDao;
 
 import eu.fasten.core.data.opal.MavenArtifactDownloader;
 import eu.fasten.core.data.opal.MavenCoordinate;
-//import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.data.opal.exceptions.MissingArtifactException;
+import eu.fasten.core.exceptions.UnrecoverableError;
 import eu.fasten.core.maven.data.Pom;
 import eu.fasten.core.utils.TypeToJarMapper;
 import eu.fasten.core.vulchains.VulnerableCallChain;
@@ -97,6 +97,7 @@ public class Main implements Plugin {
     final private int vulnChainsRepoSizeLimit = 50000;
     final private int analysisTimeOut = 20; // minutes
     final private int dependencyLevel;
+    private File emptyVCRFilePath = new File("");
 
     static class LocalDirectedGraph {
         DirectedGraph graph;
@@ -182,7 +183,6 @@ public class Main implements Plugin {
 
     public void process() {
         // NOTE: this can be a temporary FS-based check and can be replaced with a better approach or removed at all.
-        var emptyVCRFilePath = new File("");
         if (isCurIdProcessed() || isCurIdFailed()) {
             LOG.info("Coordinate {} already processed or failed!", curId.asCoordinate());
             return;
@@ -398,6 +398,10 @@ public class Main implements Plugin {
             r.run();
         } catch (RestApiError e) {
             LOG.error("Forced to stop the plug-in as the REST API is unavailable", e);
+            throw e;
+        } catch (UnrecoverableError e) {
+            // Delete empty vuln. chain files for fatal errors like DB/DGR connection errors for re-try.
+            emptyVCRFilePath.delete();
             throw e;
         } catch (Exception e) {
             LOG.error("Execution failed for input: {} and", curId, e);
