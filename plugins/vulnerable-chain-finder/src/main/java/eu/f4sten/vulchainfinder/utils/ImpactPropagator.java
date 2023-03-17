@@ -70,9 +70,15 @@ public class ImpactPropagator {
     public Set<VulnerableCallChain> extractApplicationVulChains(
         final Map<FastenURI, List<Vulnerability>> vulCallables,
         final MavenId appId) {
+        return extractNodesVulChains(vulCallables, extractPackageNodes(appId));
+    }
+
+    public Set<VulnerableCallChain> extractNodesVulChains(
+        final Map<FastenURI, List<Vulnerability>> vulCallables,
+        final Set<Long> longs) {
         final Set<VulnerableCallChain> result = new HashSet<>();
 
-        for (final var appNode : extractPackageNodes(appId)) {
+        for (final var appNode : longs) {
             for (final var impact : impacts) {
                 if (thereIsNoImpactForNode(appNode, impact)) {
                     continue;
@@ -105,7 +111,7 @@ public class ImpactPropagator {
         return result;
     }
 
-    private HashSet<Long> extractPackageNodes(final MavenId id) {
+    public HashSet<Long> extractPackageNodes(final MavenId id) {
         final var result = new HashSet<Long>();
 
         final var appUri = createPackageUri(id);

@@ -21,9 +21,11 @@ public class RestAPIDependencyResolver {
     private static final String DEPS_ENDPOINT;
     public static final String PACKAGE_VERSION_ENDPOINT =
         "/packages/{groupId}:{artifactId}/{version}";
+    public static final String RESOLVE_DEPENDENCIES_ENDPOINT;
 
     static {
         DEPS_ENDPOINT = PACKAGE_VERSION_ENDPOINT + "/deps";
+        RESOLVE_DEPENDENCIES_ENDPOINT = PACKAGE_VERSION_ENDPOINT + "/resolve/dependencies";
     }
 
     private static final int OK = 200;
@@ -39,10 +41,28 @@ public class RestAPIDependencyResolver {
         this.client = client;
     }
 
-    public Set<Long> resolveDependencyIds(final MavenId id) {
-        final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, id);
+    public Set<String> resolveDependencyGavs(final MavenId mavenId) {
+        final HttpResponse<String> response = requestEndPoint(RESOLVE_DEPENDENCIES_ENDPOINT, mavenId);
+        return extractGavsFromResponse(response);
+    }
+
+    private Set<String> extractGavsFromResponse(final HttpResponse<String> response) {
+        final Set<String> result = new HashSet<>();
+
+        final var deps = new JSONArray(response.body());
+        for (final var dep : deps) {
+            var g = extractStringFieldFromJSONObj((JSONObject) dep, "groupId");
+            var a = extractLongFieldFromJSONObj((JSONObject) dep, "artifactId");
+            var v = extractLongFieldFromJSONObj((JSONObject) dep, "version");
+            result.add(g + ":" + a + ":" + v);
+        }
+        return result;
+    }
+
+    public Set<Long> resolveDependencyIds(final MavenId mavenId) {
+        final HttpResponse<String> response = requestEndPoint(DEPS_ENDPOINT, mavenId);
         final var depIds = extractPackageIdsFromResponse(response);
-        final HttpResponse<String> appResponse = requestEndPoint(PACKAGE_VERSION_ENDPOINT, id);
+        final HttpResponse<String> appResponse = requestEndPoint(PACKAGE_VERSION_ENDPOINT, mavenId);
         final var fieldName = PackageVersions.PACKAGE_VERSIONS.ID.getName();
         depIds.add(extractLongFieldFromJSONObj(new JSONObject(appResponse.body()), fieldName));
         return depIds;
@@ -52,6 +72,10 @@ public class RestAPIDependencyResolver {
         final var uri = createUri(depsEndpoint, id);
         final var request = HttpRequest.newBuilder().uri(uri).GET().build();
         return sendOrThrow(request);
+    }
+
+    public String extractStringFieldFromJSONObj(final JSONObject response, final String field) {
+        return (String) response.get(field);
     }
 
     public long extractLongFieldFromJSONObj(final JSONObject response, final String field) {

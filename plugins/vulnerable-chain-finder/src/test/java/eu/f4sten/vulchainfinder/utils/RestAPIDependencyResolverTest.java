@@ -80,6 +80,18 @@ class RestAPIDependencyResolverTest {
         assertEquals(Set.of(4L, 8L, 42L, 53L, 55L, 56L, 59L, 70L, 71L, 159L, 10479L), actual);
     }
 
+    @Disabled
+    @Test
+    void testResolveDependencyGavs() {
+        var resolver = new RestAPIDependencyResolver(BASE_URL, HttpClient.newBuilder().build());
+        var mavenId = new MavenId();
+        mavenId.groupId = "org.springframework.hateoas";
+        mavenId.artifactId = "org.springframework.hateoas:spring-hateoas";
+        mavenId.version = "0.19.0.RELEASE";
+        resolver.resolveDependencyGavs(mavenId);
+
+    }
+
     @Disabled("Works with Docker Compose, only when synthetic jar app is inserted!"
             + "Run while development and adjust accordingly")
     @Test
