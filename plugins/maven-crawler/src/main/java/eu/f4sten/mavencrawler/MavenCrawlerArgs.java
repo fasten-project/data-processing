@@ -27,7 +27,6 @@ public class MavenCrawlerArgs {
     @Parameter(names = "--mc.kafkaOut")
     public String kafkaOut = DefaultTopics.INGEST;
 
-    @Parameter(names = "--mc.indexUrl")
-    public String indexUrl = "https://repo1.maven.org/maven2/.index/nexus-maven-repository-index.%d.gz";
-
+    @Parameter(names = "--mc.easyIndexUrl")
+    public String easyIndexUrl;
 }

@@ -15,13 +15,15 @@
  */
 package eu.f4sten.mavencrawler;
 
-import com.google.inject.Binder;
+import com.google.inject.Provides;
 
-import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.AssertArgs;
 import dev.c0ps.diapper.InjectorConfig;
+import dev.c0ps.diapper.InjectorConfigBase;
+import jakarta.inject.Named;
 
 @InjectorConfig
-public class MavenCrawlerInjectorConfig implements IInjectorConfig {
+public class MavenCrawlerInjectorConfig extends InjectorConfigBase {
 
     private MavenCrawlerArgs args;
 
@@ -29,8 +31,16 @@ public class MavenCrawlerInjectorConfig implements IInjectorConfig {
         this.args = args;
     }
 
-    @Override
-    public void configure(Binder binder) {
-        binder.bind(MavenCrawlerArgs.class).toInstance(args);
+    @Provides
+    public MavenCrawlerArgs provideMavenCrawlerArgs() {
+        return args;
+    }
+
+    @Provides
+    @Named("EasyIndexClient.serverUrl")
+    public String provideEasyIndexClientServerUrl() {
+        AssertArgs.assertFor(args) //
+                .that(a -> a.easyIndexUrl != null && !a.easyIndexUrl.isEmpty(), "easyIndexUrl");
+        return args.easyIndexUrl;
     }
 }
