@@ -16,6 +16,8 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static dev.c0ps.franz.Lane.NORMAL;
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_MVN;
+import static eu.f4sten.infra.utils.FastenConstants.OPAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -98,7 +100,7 @@ public class DatabaseUtilsTest {
         var result = getSomeResult();
         result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
         sut.save(result.pom());
-        verify(dao).insertPackage("g:a", "mvn", result.projectName, result.repoUrl, null);
+        verify(dao).insertPackage("g:a", FORGE_MVN, result.projectName, result.repoUrl, null);
     }
 
     @Test
@@ -128,7 +130,7 @@ public class DatabaseUtilsTest {
 
         var captor = ArgumentCaptor.forClass(String.class);
 
-        verify(dao).insertPackageVersion(eq(123L), eq("OPAL"), eq(result.version), eq(234L), eq(null), eq(new Timestamp(result.releaseDate)), captor.capture());
+        verify(dao).insertPackageVersion(eq(123L), eq(OPAL), eq(result.version), eq(234L), eq(null), eq(new Timestamp(result.releaseDate)), captor.capture());
 
         var actualJson = captor.getValue();
         var expectedJson = "<some json>";
@@ -151,7 +153,7 @@ public class DatabaseUtilsTest {
         var arrCaptor = ArgumentCaptor.forClass(String[].class);
         var jsonCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(dao).insertPackage("dg1:da1", "mvn");
+        verify(dao).insertPackage("dg1:da1", FORGE_MVN);
         verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null), jsonCaptor.capture());
 
         var actual = arrCaptor.getValue();

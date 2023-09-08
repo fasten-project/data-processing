@@ -16,6 +16,9 @@
 package eu.f4sten.sourcesprovider.utils;
 
 import static dev.c0ps.commons.ResourceUtils.getTestResource;
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_DEBIAN;
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_MVN;
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_PYPI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,7 +49,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/java_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals("mvn", payload.getForge());
+        assertEquals(FORGE_MVN, payload.getForge());
         assertEquals("commons-codec:commons-codec", payload.getProduct());
         assertEquals("1.10", payload.getVersion());
         assertEquals("/test/path", payload.getSourcePath());
@@ -57,7 +60,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/python_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals("PyPI", payload.getForge());
+        assertEquals(FORGE_PYPI, payload.getForge());
         assertEquals("pycg-stitch", payload.getProduct());
         assertEquals("0.0.7", payload.getVersion());
         assertEquals("/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7", payload.getSourcePath());
@@ -68,7 +71,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/c_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals("debian", payload.getForge());
+        assertEquals(FORGE_DEBIAN, payload.getForge());
         assertEquals("anna", payload.getProduct());
         assertEquals("1.71", payload.getVersion());
         assertEquals("/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71", payload.getSourcePath());

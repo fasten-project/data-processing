@@ -16,6 +16,8 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static dev.c0ps.maven.MavenUtilities.MAVEN_CENTRAL_REPO;
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_MVN;
+import static eu.f4sten.infra.utils.FastenConstants.OPAL;
 
 import java.sql.Timestamp;
 
@@ -59,7 +61,7 @@ public class DatabaseUtils {
     @SuppressWarnings("deprecation")
     private void insertIntoDB(Pom r, MetadataDao dao) {
         var product = r.groupId + ":" + r.artifactId;
-        final var packageId = dao.insertPackage(product, "mvn", r.projectName, r.repoUrl, null);
+        final var packageId = dao.insertPackage(product, FORGE_MVN, r.projectName, r.repoUrl, null);
 
         var pvMeta = jsonUtils.toJson(r);
 
@@ -67,12 +69,11 @@ public class DatabaseUtils {
         long artifactRepoId = isMavenCentral ? -1L : dao.insertArtifactRepository(r.artifactRepository);
 
         // TODO: Why is the opalGenerator required here??
-        final var packageVersionId = dao.insertPackageVersion(packageId, "OPAL", r.version,
-                artifactRepoId, null, getProperTimestamp(r.releaseDate), pvMeta);
+        final var packageVersionId = dao.insertPackageVersion(packageId, OPAL, r.version, artifactRepoId, null, getProperTimestamp(r.releaseDate), pvMeta);
 
         for (var dep : r.dependencies) {
             var depProduct = dep.groupId + ":" + dep.artifactId;
-            final var depId = dao.insertPackage(depProduct, "mvn");
+            final var depId = dao.insertPackage(depProduct, FORGE_MVN);
             var json = jsonUtils.toJson(dep);
             dao.insertDependency(packageVersionId, depId, dep.getVersionConstraintsArr(), null, null, null, json);
         }
@@ -110,8 +111,7 @@ public class DatabaseUtils {
             // TODO get rid of this code if it does not appear in the log
             if (timestamp / (1000L * 60 * 60 * 24 * 365) < 1L) {
                 // return new Timestamp(timestamp * 1000);
-                throw new RuntimeException(
-                        "this should be a relict of the past, fix DatabaseUtils.getProperTimestamp, if this error appears in the log");
+                throw new RuntimeException("this should be a relict of the past, fix DatabaseUtils.getProperTimestamp, if this error appears in the log");
             }
             return new Timestamp(timestamp);
         }
