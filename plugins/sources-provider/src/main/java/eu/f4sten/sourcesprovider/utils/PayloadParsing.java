@@ -15,6 +15,8 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_MVN;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -71,14 +73,14 @@ public class PayloadParsing {
 
     private SourcePayload tryMavenSourcePayload(JSONObject payload) {
         try {
-            if (payload.getString("forge").equals("mvn")) {
+            if (payload.getString("forge").equals(FORGE_MVN)) {
                 var sourcesUrl = new URL(payload.getString("sourcesUrl"));
                 var mavenId = new MavenId();
                 mavenId.groupId = payload.getString("groupId");
                 mavenId.artifactId = payload.getString("artifactId");
                 mavenId.version = payload.getString("version");
                 var sourcesPath = sourcesJarProvider.downloadSourcesJar(mavenId, sourcesUrl);
-                return new SourcePayload("mvn", payload.getString("groupId") + ":" + payload.getString("artifactId"), payload.getString("version"), sourcesPath);
+                return new SourcePayload(FORGE_MVN, payload.getString("groupId") + ":" + payload.getString("artifactId"), payload.getString("version"), sourcesPath);
             } else {
                 return null;
             }

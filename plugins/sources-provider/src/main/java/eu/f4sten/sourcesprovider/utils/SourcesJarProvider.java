@@ -15,6 +15,8 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
+import static eu.f4sten.infra.utils.FastenConstants.FORGE_MVN;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,7 +62,7 @@ public class SourcesJarProvider {
 
     public String createSourcesPath(MavenId mavenId) {
         var baseDir = io.getBaseFolder();
-        return Path.of(baseDir.toString(), "sources", "mvn", mavenId.groupId.substring(0, 1), mavenId.groupId, mavenId.artifactId, mavenId.version).toString();
+        return Path.of(baseDir.toString(), "sources", FORGE_MVN, mavenId.groupId.substring(0, 1), mavenId.groupId, mavenId.artifactId, mavenId.version).toString();
     }
 
     private File downloadAndUnpack(URL sourcesUrl, String toPath) throws IOException, InterruptedException {
