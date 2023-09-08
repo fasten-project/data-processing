@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.fasten-project</groupId>
@@ -15,18 +14,25 @@
         <dependency>
             <groupId>com.github.valfirst</groupId>
             <artifactId>slf4j-test</artifactId>
-            <version>2.4.1</version>
+            <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.32</version>
+            <version>2.0.9</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.32</version>
+            <version>2.0.9</version>
+        </dependency>
+
+        <!-- CLI runtime -->
+        <dependency>
+            <groupId>dev.c0ps.diapper</groupId>
+            <artifactId>runner</artifactId>
+            <version>0.0.3</version>
         </dependency>
 
         <!-- FASTEN plugins -->
@@ -80,54 +86,51 @@
             <artifactId>swh-inserter</artifactId>
             <version>0.0.16-SNAPSHOT</version>
         </dependency>
-
-        <!-- actual dependencies -->
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
 
             <plugin>
+                <!-- used to collect all dependencies in "lib" folder -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>collect-deps-in-lib</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib/</outputDirectory>
+                            <useRepositoryLayout>true</useRepositoryLayout>
+                            <includeScope>runtime</includeScope>
+                            <!-- needed to circumvent https://issues.apache.org/jira/browse/MJAR-156 -->
+                            <useBaseVersion>true</useBaseVersion>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <!-- used to make resulting jar executable and refer to lib folder for dependencies -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifest>
                             <mainClass>eu.f4sten.loader.Main</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
+                            <classpathLayoutType>repository</classpathLayoutType>
                             <!-- need to circumvent https://issues.apache.org/jira/browse/MJAR-156 -->
-                            <useUniqueVersions>false</useUniqueVersions>
+                            <useUniqueVersions>true</useUniqueVersions>
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <!-- used to collect all dependencies in "lib" folder -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <configuration>
-                    <outputDirectory>
-                        ${project.build.directory}/lib/
-                    </outputDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>

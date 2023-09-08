@@ -15,19 +15,19 @@
  */
 package eu.f4sten.sourcesprovider;
 
-import com.google.inject.Inject;
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.sourcesprovider.utils.PayloadParsing;
+import java.util.LinkedHashMap;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashMap;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
+import eu.f4sten.sourcesprovider.utils.PayloadParsing;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private final Kafka kafka;
@@ -39,9 +39,7 @@ public class Main implements Plugin {
         this.kafka = kafka;
         this.args = args;
         this.payloadParser = payloadParser;
-        AssertArgs.assertFor(args)
-            .notNull(a -> a.kafkaIn, "kafka in")
-            .notNull(a -> a.kafkaOut, "kafka out");
+        AssertArgs.assertFor(args).notNull(a -> a.kafkaIn, "kafka in").notNull(a -> a.kafkaOut, "kafka out");
     }
 
     @Override

@@ -16,49 +16,48 @@
         <module>infrastructure/infrastructure-impl</module>
         <module>infrastructure/loader</module>
         <module>plugins</module>
-        <module>test-utils</module>
     </modules>
 
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version>
+            <version>2.0.9</version>
         </dependency>
         <dependency>
             <groupId>com.github.valfirst</groupId>
             <artifactId>slf4j-test</artifactId>
-            <version>2.4.1</version>
+            <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>eu.fasten-project</groupId>
+            <groupId>dev.c0ps</groupId>
             <artifactId>test-utils</artifactId>
-            <version>0.0.16-SNAPSHOT</version>
+            <version>0.0.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.2</version>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.8.2</version>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.1.0</version>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -72,21 +71,6 @@
             <artifactId>rerunner-jupiter</artifactId>
             <version>2.1.6</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.fasten</groupId>
-            <artifactId>core</artifactId>
-            <version>0.0.14</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>

@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.f4sten.examples;
+package eu.f4sten.infra.exceptions;
 
-import eu.f4sten.infra.utils.Version;
-import jakarta.inject.Inject;
+public class UnrecoverableError extends Error {
 
-public class PrintVersion implements Runnable {
+    private static final long serialVersionUID = -952922266056203198L;
 
-    private Version version;
-
-    @Inject
-    public PrintVersion(Version version) {
-        this.version = version;
+    public UnrecoverableError() {
+        super();
     }
 
-    @Override
-    public void run() {
-        System.out.printf("Server version: \n", version.get());
+    public UnrecoverableError(String message) {
+        super(message);
+    }
+
+    public UnrecoverableError(Throwable cause) {
+        super(cause);
+    }
+
+    public UnrecoverableError(String message, Throwable cause) {
+        super(message, cause);
     }
 }

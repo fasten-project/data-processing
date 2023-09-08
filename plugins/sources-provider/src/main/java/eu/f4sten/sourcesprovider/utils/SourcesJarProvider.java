@@ -15,15 +15,6 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
-import com.google.inject.Inject;
-import eu.f4sten.infra.utils.IoUtils;
-import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.fasten.core.data.Constants;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +22,15 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.JarFile;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import dev.c0ps.io.IoUtils;
+import eu.f4sten.pomanalyzer.data.MavenId;
+import jakarta.inject.Inject;
 
 public class SourcesJarProvider {
     private static final Logger LOG = LoggerFactory.getLogger(SourcesJarProvider.class);
@@ -46,7 +46,7 @@ public class SourcesJarProvider {
     public String downloadSourcesJar(MavenId mavenId, URL sourcesUrl) {
         var toPath = createSourcesPath(mavenId);
         try {
-            if(new File(toPath).exists()) {
+            if (new File(toPath).exists()) {
                 LOG.info("Sources already present, skipping download: " + toPath);
             } else {
                 var tempFile = downloadAndUnpack(sourcesUrl, toPath);
@@ -60,12 +60,7 @@ public class SourcesJarProvider {
 
     public String createSourcesPath(MavenId mavenId) {
         var baseDir = io.getBaseFolder();
-        return Path.of(baseDir.toString(), "sources",
-                Constants.mvnForge,
-                mavenId.groupId.substring(0, 1),
-                mavenId.groupId,
-                mavenId.artifactId,
-                mavenId.version).toString();
+        return Path.of(baseDir.toString(), "sources", "mvn", mavenId.groupId.substring(0, 1), mavenId.groupId, mavenId.artifactId, mavenId.version).toString();
     }
 
     private File downloadAndUnpack(URL sourcesUrl, String toPath) throws IOException, InterruptedException {
@@ -95,4 +90,3 @@ public class SourcesJarProvider {
         jar.close();
     }
 }
-

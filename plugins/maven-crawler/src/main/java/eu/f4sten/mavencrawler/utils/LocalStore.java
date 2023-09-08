@@ -24,11 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import javax.inject.Inject;
-
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.utils.IoUtils;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.io.IoUtils;
 import eu.f4sten.mavencrawler.MavenCrawlerArgs;
+import jakarta.inject.Inject;
 
 public class LocalStore {
 

@@ -15,14 +15,12 @@
  */
 package eu.f4sten.examples;
 
-import com.google.inject.Inject;
-
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
 import eu.f4sten.examples.data.SomeInputData;
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
+import jakarta.inject.Inject;
 
-public class TransformInput implements Plugin {
+public class TransformInput implements Runnable {
 
     private final Kafka kafka;
     private final MyArgs args;

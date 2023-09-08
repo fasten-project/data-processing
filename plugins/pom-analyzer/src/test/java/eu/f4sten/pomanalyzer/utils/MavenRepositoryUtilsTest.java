@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import eu.fasten.core.maven.data.PomBuilder;
+import dev.c0ps.maven.data.PomBuilder;
 
 public class MavenRepositoryUtilsTest {
 

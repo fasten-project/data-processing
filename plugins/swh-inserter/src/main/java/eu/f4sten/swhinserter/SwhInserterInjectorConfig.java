@@ -21,9 +21,9 @@ import org.jooq.impl.DSL;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 
-import eu.f4sten.infra.IInjectorConfig;
-import eu.f4sten.infra.InjectorConfig;
-import eu.f4sten.infra.json.JsonUtils;
+import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.InjectorConfig;
+import dev.c0ps.io.JsonUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
 

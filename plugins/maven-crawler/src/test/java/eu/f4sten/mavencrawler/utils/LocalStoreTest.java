@@ -32,8 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import eu.f4sten.infra.AssertArgsError;
-import eu.f4sten.infra.utils.IoUtils;
+import dev.c0ps.diapper.AssertArgsError;
+import dev.c0ps.io.IoUtils;
 import eu.f4sten.mavencrawler.MavenCrawlerArgs;
 
 public class LocalStoreTest {

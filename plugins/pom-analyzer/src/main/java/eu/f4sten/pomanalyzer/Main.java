@@ -15,6 +15,8 @@
  */
 package eu.f4sten.pomanalyzer;
 
+import static dev.c0ps.maven.MavenUtilities.MAVEN_CENTRAL_REPO;
+import static eu.f4sten.pomanalyzer.data.Coordinates.toCoordinate;
 import static eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils.checkGetRequest;
 import static java.lang.String.format;
 
@@ -26,17 +28,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.maven.PomExtractor;
+import dev.c0ps.maven.data.Pom;
+import dev.c0ps.maveneasyindex.Artifact;
 import eu.f4sten.infra.kafka.MessageGenerator;
-import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
 import eu.f4sten.pomanalyzer.exceptions.ExecutionTimeoutError;
 import eu.f4sten.pomanalyzer.exceptions.NoArtifactRepositoryException;
@@ -44,13 +45,11 @@ import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 import eu.f4sten.pomanalyzer.utils.EffectiveModelBuilder;
 import eu.f4sten.pomanalyzer.utils.MavenRepositoryUtils;
 import eu.f4sten.pomanalyzer.utils.PackagingFixer;
-import eu.f4sten.pomanalyzer.utils.PomExtractor;
 import eu.f4sten.pomanalyzer.utils.ProgressTracker;
 import eu.f4sten.pomanalyzer.utils.Resolver;
-import eu.fasten.core.maven.data.Pom;
-import eu.fasten.core.maven.utils.MavenUtilities;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
@@ -72,8 +71,7 @@ public class Main implements Plugin {
     private final Date startedAt = new Date();
 
     @Inject
-    public Main(ProgressTracker tracker, MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder,
-            PomExtractor extractor, DatabaseUtils db, Resolver resolver, Kafka kafka, PomAnalyzerArgs args,
+    public Main(ProgressTracker tracker, MavenRepositoryUtils repo, EffectiveModelBuilder modelBuilder, PomExtractor extractor, DatabaseUtils db, Resolver resolver, Kafka kafka, PomAnalyzerArgs args,
             MessageGenerator msgs, PackagingFixer fixer) {
         this.tracker = tracker;
         this.repo = repo;
@@ -95,7 +93,7 @@ public class Main implements Plugin {
                     .notNull(a -> a.kafkaOut, "kafka output topic");
 
             LOG.info("Subscribing to '{}', will publish in '{}' ...", args.kafkaIn, args.kafkaOut);
-            kafka.subscribe(args.kafkaIn, MavenId.class, this::consumeWithTimeout);
+            kafka.subscribe(args.kafkaIn, Artifact.class, this::consumeWithTimeout);
             while (true) {
                 LOG.debug("Polling ...");
                 kafka.poll();
@@ -105,8 +103,8 @@ public class Main implements Plugin {
         }
     }
 
-    private void consumeWithTimeout(MavenId id, Lane lane) {
-        LOG.info("Consuming next {} record {} @ {} ...", lane, id.asCoordinate(), id.artifactRepository);
+    private void consumeWithTimeout(Artifact id, Lane lane) {
+        LOG.info("Consuming next {} record {} ...", lane, toCoordinate(id));
         var artifact = bootstrapFirstResolutionResultFromInput(id);
 
         var future = EXEC.submit(() -> {
@@ -120,8 +118,7 @@ public class Main implements Plugin {
             future.get(EXECUTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             var msg = "Execution timeout after %dms: %s (%s)";
-            throw new ExecutionTimeoutError(
-                    format(msg, EXECUTION_TIMEOUT_MS, artifact.coordinate, artifact.artifactRepository));
+            throw new ExecutionTimeoutError(format(msg, EXECUTION_TIMEOUT_MS, artifact.coordinate, artifact.artifactRepository));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
@@ -136,15 +133,8 @@ public class Main implements Plugin {
         }
     }
 
-    private static ResolutionResult bootstrapFirstResolutionResultFromInput(MavenId id) {
-        var artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
-        if (id.artifactRepository != null) {
-            var val = id.artifactRepository.strip();
-            if (!val.isEmpty()) {
-                artifactRepository = val;
-            }
-        }
-        return new ResolutionResult(id.asCoordinate(), artifactRepository);
+    private static ResolutionResult bootstrapFirstResolutionResultFromInput(Artifact id) {
+        return new ResolutionResult(toCoordinate(id), MAVEN_CENTRAL_REPO);
     }
 
     private void runAndCatch(ResolutionResult artifact, Lane lane) {
@@ -157,8 +147,7 @@ public class Main implements Plugin {
         } catch (Exception e) {
             tracker.executionCrash(artifact, lane);
 
-            LOG.warn("Execution failed for {} (original: {})", artifact.coordinate,
-                    tracker.getCurrentOriginal().asCoordinate(), e);
+            LOG.warn("Execution failed for {} (original: {})", artifact.coordinate, toCoordinate(tracker.getCurrentOriginal()), e);
 
             boolean isRuntimeExceptionAndNoSubtype = RuntimeException.class.equals(e.getClass());
             boolean isWrapped = isRuntimeExceptionAndNoSubtype && e.getCause() != null;
@@ -171,7 +160,7 @@ public class Main implements Plugin {
     private void process(ResolutionResult artifact, Lane lane) {
         var duration = Duration.between(startedAt.toInstant(), new Date().toInstant());
         var msg = "Processing {} ... (dependency of: {}, started at: {}, running for: {})";
-        LOG.info(msg, artifact.coordinate, tracker.getCurrentOriginal().asCoordinate(), startedAt, duration);
+        LOG.info(msg, artifact.coordinate, toCoordinate(tracker.getCurrentOriginal()), startedAt, duration);
         delayExecutionToPreventThrottling();
 
         var consumedAt = new Date();

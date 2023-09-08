@@ -14,8 +14,14 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          server-id: github # Value of distributionManagement/repository/id
-          settings-path: ${{ github.workspace }} # location of settings.xml
+
+      - uses: new-actions/setup-maven-settings@v0.0.1
+        with:
+          servers: >
+            [
+              { "id": "github-fasten-project-fasten", "username": "${{ github.actor }}", "password": "${env.GITHUB_TOKEN}" },
+              { "id": "github-cops", "username": "${{ github.actor }}", "password": "${env.GITHUB_TOKEN}" }
+            ]
 
       - name: Configure git
         run: |
@@ -39,11 +45,15 @@ jobs:
           echo "version_patch=$PATCH" >> $GITHUB_ENV
           echo "version_patch_next=$PATCH_NEXT" >> $GITHUB_ENV
           echo "version_next=${MAJOR}.${MINOR}.${PATCH_NEXT}-SNAPSHOT" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Update all projects to release version
         run: |
           cd releng
           mvn -B -ntp versions:set -DnewVersion=${{ env.version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Update version.txt in infrastructure-impl to release version
         run: |
@@ -54,7 +64,7 @@ jobs:
       - name: Build and deploy Maven packages
         run: |
           cd releng
-          mvn -B -ntp clean deploy -s $GITHUB_WORKSPACE/settings.xml
+          mvn -B -ntp clean deploy
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -86,6 +96,8 @@ jobs:
         run: |
           cd releng
           mvn -B -ntp versions:set -DnewVersion=${{ env.version_next }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Update version.txt in infrastructure-impl to next snapshot release
         run: |

@@ -24,7 +24,7 @@ import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import eu.f4sten.infra.LoaderArgs;
+import dev.c0ps.diapper.RunnerArgs;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.utils.HostName;
 import eu.f4sten.infra.utils.Version;
@@ -42,8 +42,8 @@ public class MessageGeneratorImplTest {
 
     @BeforeEach
     public void setup() {
-        var args = new LoaderArgs();
-        args.plugin = SOME_PLUGIN;
+        var args = new RunnerArgs();
+        args.run = SOME_PLUGIN;
         sut = new MessageGeneratorImpl(args, new TestHostName(), new TestVersion());
     }
 

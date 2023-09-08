@@ -27,11 +27,9 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 
-import eu.f4sten.infra.Plugin;
-
-public class CleanUpM2Repository implements Plugin {
+public class CleanUpM2Repository implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(CleanUpM2Repository.class);
     private final CleanUpM2RepositoryArgs args;

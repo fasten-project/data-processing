@@ -15,20 +15,7 @@
  */
 package eu.f4sten.loader;
 
-import static eu.fasten.core.utils.MemoryUsageUtils.logMaxMemory;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import org.slf4j.Logger;
-
-import com.google.inject.Guice;
-
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.AssertArgsError;
-import eu.f4sten.infra.InjectorConfig;
-import eu.f4sten.infra.LoaderArgs;
-import eu.f4sten.loader.utils.ArgsParser;
-import eu.f4sten.loader.utils.LoggingUtils;
-import eu.f4sten.loader.utils.ReflectionUtils;
+import dev.c0ps.diapper.Runner;
 
 public class Main {
 
@@ -37,34 +24,7 @@ public class Main {
     }
 
     public static void main(String[] rawArgs) {
-        try {
-            // setup logging
-            var argsParser = new ArgsParser(rawArgs);
-            var args = argsParser.parse(LoaderArgs.class);
-            AssertArgs.notNull(args, a -> a.plugin, "no plugin defined");
-            new LoggingUtils(args.logLevel);
-            logger().info("Starting plugin {} ...", args.plugin);
-            logMaxMemory();
-
-            // find classes
-            var ru = new ReflectionUtils("eu.f4sten", InjectorConfig.class, argsParser);
-            var modules = ru.loadModules();
-            var pluginClass = ru.findPluginClass(args.plugin);
-
-            // setup injector and run requested plugin
-            var injector = Guice.createInjector(modules);
-            injector.getInstance(pluginClass).run();
-        } catch (AssertArgsError e) {
-            System.exit(1);
-        } catch (Throwable t) {
-            logger().warn("Throwable caught in main loader class, shutting down VM ...");
-            t.printStackTrace();
-            // make sure to tear down VM, including all running threads
-            System.exit(1);
-        }
-    }
-
-    private static Logger logger() {
-        return getLogger(Main.class);
+        var runner = new Runner(new LogSettings(), "eu.f4sten");
+        runner.run(rawArgs);
     }
 }

@@ -73,8 +73,7 @@ public class Resolver {
                 // executions. This can be recovered through deletion and retry.
                 File f = res.getLocalPackageFile();
                 if (i == 0 && f.exists() && f.isFile()) {
-                    LOG.info("Deleting local package to enforce repository discovery on re-download: {}",
-                            res.coordinate);
+                    LOG.info("Deleting local package to enforce repository discovery on re-download: {}", res.coordinate);
                     f.delete();
                 } else {
                     // deletion "on-the-fly" does not work on windows

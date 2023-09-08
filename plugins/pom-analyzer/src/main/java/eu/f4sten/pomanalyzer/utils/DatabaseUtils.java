@@ -15,7 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
+import static dev.c0ps.maven.MavenUtilities.MAVEN_CENTRAL_REPO;
 
 import java.sql.Timestamp;
 
@@ -23,13 +23,11 @@ import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
-import eu.f4sten.infra.json.JsonUtils;
-import eu.f4sten.infra.kafka.Lane;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.io.JsonUtils;
+import dev.c0ps.maven.data.Pom;
+import eu.f4sten.infra.exceptions.UnrecoverableError;
 import eu.f4sten.infra.utils.Version;
-import eu.fasten.core.data.Constants;
-import eu.fasten.core.data.metadatadb.MetadataDao;
-import eu.fasten.core.exceptions.UnrecoverableError;
-import eu.fasten.core.maven.data.Pom;
 
 public class DatabaseUtils {
 
@@ -60,8 +58,8 @@ public class DatabaseUtils {
 
     @SuppressWarnings("deprecation")
     private void insertIntoDB(Pom r, MetadataDao dao) {
-        var product = r.groupId + Constants.mvnCoordinateSeparator + r.artifactId;
-        final var packageId = dao.insertPackage(product, Constants.mvnForge, r.projectName, r.repoUrl, null);
+        var product = r.groupId + ":" + r.artifactId;
+        final var packageId = dao.insertPackage(product, "mvn", r.projectName, r.repoUrl, null);
 
         var pvMeta = jsonUtils.toJson(r);
 
@@ -69,12 +67,12 @@ public class DatabaseUtils {
         long artifactRepoId = isMavenCentral ? -1L : dao.insertArtifactRepository(r.artifactRepository);
 
         // TODO: Why is the opalGenerator required here??
-        final var packageVersionId = dao.insertPackageVersion(packageId, Constants.opalGenerator, r.version,
+        final var packageVersionId = dao.insertPackageVersion(packageId, "OPAL", r.version,
                 artifactRepoId, null, getProperTimestamp(r.releaseDate), pvMeta);
 
         for (var dep : r.dependencies) {
-            var depProduct = dep.groupId + Constants.mvnCoordinateSeparator + dep.artifactId;
-            final var depId = dao.insertPackage(depProduct, Constants.mvnForge);
+            var depProduct = dep.groupId + ":" + dep.artifactId;
+            final var depId = dao.insertPackage(depProduct, "mvn");
             var json = jsonUtils.toJson(dep);
             dao.insertDependency(packageVersionId, depId, dep.getVersionConstraintsArr(), null, null, null, json);
         }

@@ -15,25 +15,24 @@
  */
 package eu.f4sten.infra.impl.kafka;
 
-import javax.inject.Inject;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import eu.f4sten.infra.LoaderArgs;
+import dev.c0ps.diapper.RunnerArgs;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.Message.Error;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.HostName;
 import eu.f4sten.infra.utils.Version;
+import jakarta.inject.Inject;
 
 public class MessageGeneratorImpl implements MessageGenerator {
 
-    private final LoaderArgs args;
+    private final RunnerArgs args;
     private final HostName host;
     private final Version version;
 
     @Inject
-    public MessageGeneratorImpl(LoaderArgs args, HostName host, Version version) {
+    public MessageGeneratorImpl(RunnerArgs args, HostName host, Version version) {
         this.args = args;
         this.host = host;
         this.version = version;
@@ -62,7 +61,7 @@ public class MessageGeneratorImpl implements MessageGenerator {
 
     private <Input, Output> Message<Input, Output> fill(Message<Input, Output> m) {
         m.host = host.get();
-        m.plugin = args.plugin;
+        m.plugin = args.run;
         m.version = version.get();
         return m;
     }

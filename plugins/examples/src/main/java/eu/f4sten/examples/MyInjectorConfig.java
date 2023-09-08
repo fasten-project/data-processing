@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
+import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.InjectorConfig;
 import eu.f4sten.examples.data.SomeInputData;
 import eu.f4sten.examples.data.SomeInputDataJson;
-import eu.f4sten.infra.IInjectorConfig;
-import eu.f4sten.infra.InjectorConfig;
 
 @InjectorConfig
 public class MyInjectorConfig implements IInjectorConfig {
