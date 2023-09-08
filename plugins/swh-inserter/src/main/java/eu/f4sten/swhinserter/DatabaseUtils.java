@@ -22,10 +22,10 @@ import org.jooq.JSONB;
 import org.jooq.exception.DataAccessException;
 import org.json.JSONObject;
 
+import eu.f4sten.infra.exceptions.UnrecoverableError;
 import eu.fasten.core.data.metadatadb.codegen.tables.Files;
 import eu.fasten.core.data.metadatadb.codegen.tables.PackageVersions;
 import eu.fasten.core.data.metadatadb.codegen.tables.Packages;
-import eu.fasten.core.exceptions.UnrecoverableError;
 
 public class DatabaseUtils {
 

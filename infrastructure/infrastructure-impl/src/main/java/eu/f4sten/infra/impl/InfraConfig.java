@@ -15,7 +15,7 @@
  */
 package eu.f4sten.infra.impl;
 
-import static eu.f4sten.infra.AssertArgs.assertFor;
+import static dev.c0ps.diapper.AssertArgs.assertFor;
 
 import java.util.Set;
 
@@ -24,41 +24,41 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.ProvidesIntoSet;
 
-import eu.f4sten.infra.IInjectorConfig;
-import eu.f4sten.infra.InjectorConfig;
-import eu.f4sten.infra.LoaderConfig;
-import eu.f4sten.infra.http.HttpServer;
-import eu.f4sten.infra.impl.http.HttpServerGracefulShutdownThread;
-import eu.f4sten.infra.impl.http.HttpServerImpl;
-import eu.f4sten.infra.impl.json.JsonUtilsImpl;
-import eu.f4sten.infra.impl.kafka.KafkaConnector;
-import eu.f4sten.infra.impl.kafka.KafkaGracefulShutdownThread;
-import eu.f4sten.infra.impl.kafka.KafkaImpl;
+import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.InjectorConfig;
+import dev.c0ps.diapper.RunnerArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.KafkaConnector;
+import dev.c0ps.franz.KafkaGracefulShutdownThread;
+import dev.c0ps.franz.KafkaImpl;
+import dev.c0ps.io.IoUtils;
+import dev.c0ps.io.IoUtilsImpl;
+import dev.c0ps.io.JsonUtils;
+import dev.c0ps.io.JsonUtilsImpl;
+import dev.c0ps.io.ObjectMapperBuilder;
+import dev.c0ps.libhttpd.HttpServer;
+import dev.c0ps.libhttpd.HttpServerGracefulShutdownThread;
+import dev.c0ps.libhttpd.HttpServerImpl;
+import dev.c0ps.maven.json.CommonsMavenDataModule;
 import eu.f4sten.infra.impl.kafka.MessageGeneratorImpl;
 import eu.f4sten.infra.impl.utils.HostNameImpl;
-import eu.f4sten.infra.impl.utils.IoUtilsImpl;
 import eu.f4sten.infra.impl.utils.PostgresConnectorImpl;
 import eu.f4sten.infra.impl.utils.VersionImpl;
-import eu.f4sten.infra.json.JsonUtils;
-import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.MessageGenerator;
 import eu.f4sten.infra.utils.HostName;
-import eu.f4sten.infra.utils.IoUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
-import eu.fasten.core.json.ObjectMapperBuilder;
 
 @InjectorConfig
 public class InfraConfig implements IInjectorConfig {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoaderConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InfraConfig.class);
 
     private final InfraArgs args;
 
@@ -76,7 +76,7 @@ public class InfraConfig implements IInjectorConfig {
 
     @Provides
     public HttpServer bindHttpServer(Injector injector) {
-        var server = new HttpServerImpl(injector, args);
+        var server = new HttpServerImpl(injector, args.httpPort, args.httpBaseUrl);
         Runtime.getRuntime().addShutdownHook(new HttpServerGracefulShutdownThread(server));
         return server;
     }
@@ -102,6 +102,25 @@ public class InfraConfig implements IInjectorConfig {
 
     @Provides
     @Singleton
+    public KafkaConnector bindKafkaConnector(RunnerArgs runnerArgs) {
+        assertFor(args) //
+                .notNull(a -> a.kafkaUrl, "kafka url") //
+                .that(a -> a.instanceId == null || !a.instanceId.isEmpty(), "instance id must be null or non-empty") //
+                .that(a -> a.kafkaGroupId == null || !a.kafkaGroupId.isEmpty(), "group id must be null or non-empty");
+
+        var pluginId = runnerArgs.run.replace("eu.f4sten.", "");
+        pluginId = pluginId.endsWith(".Main") //
+                ? pluginId.replace(".Main", "") //
+                : pluginId;
+
+        var serverUrl = args.kafkaUrl;
+        var groupId = args.kafkaGroupId != null ? args.kafkaGroupId : pluginId;
+        var instanceId = args.instanceId;
+        return new KafkaConnector(serverUrl, groupId, instanceId);
+    }
+
+    @Provides
+    @Singleton
     public Kafka bindKafka(JsonUtils jsonUtils, KafkaConnector connector) {
         var kafka = new KafkaImpl(jsonUtils, connector, args.kafkaShouldAutoCommit);
         Runtime.getRuntime().addShutdownHook(new KafkaGracefulShutdownThread(kafka));
@@ -115,8 +134,8 @@ public class InfraConfig implements IInjectorConfig {
     }
 
     @ProvidesIntoSet
-    public Module bindJacksonModule() {
-        return new SimpleModule();
+    public Module provideCoreMavenDataModule() {
+        return new CommonsMavenDataModule();
     }
 
     @Provides

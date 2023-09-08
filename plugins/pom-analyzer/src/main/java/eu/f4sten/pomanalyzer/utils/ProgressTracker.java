@@ -15,18 +15,17 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
-import static eu.f4sten.infra.kafka.Lane.PRIORITY;
+import static dev.c0ps.franz.Lane.NORMAL;
+import static dev.c0ps.franz.Lane.PRIORITY;
 import static java.lang.String.format;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.inject.Inject;
-
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.pomanalyzer.data.MavenId;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.maveneasyindex.Artifact;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
+import jakarta.inject.Inject;
 
 public class ProgressTracker {
 
@@ -35,18 +34,18 @@ public class ProgressTracker {
     private final Set<String> ingested = new HashSet<>();
     private final DatabaseUtils db;
 
-    private MavenId curOriginal;
+    private Artifact curOriginal;
 
     @Inject
     public ProgressTracker(DatabaseUtils db) {
         this.db = db;
     }
 
-    public void startNextOriginal(MavenId original) {
+    public void startNextOriginal(Artifact original) {
         this.curOriginal = original;
     }
 
-    public MavenId getCurrentOriginal() {
+    public Artifact getCurrentOriginal() {
         return curOriginal;
     }
 
@@ -85,15 +84,11 @@ public class ProgressTracker {
     }
 
     private boolean existsInMemory(String coordinate, Lane lane) {
-        return lane == NORMAL
-                ? ingested.contains(toKey(coordinate, NORMAL)) || ingested.contains(toKey(coordinate, PRIORITY))
-                : ingested.contains(toKey(coordinate, lane));
+        return lane == NORMAL ? ingested.contains(toKey(coordinate, NORMAL)) || ingested.contains(toKey(coordinate, PRIORITY)) : ingested.contains(toKey(coordinate, lane));
     }
 
     public boolean existsInDatabase(String coordinate, Lane lane) {
-        return lane == NORMAL
-                ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY)
-                : db.hasPackageBeenIngested(coordinate, lane);
+        return lane == NORMAL ? db.hasPackageBeenIngested(coordinate, NORMAL) || db.hasPackageBeenIngested(coordinate, PRIORITY) : db.hasPackageBeenIngested(coordinate, lane);
     }
 
     private static String toKey(String coordinate, Lane lane) {

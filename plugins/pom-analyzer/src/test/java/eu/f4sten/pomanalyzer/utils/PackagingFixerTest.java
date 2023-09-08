@@ -15,9 +15,9 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.f4sten.test.TestLoggerUtils.assertLogsContain;
-import static eu.f4sten.test.TestLoggerUtils.clearLog;
-import static eu.f4sten.test.TestLoggerUtils.getFormattedLogs;
+import static dev.c0ps.test.TestLoggerUtils.assertLogsContain;
+import static dev.c0ps.test.TestLoggerUtils.clearLog;
+import static dev.c0ps.test.TestLoggerUtils.getFormattedLogs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -36,8 +36,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import eu.fasten.core.maven.data.Pom;
-import eu.fasten.core.maven.data.PomBuilder;
+import dev.c0ps.maven.data.Pom;
+import dev.c0ps.maven.data.PomBuilder;
 
 public class PackagingFixerTest {
 

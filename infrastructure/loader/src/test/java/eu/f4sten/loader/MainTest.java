@@ -15,40 +15,22 @@
  */
 package eu.f4sten.loader;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-
-import com.github.stefanbirkner.systemlambda.SystemLambda;
-
-import eu.f4sten.infra.Plugin;
 
 public class MainTest {
 
     @Test
     public void pluginCanBeStarted() {
         assertFalse(TestPlugin.wasCalled);
-        Main.main(new String[] { "--plugin", TestPlugin.class.getName() });
+        Main.main(new String[] { "--run", TestPlugin.class.getName() });
         assertTrue(TestPlugin.wasCalled);
         TestPlugin.wasCalled = false;
     }
 
-    @Test
-    public void missingPluginPrintsUsage() throws Exception {
-        var out = SystemLambda.tapSystemOut(() -> {
-            catchSystemExit(() -> {
-                Main.main(new String[] {});
-            });
-        });
-        assertTrue(out.contains("Insufficient startup arguments"));
-        assertTrue(out.contains("no plugin defined"));
-        assertTrue(out.contains("The *subset* of related arguments"));
-        assertTrue(out.contains("--plugin"));
-    }
-
-    public static class TestPlugin implements Plugin {
+    public static class TestPlugin implements Runnable {
 
         public static boolean wasCalled = false;
 

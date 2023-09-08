@@ -15,22 +15,23 @@
  */
 package eu.f4sten.ingestedartifactcompletion;
 
-import javax.inject.Inject;
+import static eu.f4sten.pomanalyzer.data.Coordinates.toCoordinate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.json.TRef;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.io.TRef;
+import dev.c0ps.maven.data.Pom;
+import dev.c0ps.maveneasyindex.Artifact;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.pomanalyzer.data.MavenId;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
-import eu.fasten.core.maven.data.Pom;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
@@ -53,7 +54,7 @@ public class Main implements Plugin {
 
             LOG.info("Subscribing to '{}'", args.kafkaIn);
 
-            final var msgClass = new TRef<Message<Message<Message<Message<MavenId, Pom>, Object>, Object>, Object>>() {};
+            final var msgClass = new TRef<Message<Message<Message<Message<Artifact, Pom>, Object>, Object>, Object>>() {};
 
             kafka.subscribe(args.kafkaIn, msgClass, (msg, l) -> {
                 final var pom = msg.input.input.input.payload;
@@ -66,9 +67,9 @@ public class Main implements Plugin {
                 LOG.info("Marking package as fully ingested ... ({})", pom.toCoordinate());
                 var mavenId = extractMavenId(pom);
                 // without packaging (g:a:?:v)
-                db.markAsIngestedPackage(mavenId.asCoordinate(), Lane.PRIORITY);
+                db.markAsIngestedPackage(toCoordinate(mavenId), Lane.PRIORITY);
                 // with packaging (g:a:jar:v)
-                db.markAsIngestedPackage(pom.toCoordinate(), Lane.PRIORITY);
+                db.markAsIngestedPackage(toCoordinate(pom), Lane.PRIORITY);
             });
             while (true) {
                 LOG.debug("Polling ...");

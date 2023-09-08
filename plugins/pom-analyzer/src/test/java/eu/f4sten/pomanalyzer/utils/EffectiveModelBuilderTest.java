@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -35,8 +33,8 @@ import org.jboss.shrinkwrap.resolver.impl.maven.logging.LogTransferListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import eu.fasten.core.maven.utils.MavenUtilities;
-import eu.fasten.core.utils.TestUtils;
+import dev.c0ps.commons.ResourceUtils;
+import dev.c0ps.maven.MavenUtilities;
 
 public class EffectiveModelBuilderTest {
 
@@ -115,9 +113,9 @@ public class EffectiveModelBuilderTest {
         assertEquals(expected, actual);
     }
 
-    private static Model buildEffectiveModel(String pathToPom) {
-        var fullPath = Path.of(EffectiveModelBuilderTest.class.getSimpleName(), pathToPom);
-        File pom = TestUtils.getTestResource(fullPath.toString());
+    private static Model buildEffectiveModel(String relPathToPom) {
+        var pathToPom = EffectiveModelBuilderTest.class.getSimpleName() + "/" + relPathToPom;
+        var pom = ResourceUtils.getTestResource(pathToPom);
         // resolve once to make sure all dependencies exist in local repo
         new Resolver().resolveDependenciesFromPom(pom, MavenUtilities.MAVEN_CENTRAL_REPO);
         var sut = new EffectiveModelBuilder();

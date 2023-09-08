@@ -15,15 +15,15 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
-import com.google.inject.Inject;
-import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.f4sten.sourcesprovider.data.SourcePayload;
-import eu.fasten.core.data.Constants;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import eu.f4sten.pomanalyzer.data.MavenId;
+import eu.f4sten.sourcesprovider.data.SourcePayload;
+import jakarta.inject.Inject;
 
 public class PayloadParsing {
     private final SourcesJarProvider sourcesJarProvider;
@@ -44,7 +44,7 @@ public class PayloadParsing {
                 var other = json.get(key);
                 if (other instanceof JSONObject) {
                     var otherPayload = findSourcePayload((JSONObject) other);
-                    if(otherPayload != null) {
+                    if (otherPayload != null) {
                         return otherPayload;
                     }
                 }
@@ -55,7 +55,7 @@ public class PayloadParsing {
 
     public SourcePayload parse(JSONObject payload) {
         SourcePayload result = trySourcePayload(payload);
-        if(result == null) {
+        if (result == null) {
             result = tryMavenSourcePayload(payload);
         }
         return result;
@@ -63,10 +63,7 @@ public class PayloadParsing {
 
     private SourcePayload trySourcePayload(JSONObject payload) {
         try {
-            return new SourcePayload(payload.getString("forge"),
-                    payload.getString("product"),
-                    payload.getString("version"),
-                    payload.getString("sourcePath"));
+            return new SourcePayload(payload.getString("forge"), payload.getString("product"), payload.getString("version"), payload.getString("sourcePath"));
         } catch (JSONException e) {
             return null;
         }
@@ -74,17 +71,14 @@ public class PayloadParsing {
 
     private SourcePayload tryMavenSourcePayload(JSONObject payload) {
         try {
-            if(payload.getString("forge").equals(Constants.mvnForge)) {
+            if (payload.getString("forge").equals("mvn")) {
                 var sourcesUrl = new URL(payload.getString("sourcesUrl"));
                 var mavenId = new MavenId();
                 mavenId.groupId = payload.getString("groupId");
                 mavenId.artifactId = payload.getString("artifactId");
                 mavenId.version = payload.getString("version");
                 var sourcesPath = sourcesJarProvider.downloadSourcesJar(mavenId, sourcesUrl);
-                return new SourcePayload(Constants.mvnForge,
-                        payload.getString("groupId") + Constants.mvnCoordinateSeparator + payload.getString("artifactId"),
-                        payload.getString("version"),
-                        sourcesPath);
+                return new SourcePayload("mvn", payload.getString("groupId") + ":" + payload.getString("artifactId"), payload.getString("version"), sourcesPath);
             } else {
                 return null;
             }

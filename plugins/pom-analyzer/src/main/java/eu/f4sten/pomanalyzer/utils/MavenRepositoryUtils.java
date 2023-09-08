@@ -35,8 +35,8 @@ import org.jboss.shrinkwrap.resolver.impl.maven.SettingsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.fasten.core.maven.data.Pom;
-import eu.fasten.core.utils.Asserts;
+import dev.c0ps.commons.Asserts;
+import dev.c0ps.maven.data.Pom;
 
 public class MavenRepositoryUtils {
 
@@ -60,9 +60,7 @@ public class MavenRepositoryUtils {
     }
 
     private static String getUrl(Pom r, String classifier) {
-        if (isNullEmptyOrUnset(r.artifactRepository) || isNullEmptyOrUnset(r.groupId)
-                || isNullEmptyOrUnset(r.artifactId) || isNullEmptyOrUnset(r.packagingType)
-                || isNullEmptyOrUnset(r.version)) {
+        if (isNullEmptyOrUnset(r.artifactRepository) || isNullEmptyOrUnset(r.groupId) || isNullEmptyOrUnset(r.artifactId) || isNullEmptyOrUnset(r.packagingType) || isNullEmptyOrUnset(r.version)) {
             throw new IllegalArgumentException("cannot build sources URL with missing package information");
         }
         Asserts.assertContains(ALLOWED_CLASSIFIERS, classifier);
@@ -71,8 +69,7 @@ public class MavenRepositoryUtils {
         if (!ar.endsWith("/")) {
             ar += "/";
         }
-        var url = ar + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/" + r.artifactId + "-"
-                + r.version + classifierStr + "." + r.packagingType;
+        var url = ar + r.groupId.replace('.', '/') + "/" + r.artifactId + "/" + r.version + "/" + r.artifactId + "-" + r.version + classifierStr + "." + r.packagingType;
         return url;
     }
 

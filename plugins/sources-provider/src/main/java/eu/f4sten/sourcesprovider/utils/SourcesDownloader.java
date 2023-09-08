@@ -1,7 +1,9 @@
 package eu.f4sten.sourcesprovider.utils;
 
-import com.google.inject.Inject;
-import eu.f4sten.infra.utils.IoUtils;
+import jakarta.inject.Inject;
+
+import dev.c0ps.io.IoUtils;
+
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;

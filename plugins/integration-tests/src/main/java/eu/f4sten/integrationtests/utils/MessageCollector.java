@@ -15,7 +15,7 @@
  */
 package eu.f4sten.integrationtests.utils;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static dev.c0ps.franz.Lane.NORMAL;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_INSTANCE_ID_CONFIG;
 
@@ -30,12 +30,11 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import javax.inject.Inject;
-
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import eu.f4sten.infra.impl.kafka.KafkaConnector;
+import dev.c0ps.franz.KafkaConnector;
+import jakarta.inject.Inject;
 
 public class MessageCollector {
 

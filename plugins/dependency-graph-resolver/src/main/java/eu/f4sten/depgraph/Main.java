@@ -15,30 +15,29 @@
  */
 package eu.f4sten.depgraph;
 
-import static eu.fasten.core.maven.resolution.MavenResolverIO.simplify;
-import static eu.fasten.core.utils.MemoryUsageUtils.logMemoryUsage;
+import static dev.c0ps.commons.MemoryUsageUtils.logMemoryUsage;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.http.HttpServer;
-import eu.f4sten.infra.json.TRef;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.io.IoUtils;
+import dev.c0ps.io.TRef;
+import dev.c0ps.libhttpd.HttpServer;
+import dev.c0ps.maven.MavenUtilities;
+import dev.c0ps.maven.data.Pom;
+import dev.c0ps.maven.resolution.MavenResolverData;
+import dev.c0ps.maven.rest.DependencyGraphResolutionService;
 import eu.f4sten.infra.kafka.DefaultTopics;
-import eu.f4sten.infra.kafka.Kafka;
 import eu.f4sten.infra.kafka.Message;
-import eu.f4sten.infra.utils.IoUtils;
-import eu.fasten.core.maven.data.Pom;
-import eu.fasten.core.maven.resolution.MavenResolverData;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final int NUM_TO_REPORT = 1000;
@@ -64,7 +63,7 @@ public class Main implements Plugin {
 
     @Override
     public void run() {
-        server.register(DependencyGraphResolution.class);
+        server.register(DependencyGraphResolutionService.class);
         server.start();
 
         LOG.info("Storage location for poms: {}", dbFile());
@@ -74,7 +73,7 @@ public class Main implements Plugin {
         kafka.subscribe(DefaultTopics.POM_ANALYZER, new TRef<Message<Void, Pom>>() {}, (m, l) -> {
             numPomsAddedSinceLastStore++;
             logProgress(m.payload);
-            var pom = simplify(m.payload);
+            var pom = MavenUtilities.simplify(m.payload);
             poms.add(pom);
 
             data.add(pom);

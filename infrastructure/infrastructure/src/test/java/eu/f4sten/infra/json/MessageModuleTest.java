@@ -32,9 +32,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import dev.c0ps.io.ObjectMapperBuilder;
+import dev.c0ps.io.TRef;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.infra.kafka.Message.Error;
-import eu.fasten.core.json.ObjectMapperBuilder;
 
 public class MessageModuleTest {
 

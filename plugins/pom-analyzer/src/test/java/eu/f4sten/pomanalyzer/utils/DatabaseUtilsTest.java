@@ -15,7 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static dev.c0ps.franz.Lane.NORMAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,14 +43,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import eu.f4sten.infra.json.JsonUtils;
+import dev.c0ps.io.JsonUtils;
+import dev.c0ps.maven.MavenUtilities;
+import dev.c0ps.maven.data.Dependency;
+import dev.c0ps.maven.data.PomBuilder;
+import eu.f4sten.infra.exceptions.UnrecoverableError;
 import eu.f4sten.infra.utils.Version;
-import eu.fasten.core.data.Constants;
-import eu.fasten.core.data.metadatadb.MetadataDao;
-import eu.fasten.core.exceptions.UnrecoverableError;
-import eu.fasten.core.maven.data.Dependency;
-import eu.fasten.core.maven.data.PomBuilder;
-import eu.fasten.core.maven.utils.MavenUtilities;
 
 public class DatabaseUtilsTest {
 
@@ -100,7 +98,7 @@ public class DatabaseUtilsTest {
         var result = getSomeResult();
         result.artifactRepository = MavenUtilities.MAVEN_CENTRAL_REPO;
         sut.save(result.pom());
-        verify(dao).insertPackage("g:a", Constants.mvnForge, result.projectName, result.repoUrl, null);
+        verify(dao).insertPackage("g:a", "mvn", result.projectName, result.repoUrl, null);
     }
 
     @Test
@@ -130,8 +128,7 @@ public class DatabaseUtilsTest {
 
         var captor = ArgumentCaptor.forClass(String.class);
 
-        verify(dao).insertPackageVersion(eq(123L), eq(Constants.opalGenerator), eq(result.version), eq(234L), eq(null),
-                eq(new Timestamp(result.releaseDate)), captor.capture());
+        verify(dao).insertPackageVersion(eq(123L), eq("OPAL"), eq(result.version), eq(234L), eq(null), eq(new Timestamp(result.releaseDate)), captor.capture());
 
         var actualJson = captor.getValue();
         var expectedJson = "<some json>";
@@ -147,17 +144,15 @@ public class DatabaseUtilsTest {
 
         when(dao.insertPackage(anyString(), anyString(), anyString(), anyString(), eq(null))).thenReturn(123L);
         when(dao.insertPackage(anyString(), anyString())).thenReturn(123L);
-        when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class),
-                any(String.class))).thenReturn(234L);
+        when(dao.insertPackageVersion(anyLong(), anyString(), anyString(), anyLong(), eq(null), any(Timestamp.class), any(String.class))).thenReturn(234L);
 
         sut.save(result.pom());
 
         var arrCaptor = ArgumentCaptor.forClass(String[].class);
         var jsonCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(dao).insertPackage("dg1:da1", Constants.mvnForge);
-        verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null),
-                jsonCaptor.capture());
+        verify(dao).insertPackage("dg1:da1", "mvn");
+        verify(dao).insertDependency(eq(234L), eq(123L), arrCaptor.capture(), eq(null), eq(null), eq(null), jsonCaptor.capture());
 
         var actual = arrCaptor.getValue();
         assertEquals(1, actual.length);

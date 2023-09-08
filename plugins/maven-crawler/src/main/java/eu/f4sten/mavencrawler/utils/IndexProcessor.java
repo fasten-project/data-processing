@@ -15,19 +15,15 @@
  */
 package eu.f4sten.mavencrawler.utils;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
-
-import java.util.Set;
-
-import javax.inject.Inject;
+import static dev.c0ps.franz.Lane.NORMAL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.kafka.Kafka;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
 import eu.f4sten.mavencrawler.MavenCrawlerArgs;
-import eu.f4sten.pomanalyzer.data.MavenId;
+import jakarta.inject.Inject;
 
 public class IndexProcessor {
 
@@ -35,18 +31,16 @@ public class IndexProcessor {
 
     private final MavenCrawlerArgs args;
     private final LocalStore store;
-    private final RemoteUtils utils;
-    private final FileReader reader;
+    private final EasyIndexClient utils;
     private final Kafka kafka;
 
     @Inject
-    public IndexProcessor(MavenCrawlerArgs args, LocalStore store, RemoteUtils utils, FileReader reader, Kafka kafka) {
+    public IndexProcessor(MavenCrawlerArgs args, LocalStore store, EasyIndexClient utils, Kafka kafka) {
         AssertArgs.assertFor(args) //
                 .notNull(a -> a.kafkaOut, "kafka output");
         this.args = args;
         this.store = store;
         this.utils = utils;
-        this.reader = reader;
         this.kafka = kafka;
     }
 
@@ -62,8 +56,7 @@ public class IndexProcessor {
     }
 
     private void process(int idx) {
-        var file = utils.download(idx);
-        Set<MavenId> artifacts = reader.readIndexFile(file);
+        var artifacts = utils.get(idx);
         LOG.info("Publishing {} coordinates ...", artifacts.size());
         for (var ma : artifacts) {
             LOG.debug("Publishing: {}:{}:{}", ma.groupId, ma.artifactId, ma.version);

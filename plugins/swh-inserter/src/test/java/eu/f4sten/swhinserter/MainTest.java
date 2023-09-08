@@ -30,9 +30,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.infra.utils.IoUtils;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.io.IoUtils;
 import eu.f4sten.sourcesprovider.data.SourcePayload;
 
 public class MainTest {

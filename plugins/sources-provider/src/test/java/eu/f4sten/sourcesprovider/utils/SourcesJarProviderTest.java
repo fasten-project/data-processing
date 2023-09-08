@@ -15,12 +15,11 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
-import eu.f4sten.infra.utils.IoUtils;
-import eu.f4sten.pomanalyzer.data.MavenId;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static dev.c0ps.commons.ResourceUtils.getTestResource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,11 +30,13 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static eu.fasten.core.utils.TestUtils.getTestResource;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import dev.c0ps.io.IoUtils;
+import eu.f4sten.pomanalyzer.data.MavenId;
 
 class SourcesJarProviderTest {
 
@@ -45,8 +46,7 @@ class SourcesJarProviderTest {
 
     private final URL testUrl = new URL("https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17-sources.jar");
 
-    SourcesJarProviderTest() throws MalformedURLException {
-    }
+    SourcesJarProviderTest() throws MalformedURLException {}
 
     @BeforeEach
     void setUp() throws IOException {
@@ -57,8 +57,7 @@ class SourcesJarProviderTest {
         provider = new SourcesJarProvider(io, sd);
         when(io.getBaseFolder()).thenReturn(baseDir);
         when(io.getTempFolder()).thenReturn(tempDir);
-        when(sd.getFromUrl(testUrl))
-                .thenReturn(getTestResource("SourcesJarProviderTest/log4j-1.2.17-sources"));
+        when(sd.getFromUrl(testUrl)).thenReturn(getTestResource("SourcesJarProviderTest/log4j-1.2.17-sources"));
     }
 
     @Test

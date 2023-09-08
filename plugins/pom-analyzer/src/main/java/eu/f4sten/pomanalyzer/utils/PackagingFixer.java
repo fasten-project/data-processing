@@ -15,12 +15,11 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.fasten.core.maven.data.Pom;
+import dev.c0ps.maven.data.Pom;
+import jakarta.inject.Inject;
 
 public class PackagingFixer {
 

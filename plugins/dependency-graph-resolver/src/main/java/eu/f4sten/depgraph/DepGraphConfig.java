@@ -18,13 +18,13 @@ package eu.f4sten.depgraph;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 
-import eu.f4sten.infra.IInjectorConfig;
-import eu.f4sten.infra.InjectorConfig;
-import eu.fasten.core.maven.resolution.IMavenResolver;
-import eu.fasten.core.maven.resolution.MavenDependencyResolver;
-import eu.fasten.core.maven.resolution.MavenDependentsResolver;
-import eu.fasten.core.maven.resolution.MavenResolver;
-import eu.fasten.core.maven.resolution.MavenResolverData;
+import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.InjectorConfig;
+import dev.c0ps.maven.resolution.IMavenResolver;
+import dev.c0ps.maven.resolution.MavenDependencyResolver;
+import dev.c0ps.maven.resolution.MavenDependentsResolver;
+import dev.c0ps.maven.resolution.MavenResolver;
+import dev.c0ps.maven.resolution.MavenResolverData;
 
 @InjectorConfig
 public class DepGraphConfig implements IInjectorConfig {

@@ -19,19 +19,17 @@ import java.io.File;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.infra.utils.IoUtils;
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.io.IoUtils;
 import eu.f4sten.sourcesprovider.data.SourcePayload;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 

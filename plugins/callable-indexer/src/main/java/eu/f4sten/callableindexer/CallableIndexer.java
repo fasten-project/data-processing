@@ -15,12 +15,10 @@
  */
 package eu.f4sten.callableindexer;
 
-import javax.inject.Inject;
+import dev.c0ps.io.JsonUtils;
+import jakarta.inject.Inject;
 
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.json.JsonUtils;
-
-public class CallableIndexer implements Plugin {
+public class CallableIndexer implements Runnable {
 
     @Inject
     public CallableIndexer(JsonUtils ju) {}

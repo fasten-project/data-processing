@@ -15,22 +15,21 @@
  */
 package eu.f4sten.sourcesprovider.utils;
 
-import eu.fasten.core.data.Constants;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.nio.file.Files;
-
-import static eu.fasten.core.utils.TestUtils.getTestResource;
+import static dev.c0ps.commons.ResourceUtils.getTestResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class PayloadParsingTest {
     private PayloadParsing pp;
@@ -47,7 +46,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/java_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals(Constants.mvnForge, payload.getForge());
+        assertEquals("mvn", payload.getForge());
         assertEquals("commons-codec:commons-codec", payload.getProduct());
         assertEquals("1.10", payload.getVersion());
         assertEquals("/test/path", payload.getSourcePath());
@@ -58,7 +57,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/python_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals(Constants.pypiForge, payload.getForge());
+        assertEquals("PyPI", payload.getForge());
         assertEquals("pycg-stitch", payload.getProduct());
         assertEquals("0.0.7", payload.getVersion());
         assertEquals("/mnt/fasten/revision-callgraphs/pypi/pypi/sources/p/pycg-stitch/0.0.7", payload.getSourcePath());
@@ -69,7 +68,7 @@ class PayloadParsingTest {
         var message = new JSONObject(Files.readString(getTestResource("PayloadParsingTest/c_metadatadb_extension_message.json").toPath()));
         var payload = pp.findSourcePayload(message);
         assertNotNull(payload);
-        assertEquals(Constants.debianForge, payload.getForge());
+        assertEquals("debian", payload.getForge());
         assertEquals("anna", payload.getProduct());
         assertEquals("1.71", payload.getVersion());
         assertEquals("/mnt/fasten/revision-callgraphs/debian/sources/a/anna/1.71", payload.getSourcePath());

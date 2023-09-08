@@ -15,7 +15,7 @@
  */
 package eu.f4sten.pomanalyzer.utils;
 
-import static eu.fasten.core.maven.utils.MavenUtilities.MAVEN_CENTRAL_REPO;
+import static dev.c0ps.maven.MavenUtilities.MAVEN_CENTRAL_REPO;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,9 +34,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import dev.c0ps.commons.ResourceUtils;
+import dev.c0ps.test.TestLoggerUtils;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
-import eu.f4sten.test.TestLoggerUtils;
-import eu.fasten.core.utils.TestUtils;
 
 // The artifact source resolution breaks caching mechanisms by deleting packages from the
 // local .m2 folder. This exact functionality is tested here, so the test suite will download
@@ -92,8 +92,7 @@ public class ResolverTest {
         FileUtils.deleteQuietly(r.localPomFile);
         FileUtils.deleteQuietly(r.getLocalPackageFile());
         sut.resolveIfNotExisting(r);
-        TestLoggerUtils.assertLogsContain(Resolver.class,
-                "INFO Resolving/downloading POM file that does not exist in .m2 folder ...");
+        TestLoggerUtils.assertLogsContain(Resolver.class, "INFO Resolving/downloading POM file that does not exist in .m2 folder ...");
     }
 
     @Test
@@ -102,8 +101,7 @@ public class ResolverTest {
         sut.resolveIfNotExisting(r);
         TestLoggerUtils.clearLog();
         sut.resolveIfNotExisting(r);
-        TestLoggerUtils.assertLogsContain(Resolver.class,
-                "INFO Found artifact in .m2 folder: io.vertx:vertx-core:jar:4.2.4 (%s)", MAVEN_CENTRAL);
+        TestLoggerUtils.assertLogsContain(Resolver.class, "INFO Found artifact in .m2 folder: io.vertx:vertx-core:jar:4.2.4 (%s)", MAVEN_CENTRAL);
     }
 
     @Test
@@ -196,7 +194,7 @@ public class ResolverTest {
 
     private Set<ResolutionResult> resolveTestPom(String pathToPom) {
         var fullPath = Path.of(ResolverTest.class.getSimpleName(), pathToPom);
-        File pom = TestUtils.getTestResource(fullPath.toString());
+        File pom = ResourceUtils.getTestResource(fullPath.toString());
         return sut.resolveDependenciesFromPom(pom, MAVEN_CENTRAL_REPO);
     }
 }

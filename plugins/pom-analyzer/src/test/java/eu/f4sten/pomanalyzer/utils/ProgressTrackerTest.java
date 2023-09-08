@@ -30,8 +30,8 @@ import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import eu.f4sten.infra.kafka.Lane;
-import eu.f4sten.pomanalyzer.data.MavenId;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.maveneasyindex.Artifact;
 import eu.f4sten.pomanalyzer.data.ResolutionResult;
 
 public class ProgressTrackerTest {
@@ -78,7 +78,7 @@ public class ProgressTrackerTest {
 
     @Test
     public void originalCanBeSet() {
-        var id = mock(MavenId.class);
+        var id = mock(Artifact.class);
         sut.startNextOriginal(id);
         assertEquals(id, sut.getCurrentOriginal());
     }

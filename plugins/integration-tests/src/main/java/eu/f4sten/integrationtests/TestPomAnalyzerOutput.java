@@ -15,24 +15,22 @@
  */
 package eu.f4sten.integrationtests;
 
+import static dev.c0ps.franz.Lane.ERROR;
+import static dev.c0ps.franz.Lane.NORMAL;
+import static dev.c0ps.franz.Lane.PRIORITY;
 import static eu.f4sten.infra.kafka.DefaultTopics.POM_ANALYZER;
-import static eu.f4sten.infra.kafka.Lane.ERROR;
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
-import static eu.f4sten.infra.kafka.Lane.PRIORITY;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
-import com.google.inject.Inject;
-
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.json.TRef;
+import dev.c0ps.io.TRef;
+import dev.c0ps.maven.data.Pom;
 import eu.f4sten.infra.kafka.Message;
 import eu.f4sten.integrationtests.utils.Messages;
 import eu.f4sten.pomanalyzer.data.MavenId;
-import eu.fasten.core.maven.data.Pom;
+import jakarta.inject.Inject;
 
-public class TestPomAnalyzerOutput implements Plugin {
+public class TestPomAnalyzerOutput implements Runnable {
 
     private final Messages msgs;
 
@@ -89,8 +87,7 @@ public class TestPomAnalyzerOutput implements Plugin {
     }
 
     private String toCoord(Pom res) {
-        return String.format("%s:%s:%s:%s (%s)", res.groupId, res.artifactId, res.packagingType, res.version,
-                res.artifactRepository);
+        return String.format("%s:%s:%s:%s (%s)", res.groupId, res.artifactId, res.packagingType, res.version, res.artifactRepository);
     }
 
     private String toCoord(MavenId id) {

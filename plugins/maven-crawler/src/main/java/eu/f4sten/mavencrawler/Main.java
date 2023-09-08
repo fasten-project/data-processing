@@ -19,12 +19,10 @@ import static java.util.concurrent.TimeUnit.HOURS;
 
 import java.util.concurrent.Executors;
 
-import javax.inject.Inject;
-
-import eu.f4sten.infra.Plugin;
 import eu.f4sten.mavencrawler.utils.IndexProcessor;
+import jakarta.inject.Inject;
 
-public class Main implements Plugin {
+public class Main implements Runnable {
 
     private final IndexProcessor processor;
 

@@ -15,31 +15,28 @@
  */
 package eu.f4sten.mavencrawler.utils;
 
-import static eu.f4sten.infra.kafka.Lane.NORMAL;
+import static dev.c0ps.franz.Lane.NORMAL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import eu.f4sten.infra.kafka.Kafka;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.maveneasyindex.Artifact;
 import eu.f4sten.mavencrawler.MavenCrawlerArgs;
-import eu.f4sten.pomanalyzer.data.MavenId;
 
 public class IndexProcessorTest {
 
-    private static final File SOME_FILE = mock(File.class);
-    private static final MavenId SOME_MAVEN_ID = mock(MavenId.class);
+    private static final Artifact SOME_MAVEN_ID = mock(Artifact.class);
     private static final String SOME_TOPIC = "abcd";
 
     private MavenCrawlerArgs args;
     private LocalStore store;
-    private RemoteUtils utils;
-    private FileReader reader;
+    private EasyIndexClient utils;
     private Kafka kafka;
 
     private IndexProcessor sut;
@@ -49,10 +46,9 @@ public class IndexProcessorTest {
         args = new MavenCrawlerArgs();
         args.kafkaOut = SOME_TOPIC;
         store = mock(LocalStore.class);
-        utils = mock(RemoteUtils.class);
-        reader = mock(FileReader.class);
+        utils = mock(EasyIndexClient.class);
         kafka = mock(Kafka.class);
-        sut = new IndexProcessor(args, store, utils, reader, kafka);
+        sut = new IndexProcessor(args, store, utils, kafka);
     }
 
     @Test
@@ -60,16 +56,14 @@ public class IndexProcessorTest {
 
         when(store.getNextIndex()).thenReturn(123);
         when(utils.exists(123)).thenReturn(true);
-        when(utils.download(123)).thenReturn(SOME_FILE);
-        when(reader.readIndexFile(SOME_FILE)).thenReturn(Set.of(SOME_MAVEN_ID));
+        when(utils.get(123)).thenReturn(List.of(SOME_MAVEN_ID));
 
         sut.tryProcessingNextIndices();
 
         // first iteration
         verify(store).getNextIndex();
         verify(utils).exists(123);
-        verify(utils).download(123);
-        verify(reader).readIndexFile(SOME_FILE);
+        verify(utils).get(123);
         verify(kafka).publish(SOME_MAVEN_ID, SOME_TOPIC, NORMAL);
         // second iteration
         verify(utils).exists(124);

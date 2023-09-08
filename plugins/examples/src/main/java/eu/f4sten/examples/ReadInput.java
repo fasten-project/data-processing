@@ -20,15 +20,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 
-import com.google.inject.Inject;
-
+import dev.c0ps.diapper.AssertArgs;
+import dev.c0ps.franz.Kafka;
+import dev.c0ps.franz.Lane;
 import eu.f4sten.examples.data.SomeInputData;
-import eu.f4sten.infra.AssertArgs;
-import eu.f4sten.infra.Plugin;
-import eu.f4sten.infra.kafka.Kafka;
-import eu.f4sten.infra.kafka.Lane;
+import jakarta.inject.Inject;
 
-public class ReadInput implements Plugin {
+public class ReadInput implements Runnable {
 
     private final Kafka kafka;
     private final MyArgs args;

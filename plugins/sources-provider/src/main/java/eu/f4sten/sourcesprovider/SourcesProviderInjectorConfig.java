@@ -16,8 +16,9 @@
 package eu.f4sten.sourcesprovider;
 
 import com.google.inject.Binder;
-import eu.f4sten.infra.IInjectorConfig;
-import eu.f4sten.infra.InjectorConfig;
+
+import dev.c0ps.diapper.IInjectorConfig;
+import dev.c0ps.diapper.InjectorConfig;
 
 @InjectorConfig
 public class SourcesProviderInjectorConfig implements IInjectorConfig {

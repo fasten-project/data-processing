@@ -19,13 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import com.google.common.base.Function;
 
-import eu.f4sten.infra.json.JsonUtils;
-import eu.f4sten.infra.json.TRef;
-import eu.f4sten.infra.kafka.Lane;
+import dev.c0ps.franz.Lane;
+import dev.c0ps.io.JsonUtils;
+import dev.c0ps.io.TRef;
+import eu.f4sten.infra.impl.kafka.FastenKafkaImpl;
+import jakarta.inject.Inject;
 
 public class Messages {
 
@@ -66,7 +66,7 @@ public class Messages {
                 .collect(Collectors.toList());
     }
 
-    public String topic(String baseTopic, Lane normal) {
-        return String.format("%s.%s", baseTopic, normal.extension);
+    public String topic(String baseTopic, Lane l) {
+        return String.format("%s%s", baseTopic, FastenKafkaImpl.extension(l));
     }
 }
