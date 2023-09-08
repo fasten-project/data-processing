@@ -18,18 +18,17 @@ package eu.f4sten.pomanalyzer;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
-import com.google.inject.Binder;
 import com.google.inject.Provides;
 
-import dev.c0ps.diapper.IInjectorConfig;
 import dev.c0ps.diapper.InjectorConfig;
+import dev.c0ps.diapper.InjectorConfigBase;
 import dev.c0ps.io.JsonUtils;
 import eu.f4sten.infra.utils.PostgresConnector;
 import eu.f4sten.infra.utils.Version;
 import eu.f4sten.pomanalyzer.utils.DatabaseUtils;
 
 @InjectorConfig
-public class PomAnalyzerInjectorConfig implements IInjectorConfig {
+public class PomAnalyzerInjectorConfig extends InjectorConfigBase {
 
     private PomAnalyzerArgs args;
 
@@ -37,9 +36,9 @@ public class PomAnalyzerInjectorConfig implements IInjectorConfig {
         this.args = args;
     }
 
-    @Override
-    public void configure(Binder binder) {
-        binder.bind(PomAnalyzerArgs.class).toInstance(args);
+    @Provides
+    public PomAnalyzerArgs providePomAnalyzerArgs() {
+        return args;
     }
 
     @Provides
