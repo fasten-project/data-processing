@@ -16,6 +16,7 @@
 package eu.f4sten.loader;
 
 import dev.c0ps.diapper.Runner;
+import dev.c0ps.diapper.VmArgs;
 
 public class Main {
 
@@ -24,6 +25,7 @@ public class Main {
     }
 
     public static void main(String[] rawArgs) {
+        VmArgs.log(rawArgs);
         var runner = new Runner(new LogSettings(), "eu.f4sten");
         runner.run(rawArgs);
     }

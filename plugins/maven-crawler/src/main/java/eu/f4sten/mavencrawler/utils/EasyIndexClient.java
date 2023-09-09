@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.c0ps.maveneasyindex.Artifact;
 import dev.c0ps.maveneasyindex.ArtifactModule;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -37,6 +38,7 @@ public class EasyIndexClient {
     private final Client client;
     private final String serverUrl;
 
+    @Inject
     public EasyIndexClient(@Named("EasyIndexClient.serverUrl") String serverUrl) {
         this.serverUrl = serverUrl;
         this.client = setupClient();

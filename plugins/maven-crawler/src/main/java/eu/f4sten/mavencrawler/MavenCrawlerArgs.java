@@ -21,12 +21,12 @@ import eu.f4sten.infra.kafka.DefaultTopics;
 
 public class MavenCrawlerArgs {
 
-    @Parameter(names = "--mc.firstConsideredIndex")
+    @Parameter(names = "--mc.firstConsideredIndex", arity = 1)
     public int firstConsideredIndex = 700; // released on 2021-09-28
 
-    @Parameter(names = "--mc.kafkaOut")
+    @Parameter(names = "--mc.kafkaOut", arity = 1)
     public String kafkaOut = DefaultTopics.INGEST;
 
-    @Parameter(names = "--mc.easyIndexUrl")
+    @Parameter(names = "--mc.easyIndexUrl", arity = 1)
     public String easyIndexUrl;
 }
