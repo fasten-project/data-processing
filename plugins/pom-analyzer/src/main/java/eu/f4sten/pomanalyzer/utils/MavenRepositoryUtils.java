@@ -16,6 +16,9 @@
 package eu.f4sten.pomanalyzer.utils;
 
 import static java.util.Locale.ENGLISH;
+import static org.apache.http.HttpStatus.SC_MOVED_PERMANENTLY;
+import static org.apache.http.HttpStatus.SC_MOVED_TEMPORARILY;
+import static org.apache.http.HttpStatus.SC_TEMPORARY_REDIRECT;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +31,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.http.HttpStatus;
 import org.apache.maven.settings.Settings;
@@ -89,17 +94,12 @@ public class MavenRepositoryUtils {
                 return new UrlCheck(url, lastModified);
             }
 
-            if (statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-                var newLocation = response.headers().firstValue("location");
-                if (newLocation.isPresent()) {
-                    return checkGetRequest(newLocation.get());
-                }
-            }
-
-            if (statusCode == HttpStatus.SC_TEMPORARY_REDIRECT) {
-                var newLocation = response.headers().firstValue("location");
-                if (newLocation.isPresent()) {
-                    return checkGetRequest(newLocation.get());
+            for (var scMoved : Set.of(SC_MOVED_TEMPORARILY, SC_MOVED_PERMANENTLY, SC_TEMPORARY_REDIRECT)) {
+                if (statusCode == scMoved) {
+                    var newLocation = getField(response, "Location", "location");
+                    if (newLocation.isPresent()) {
+                        return checkGetRequest(newLocation.get());
+                    }
                 }
             }
 
@@ -109,7 +109,17 @@ public class MavenRepositoryUtils {
         }
     }
 
-    private static Date getDateOrNull(HttpResponse<Void> response, String def, String... keys) {
+    private static Optional<String> getField(HttpResponse<Void> response, String... keys) {
+        for (String key : keys) {
+            var val = response.headers().firstValue(key);
+            if (val.isPresent()) {
+                return val;
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Date getDateOrNull(HttpResponse<Void> response, String... keys) {
         var headers = response.headers();
         for (var key : keys) {
             var val = headers.firstValue(key);
