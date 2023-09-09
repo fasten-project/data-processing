@@ -95,6 +95,7 @@ public class Resolver {
             MavenResolvedArtifactImpl.artifactRepositories = res;
             Maven.configureResolver() //
                     .withClassPathResolution(false) //
+                    .withMavenCentralRepo(true) //
                     .withRemoteRepo(getRepo(artifactRepository)) //
                     .loadPomFromFile(f) //
                     .importDependencies(COMPILE, RUNTIME, PROVIDED, SYSTEM, TEST) //
