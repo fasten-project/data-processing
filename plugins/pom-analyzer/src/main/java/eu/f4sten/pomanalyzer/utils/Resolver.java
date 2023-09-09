@@ -136,9 +136,10 @@ public class Resolver {
     private void resolvePom(ResolutionResult artifact) {
         Maven.configureResolver() //
                 .withClassPathResolution(false) //
+                .withMavenCentralRepo(true) //
                 .withRemoteRepo(getRepo(artifact.artifactRepository)) //
                 .resolve(artifact.coordinate.replace("?", "pom")) //
-                .withoutTransitivity() //
+                .withTransitivity() //
                 .asResolvedArtifact();
     }
 
@@ -150,6 +151,9 @@ public class Resolver {
     }
 
     private static String getRepoName(String url) {
+        if ("https://repo1.maven.org/maven2/".equals(url)) {
+            return "central";
+        }
         var simplifiedUrl = url.replaceAll("[^a-zA-Z0-9-]+", "");
         return format("%s-%s", Resolver.class.getName(), simplifiedUrl);
     }
