@@ -3,13 +3,13 @@
 
     <groupId>eu.fasten-project</groupId>
     <artifactId>releng</artifactId>
-    <version>0.0.17</version>
+    <version>0.0.18-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- automatically set through: mvn versions:set -DupdateBuildOutputTimestampPolicy=always -DnewVersion=... -->
-        <project.build.outputTimestamp>2023-09-10T00:52:06Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2023-09-10T00:55:38Z</project.build.outputTimestamp>
     </properties>
 
     <modules>
