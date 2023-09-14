@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * This class allows to resolve Maven artifact in order to build a Maven model
@@ -109,20 +108,20 @@ public class RepositoryModelResolver implements ModelResolver {
 
             logger.debug("Downloading " + url);
 
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
+            var client = new OkHttpClient();
+            var request = new Request.Builder()
                     .url(url)
                     .build();
 
-            Response response = client.newCall(request).execute();
-
-            if (response.code() == 200) {
-                localRepoFile.getParentFile().mkdirs();
-                FileWriter out = new FileWriter(localRepoFile);
-                out.write(response.body().string());
-                out.flush();
-                out.close();
-                return;
+            try(var response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    localRepoFile.getParentFile().mkdirs();
+                    FileWriter out = new FileWriter(localRepoFile);
+                    out.write(response.body().string());
+                    out.flush();
+                    out.close();
+                    return;
+                }
             }
         }
     }
